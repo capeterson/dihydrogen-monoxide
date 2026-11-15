@@ -173,7 +173,7 @@ Three modules are added to PLAN §2's layout, plus four small support modules. A
 | `:core:database` | Android library | Room entities, DAOs, schema | `:core:model` |
 | `:core:datastore` | Android library | settings and device-state stores | `:core:model`, `:core:common` |
 | `:core:data` **new** | Android library | repositories, controller interfaces, use cases, Hilt bindings (§6) | `:core:model`, `:core:common`, `:core:domain`, `:core:backup`, `:core:database`, `:core:datastore` |
-| `:core:designsystem` | Android library (Compose) | theme, colours, typography, shared components (`ProgressRing`, `VolumeText`, `DhmoScaffold`, icons) | `:core:model` |
+| `:core:designsystem` | Android library (Compose) | theme, colours, typography, shared components (`ProgressRing`, `VolumeText`, `DhmoScaffold`, icons) | `:core:model`, `:core:domain` (for `VolumeFormatter`) |
 | `:core:network` **new** | Android library | shared `OkHttpClient` and `Json` | `:core:common` |
 | `:core:reminders` **new** | Android library | scheduler, receivers, notifications (§8.6) | `:core:data`, `:core:domain`, `:core:model`, `:core:common` |
 | `:core:weather` **new** | Android library | Open-Meteo provider, location refresher, weather worker (§12) | `:core:data`, `:core:network`, `:core:domain`, `:core:model`, `:core:common` |
@@ -198,7 +198,7 @@ Allowed edges, as a picture (an arrow means "depends on"):
   │            │           │   ├──► core:datastore ──► core:model, core:common
   │            │           │   ├──► core:domain ─────► core:model
   │            │           │   └──► core:backup ─────► core:model
-  │            └──► core:designsystem ──► core:model
+  │            └──► core:designsystem ──► core:model, core:domain
   ├──► core:reminders ──► core:data
   ├──► core:weather ────► core:data, core:network
   ├──► sync:healthconnect ──► core:data, core:database
