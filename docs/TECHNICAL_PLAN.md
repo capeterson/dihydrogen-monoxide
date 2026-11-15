@@ -49,7 +49,7 @@ These settle points PLAN.md left open or stated two ways. None contradicts a con
 | D17 | Encryption | PBKDF2-HMAC-SHA256, 600,000 iterations, 16-byte salt, AES-256-GCM with a 12-byte nonce; derived key wrapped by Android Keystore for scheduled backups. | §11.4 |
 | D18 | Hydration record interval | Health Connect writes use `endTime = startTime + 1 s`, because the client rejects equal times. | §10.5 |
 | D19 | Adopted imports | Editable locally, never overwritten by the source app, never written back to Health Connect. | §10.6 |
-| D20 | Application id | `io.github.capeterson.dhmo`, to be confirmed before the first Play upload. | §3.1 |
+| D20 | Application id | `casa.peterson.dhmo` (confirmed by the owner). | §3.1 |
 
 ---
 
@@ -152,8 +152,8 @@ Not used, and why: protobuf (D1); kotlinx-datetime (`java.time` suffices at `min
 | Item | Value |
 |---|---|
 | Root project name | `dihydrogen-monoxide` |
-| `applicationId` | `io.github.capeterson.dhmo` (debug builds add the suffix `.debug`). An application id is permanent once published, so confirm it before the first Play upload (T0 may keep this value; changing it later is a one-line edit until release). |
-| Base package / namespace | `io.github.capeterson.dhmo`; each module's namespace is `io.github.capeterson.dhmo.<path with dots>`, for example `io.github.capeterson.dhmo.core.database`, `io.github.capeterson.dhmo.feature.today`, `io.github.capeterson.dhmo.sync.drive` |
+| `applicationId` | `casa.peterson.dhmo` (debug builds add the suffix `.debug`). Confirmed by the owner; permanent once published. |
+| Base package / namespace | `casa.peterson.dhmo`; each module's namespace is `casa.peterson.dhmo.<path with dots>`, for example `casa.peterson.dhmo.core.database`, `casa.peterson.dhmo.feature.today`, `casa.peterson.dhmo.sync.drive` |
 | `minSdk` / `compileSdk` / `targetSdk` | 28 / 37 / 37 |
 | `buildToolsVersion` | `37.0.0` (set explicitly; AGP 9.5's default is 36.0.0) |
 | Java / Kotlin bytecode target | 17 (`compileOptions` source and target 17; Kotlin `jvmTarget` 17). **No Gradle toolchain is declared**, so the build runs on whatever JDK launches Gradle: 17 in CI, 21 locally. Both were confirmed sufficient (AGP 9.5 needs JDK 17 or newer). |
@@ -470,7 +470,7 @@ A module build file then looks like this:
 ```kotlin
 // feature/today/build.gradle.kts
 plugins { alias(libs.plugins.dhmo.android.feature) }
-android { namespace = "io.github.capeterson.dhmo.feature.today" }
+android { namespace = "casa.peterson.dhmo.feature.today" }
 dependencies { implementation(libs.androidx.paging.compose) }
 
 // core/domain/build.gradle.kts
@@ -555,7 +555,7 @@ Commands: `./gradlew detekt ktlintCheck lint` (aggregate; `lint` runs per module
 
 ## 4. Room schema v1 (`:core:database`)
 
-Database class `DhmoDatabase`, file name `dhmo.db`, `version = 1`, `exportSchema = true`. The Room Gradle plugin writes the schema to `core/database/schemas/io.github.capeterson.dhmo.core.database.DhmoDatabase/1.json`, and that file is committed.
+Database class `DhmoDatabase`, file name `dhmo.db`, `version = 1`, `exportSchema = true`. The Room Gradle plugin writes the schema to `core/database/schemas/casa.peterson.dhmo.core.database.DhmoDatabase/1.json`, and that file is committed.
 
 ### 4.1 Storage conventions and type converters
 
@@ -1040,7 +1040,7 @@ Both use `Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls 
 
 ### 5.2 `AppSettings` (version 1)
 
-All classes are in `:core:model`, package `io.github.capeterson.dhmo.core.model.settings`, and are `@Serializable`. Times of day are minutes after midnight. Field names are the JSON keys; never rename one, only add.
+All classes are in `:core:model`, package `casa.peterson.dhmo.core.model.settings`, and are `@Serializable`. Times of day are minutes after midnight. Field names are the JSON keys; never rename one, only add.
 
 ```kotlin
 @Serializable
@@ -3304,7 +3304,7 @@ Action versions (`actions/checkout`, `actions/setup-java`, `gradle/actions/setup
 - Adding a library: append one line to `gradle/libs.versions.toml` (never reorder or change existing lines) and say so. Module `build.gradle.kts` files are owned by the task that owns the module; for modules shared by several tasks (`:core:domain`, `:core:data`, `:feature:settings`) T0 declares every dependency in advance.
 - Strings go in the owning module's resource file named in the task. No hard-coded UI text.
 - Every task must leave these green: `./gradlew ktlintCheck detekt`, the module test commands listed, and `./gradlew :app:assembleDebug`.
-- Paths below abbreviate `src/main/kotlin/io/github/capeterson/dhmo/<module path>/` as `main/…` and the matching test directory as `test/…`.
+- Paths below abbreviate `src/main/kotlin/casa/peterson/dhmo/<module path>/` as `main/…` and the matching test directory as `test/…`.
 
 ### 15.2 Waves at a glance
 
@@ -3399,7 +3399,7 @@ Deliverables:
 
 #### T9 — Today, edit sheet, containers, quick-log activity (Phases 1–2)
 
-**Depends on:** T6, T7. **Owns:** all of `feature/today`, including its manifest (`QuickLogActivity`, intent action `io.github.capeterson.dhmo.action.QUICK_LOG`, not exported).
+**Depends on:** T6, T7. **Owns:** all of `feature/today`, including its manifest (`QuickLogActivity`, intent action `casa.peterson.dhmo.action.QUICK_LOG`, not exported).
 **Acceptance:** `TodayViewModelTest` (quick add, custom add, delete + undo effect, pace states, goal modes), `EditEntryViewModelTest`, `ContainersViewModelTest`, `TodayScreenTest` (Compose: tapping a container logs; swipe shows Undo), `TodayScreenshotTest` (empty, mid-day behind, goal met, override active, battery hint; × 3 variants), `QuickLogActivityTest`. `./gradlew :feature:today:testDebugUnitTest :feature:today:verifyRoborazziDebug` ✔.
 
 #### T10 — History (Phases 1 and 3)
