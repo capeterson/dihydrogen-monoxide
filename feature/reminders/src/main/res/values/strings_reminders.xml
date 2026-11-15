@@ -2,4 +2,38 @@
 <resources>
     <string name="feature_reminders_reminders_title">Reminders</string>
     <string name="feature_reminders_pace_curve_title">Pace curve</string>
+    <string name="feature_reminders_enabled">Enable reminders</string>
+    <string name="feature_reminders_permission_off">Notifications are off. Enable them in system settings to receive reminders.</string>
+    <string name="feature_reminders_open_settings">Open notification settings</string>
+    <string name="feature_reminders_wake">Wake time</string>
+    <string name="feature_reminders_sleep">Sleep time</string>
+    <string name="feature_reminders_truncated">The wake window ends at your hydration day start, before the selected sleep time.</string>
+    <string name="feature_reminders_short">Your wake window is less than four hours.</string>
+    <string name="feature_reminders_interval">Minimum time between reminders</string>
+    <plurals name="feature_reminders_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <string name="feature_reminders_tolerance">Pace tolerance</string>
+    <string name="feature_reminders_percent">%1$d%%</string>
+    <string name="feature_reminders_escalation">Stronger reminder when far behind</string>
+    <string name="feature_reminders_summary">End-of-day summary</string>
+    <string name="feature_reminders_calendar">Pause during busy calendar events</string>
+    <string name="feature_reminders_calendar_permission">Calendar permission is required to pause during events.</string>
+    <string name="feature_reminders_curve">Expected intake curve</string>
+    <string name="feature_reminders_next">Next scheduled check: %1$s</string>
+    <string name="feature_reminders_next_none">No reminder is scheduled.</string>
+    <string name="feature_reminders_done">Done</string>
+    <string name="feature_reminders_cancel">Cancel</string>
+    <string name="feature_reminders_default_curve">Default</string>
+    <string name="feature_reminders_linear_curve">Linear</string>
+    <string name="feature_reminders_custom_curve">Custom</string>
+    <string name="feature_reminders_curve_description">Expected intake as a percentage of the wake window.</string>
+    <string name="feature_reminders_point">Point %1$d</string>
+    <string name="feature_reminders_x">Time (%)</string>
+    <string name="feature_reminders_y">Goal (%)</string>
+    <string name="feature_reminders_remove">Remove point</string>
+    <string name="feature_reminders_add_point">Add point</string>
+    <string name="feature_reminders_save_curve">Save custom curve</string>
+    <string name="feature_reminders_invalid_curve">Use 2–12 points from (0, 0) to (100, 100). Time must increase; goal must not decrease.</string>
 </resources>
