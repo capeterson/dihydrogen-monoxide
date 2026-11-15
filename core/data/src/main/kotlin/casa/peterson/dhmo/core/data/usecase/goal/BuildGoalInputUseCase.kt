@@ -38,7 +38,10 @@ class BuildGoalInputUseCase @Inject constructor(
         val useSessions = !current.goal.pinned.pinActivityLevel &&
             (hasExercise || sessions.any { it.source == ActivitySource.MANUAL_PLANNED })
         val activityInput = if (useSessions) {
-            ActivityInput.Sessions(sessions.map { ExerciseSession(it.minutes, it.intensity) })
+            ActivityInput.Sessions(
+                sessions.filter { it.source == ActivitySource.MANUAL_PLANNED || hasExercise }
+                    .map { ExerciseSession(it.minutes, it.intensity) },
+            )
         } else {
             ActivityInput.Level(profile.activityLevel)
         }

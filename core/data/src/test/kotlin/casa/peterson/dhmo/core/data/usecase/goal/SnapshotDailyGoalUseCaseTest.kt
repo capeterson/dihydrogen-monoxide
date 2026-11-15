@@ -2,7 +2,9 @@ package casa.peterson.dhmo.core.data.usecase.goal
 
 import casa.peterson.dhmo.core.domain.goal.GoalCalculator
 import casa.peterson.dhmo.core.domain.goal.GoalPolicyV1
+import casa.peterson.dhmo.core.model.ActivityAdjustment
 import casa.peterson.dhmo.core.model.ActivityInput
+import casa.peterson.dhmo.core.model.ActivitySource
 import casa.peterson.dhmo.core.model.ClimateInput
 import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.Intensity
@@ -90,5 +92,14 @@ class SnapshotDailyGoalUseCaseTest {
         snapshot(day)
         assertThat(goals.savedSnapshots).hasSize(2)
         assertThat(reminders.reasons).hasSize(1)
+    }
+
+    @Test
+    fun ignoresStoredHealthConnectExerciseWhenPermissionIsNotAvailable() = runTest {
+        activity.addPlanned(day, 30, Intensity.MODERATE)
+        activity.put(ActivityAdjustment(ActivitySource.HEALTH_CONNECT, "hc", day, 60, Intensity.VIGOROUS, 1080, null, clock.instant()))
+        val resolved = checkNotNull(input(day)).activity as ActivityInput.Sessions
+        assertThat(resolved.sessions).hasSize(1)
+        assertThat(resolved.sessions.single().minutes).isEqualTo(30)
     }
 }
