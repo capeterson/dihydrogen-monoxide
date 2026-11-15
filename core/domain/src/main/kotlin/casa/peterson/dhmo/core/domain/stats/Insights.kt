@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_PARAMETER")
-
 package casa.peterson.dhmo.core.domain.stats
 
 import java.time.LocalDate
@@ -47,4 +45,27 @@ data class InsightInput(
 )
 
 /** Sorted by priority descending, then by [InsightKind] ordinal; the UI shows the first 5. */
-fun buildInsights(input: InsightInput): List<Insight> = TODO("T3")
+fun buildInsights(input: InsightInput): List<Insight> {
+    val context = InsightContext(input)
+    return listOfNotNull(
+        anomalyInsight(context),
+        streakInsight(context),
+        goalHitsInsight(context),
+        trendInsight(context),
+        weekendInsight(context),
+        biggestGapInsight(context),
+        eveningShareInsight(context),
+        weakestDayInsight(context),
+        correlationInsight(
+            InsightKind.TEMPERATURE_CORRELATION,
+            InsightChart.CORRELATION_TEMPERATURE,
+            input.temperature,
+        ),
+        correlationInsight(
+            InsightKind.ACTIVITY_CORRELATION,
+            InsightChart.CORRELATION_ACTIVITY,
+            input.activeMinutes,
+        ),
+        consistencyInsight(context),
+    ).sortedWith(compareByDescending<Insight> { it.priority }.thenBy { it.kind.ordinal })
+}
