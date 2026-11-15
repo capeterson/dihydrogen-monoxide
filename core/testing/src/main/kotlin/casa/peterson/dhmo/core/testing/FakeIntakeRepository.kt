@@ -51,8 +51,15 @@ class FakeIntakeRepository(
     override fun observeRange(from: LocalDate, to: LocalDate): Flow<List<IntakeEntry>> =
         live().map { list -> list.filter { it.hydrationDay in from..to } }
 
-    override fun pagedHistory(): Flow<PagingData<IntakeEntry>> =
-        live().map { list -> PagingData.from(list.sortedByDescending { it.instant }) }
+    override fun pagedHistory(): Flow<PagingData<IntakeEntry>> = live().map { list ->
+        PagingData.from(
+            list.sortedWith(
+                compareByDescending<IntakeEntry> {
+                    it.hydrationDay
+                }.thenByDescending { it.instant }.thenByDescending { it.id.toString() },
+            ),
+        )
+    }
 
     override fun observeDailyTotal(day: LocalDate): Flow<DailyTotal?> = observeDailyTotals(day, day).map { it.firstOrNull() }
 

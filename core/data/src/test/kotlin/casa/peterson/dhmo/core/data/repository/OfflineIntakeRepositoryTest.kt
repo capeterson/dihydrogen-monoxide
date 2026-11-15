@@ -1,5 +1,6 @@
 package casa.peterson.dhmo.core.data.repository
 
+import androidx.paging.PagingSource
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import casa.peterson.dhmo.core.data.RoomTestEnvironment
@@ -56,6 +57,21 @@ class OfflineIntakeRepositoryTest {
 
     private val day10 = LocalDate.of(2026, 6, 10)
     private val day11 = LocalDate.of(2026, 6, 11)
+
+    @Test
+    fun `paging groups hydration days before ordering by instant`() = runTest {
+        val olderBucketNewerInstant = TestData.entry(Instant.parse("2026-06-11T03:00:00Z")).copy(hydrationDay = day10)
+        val newerBucketOlderInstant = TestData.entry(Instant.parse("2026-06-11T01:00:00Z")).copy(hydrationDay = day11)
+        val newestInOlderBucket = TestData.entry(Instant.parse("2026-06-11T04:00:00Z")).copy(hydrationDay = day10)
+        env.db.intakeDao().upsertAll(listOf(olderBucketNewerInstant, newerBucketOlderInstant, newestInOlderBucket).map { it.toEntity() })
+        val page = env.db.intakeDao().pagingSource().load(PagingSource.LoadParams.Refresh(null, 20, false))
+            as PagingSource.LoadResult.Page
+        assertThat(page.data.map { it.id }).containsExactly(
+            newerBucketOlderInstant.id,
+            newestInOlderBucket.id,
+            olderBucketNewerInstant.id,
+        ).inOrder()
+    }
 
     @Test
     fun `add stores the hydration day with the current day start and the current offset`() = runTest {
