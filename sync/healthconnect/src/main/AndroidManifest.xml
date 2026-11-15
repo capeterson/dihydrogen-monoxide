@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Phase 5 (T-HC2) enables the entries of TECHNICAL_PLAN §10.3 here: the eight android.permission.health.*
+        permissions, the <queries> entry for com.google.android.apps.healthdata, the PermissionsRationaleActivity
+        intent filter (androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE) and the ViewPermissionUsageActivity
+        alias. They stay out of the Phase 1-3 builds so that no health permission appears in the merged manifest.
+    -->
+</manifest>

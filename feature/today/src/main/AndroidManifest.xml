@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Dialog-themed activity behind the notification's "Custom..." action (T9 replaces the stub). -->
+        <activity
+            android:name=".quicklog.QuickLogActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/feature_today_Theme.QuickLog">
+            <intent-filter>
+                <action android:name="casa.peterson.dhmo.action.QUICK_LOG" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

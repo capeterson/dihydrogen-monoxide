@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_reminders_reminders_title">Reminders</string>
+    <string name="feature_reminders_pace_curve_title">Pace curve</string>
+</resources>

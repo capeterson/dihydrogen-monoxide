@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_insights_insights_title">Insights</string>
+    <string name="feature_insights_custom_range_title">Custom range</string>
+    <string name="feature_insights_correlation_title">Correlation</string>
+</resources>

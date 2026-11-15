@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_profile_profile_goal_title">Profile and goal</string>
+    <string name="feature_profile_edit_profile_title">Edit profile</string>
+    <string name="feature_profile_global_override_title">Fixed goal</string>
+    <string name="feature_profile_day_override_title">Goal for this day</string>
+    <string name="feature_profile_adjustments_title">Adjustments</string>
+    <string name="feature_profile_sources_title">Sources</string>
+</resources>
