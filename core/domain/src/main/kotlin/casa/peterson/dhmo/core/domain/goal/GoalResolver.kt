@@ -1,8 +1,7 @@
-@file:Suppress("UNUSED_PARAMETER")
-
 package casa.peterson.dhmo.core.domain.goal
 
 import casa.peterson.dhmo.core.model.GoalBreakdown
+import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.ResolvedGoal
 import casa.peterson.dhmo.core.model.settings.GlobalOverride
 import java.time.LocalDate
@@ -18,5 +17,17 @@ object GoalResolver {
         dayOverrideMl: Int?,
         global: GlobalOverride,
         policy: GoalPolicy = GoalPolicyV1,
-    ): ResolvedGoal = TODO("T1")
+    ): ResolvedGoal = when {
+        dayOverrideMl != null -> ResolvedGoal(dayOverrideMl, breakdown?.calculatedMl, GoalMode.DAY_OVERRIDE)
+
+        global.enabled -> ResolvedGoal(
+            global.perWeekdayMl[date.dayOfWeek.name] ?: global.targetMl,
+            breakdown?.calculatedMl,
+            GoalMode.GLOBAL_OVERRIDE,
+        )
+
+        breakdown != null -> ResolvedGoal(breakdown.calculatedMl, breakdown.calculatedMl, GoalMode.CALCULATED)
+
+        else -> ResolvedGoal(policy.fallbackTargetMl, null, GoalMode.CALCULATED)
+    }
 }
