@@ -23,10 +23,14 @@ internal fun Project.configureAndroidCommon(extension: CommonExtension) {
         }
 
         testOptions.unitTests.isIncludeAndroidResources = true
-        testOptions.managedDevices.localDevices.create("pixel6Api34").apply {
-            device = "Pixel 6"
-            apiLevel = 34
-            systemImageSource = "aosp-atd"
+        // Only modules that actually have instrumented tests get the managed device; otherwise the root
+        // pixel6Api34DebugAndroidTest task would boot an emulator for modules with nothing to run.
+        if (file("src/androidTest").exists()) {
+            testOptions.managedDevices.localDevices.create("pixel6Api34").apply {
+                device = "Pixel 6"
+                apiLevel = 34
+                systemImageSource = "aosp-atd"
+            }
         }
     }
     configureKotlinCompilerOptions()

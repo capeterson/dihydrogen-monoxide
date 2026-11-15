@@ -3270,7 +3270,7 @@ testOptions {
 }
 ```
 
-Run with `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect`. Only `:app` and `:core:database` have `androidTest` sources.
+Run with `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect`. Only `:app` and `:core:database` have `androidTest` sources, and the convention plugin declares the device only in modules that have a `src/androidTest` directory.
 
 **Fakes (`:core:testing`).** `FakeIntakeRepository`, `FakeContainerRepository`, `FakeProfileRepository`, `FakeGoalRepository`, `FakeActivityRepository`, `FakeWeatherRepository`, `FakeSettingsRepository`, `FakeDeviceStateRepository`, `FakeBackupRepository`, `FakeReminderScheduler` (records calls), `FakeWidgetUpdater`, `FakeHealthConnectController`, `FakeDriveBackupController`, `FakeWeatherController`, `FakeWeatherProvider`, `MutableClock`, `FixedZoneProvider`, `MainDispatcherRule`, `TestData` (sample profiles, entries and the §9.14 datasets as Kotlin constants).
 
