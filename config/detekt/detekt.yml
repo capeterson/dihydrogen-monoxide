@@ -1,0 +1,49 @@
+# Builds upon the detekt 1.23.8 defaults (TECHNICAL_PLAN §3.8). No baseline: suppress with @Suppress and a comment.
+style:
+  MaxLineLength:
+    maxLineLength: 140
+  MagicNumber:
+    excludes:
+      - '**/test/**'
+      - '**/androidTest/**'
+      - '**/GoalPolicyV1.kt'
+      - '**/theme/Color.kt'
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreNamedArgument: true
+    ignoreExtensionFunctions: true
+    ignoreEnums: true
+    ignoreAnnotation: true
+    ignoreRanges: true
+  UnusedPrivateMember:
+    ignoreAnnotated:
+      - 'Preview'
+  UnusedParameter:
+    active: true
+
+complexity:
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 10
+    ignoreDefaultParameters: true
+    ignoreDataClasses: true
+  LongMethod:
+    ignoreAnnotated:
+      - 'Composable'
+  TooManyFunctions:
+    excludes:
+      - '**/test/**'
+      - '**/androidTest/**'
+      - '**/dao/**'
+      - '**/*Repository.kt'
+  CyclomaticComplexMethod:
+    ignoreAnnotated:
+      - 'Composable'
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated:
+      - 'Composable'
+    excludes: ['**/test/**', '**/androidTest/**']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][_A-Z0-9]*'
