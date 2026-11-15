@@ -39,7 +39,7 @@ val allowedProjectDependencies: Map<String, Set<String>> =
         ":core:datastore" to setOf(":core:model", ":core:common"),
         ":core:data" to
             setOf(":core:model", ":core:common", ":core:domain", ":core:backup", ":core:database", ":core:datastore"),
-        ":core:designsystem" to setOf(":core:model"),
+        ":core:designsystem" to setOf(":core:model", ":core:domain"),
         ":core:network" to setOf(":core:common"),
         ":core:reminders" to setOf(":core:data", ":core:domain", ":core:model", ":core:common"),
         ":core:weather" to setOf(":core:data", ":core:network", ":core:domain", ":core:model", ":core:common"),
