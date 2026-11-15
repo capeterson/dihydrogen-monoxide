@@ -21,7 +21,10 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          # 21 is for Robolectric unit tests (Gradle toolchain); the last entry, 17, is the default JAVA_HOME.
+          java-version: |
+            21
+            17
 
       - uses: gradle/actions/setup-gradle@v5
 
