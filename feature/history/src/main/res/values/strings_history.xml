@@ -2,4 +2,21 @@
 <resources>
     <string name="feature_history_history_title">History</string>
     <string name="feature_history_history_day_title">Day</string>
+    <string name="feature_history_empty_title">No drinks logged yet</string>
+    <string name="feature_history_empty_message">Your drinks will appear here after you log them.</string>
+    <string name="feature_history_day_empty">No drinks were logged on this day.</string>
+    <string name="feature_history_goal">Goal: %1$s</string>
+    <string name="feature_history_goal_unavailable">No goal recorded</string>
+    <string name="feature_history_anomaly">Looks unusual, check for a typo</string>
+    <string name="feature_history_imported">Imported from %1$s</string>
+    <string name="feature_history_imported_unknown">Imported from another app</string>
+    <string name="feature_history_read_only">Read-only import</string>
+    <string name="feature_history_adopt">Make editable</string>
+    <string name="feature_history_edit">Edit drink</string>
+    <string name="feature_history_delete">Delete drink</string>
+    <string name="feature_history_deleted">Drink deleted</string>
+    <string name="feature_history_undo">Undo</string>
+    <string name="feature_history_error">Could not complete that action. Please try again.</string>
+    <string name="feature_history_day_open">Open day %1$s</string>
+    <string name="feature_history_loading">Loading history…</string>
 </resources>
