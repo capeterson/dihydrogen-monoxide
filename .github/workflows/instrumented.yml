@@ -20,6 +20,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Free disk space
+        # The hosted runner has little free space once the SDK and Gradle caches are in; the emulator's userdata
+        # partition alone needs about 7.3 GB and the managed device otherwise fails with
+        # "Not enough space to create userdata partition".
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/.ghcup /opt/ghc /usr/local/share/powershell /usr/local/share/boost \
+            /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/lib/node_modules
+          sudo apt-get clean
+          df -h /
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -63,7 +73,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest
+          script: ./gradlew :app:connectedDebugAndroidTest :core:database:connectedDebugAndroidTest
 
       - name: Upload androidTest reports
         if: failure()
@@ -81,6 +91,16 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
+
+      - name: Free disk space
+        # The hosted runner has little free space once the SDK and Gradle caches are in; the emulator's userdata
+        # partition alone needs about 7.3 GB and the managed device otherwise fails with
+        # "Not enough space to create userdata partition".
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/.ghcup /opt/ghc /usr/local/share/powershell /usr/local/share/boost \
+            /opt/hostedtoolcache/CodeQL /usr/share/swift /usr/local/lib/node_modules
+          sudo apt-get clean
+          df -h /
 
       - name: Enable KVM
         run: |
