@@ -1,4 +1,4 @@
-# Builds upon the detekt 1.23.8 defaults (TECHNICAL_PLAN §3.8). No baseline: suppress with @Suppress and a comment.
+# Builds upon the detekt 2.0.0-alpha.6 defaults (TECHNICAL_PLAN §3.8). No baseline: suppress with @Suppress and a comment.
 style:
   MaxLineLength:
     maxLineLength: 140
@@ -15,7 +15,7 @@ style:
     ignoreEnums: true
     ignoreAnnotation: true
     ignoreRanges: true
-  UnusedPrivateMember:
+  UnusedPrivateFunction:
     ignoreAnnotated:
       - 'Preview'
   UnusedParameter:
@@ -23,8 +23,8 @@ style:
 
 complexity:
   LongParameterList:
-    functionThreshold: 8
-    constructorThreshold: 10
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 10
     ignoreDefaultParameters: true
     ignoreDataClasses: true
   LongMethod:

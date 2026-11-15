@@ -34,10 +34,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.GraphicsMode
 
-/** DhmoTopBar, SectionCard and EmptyState. */
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-class LayoutComponentsScreenshotTest {
+class DhmoTopBarScreenshotTest {
     @Test
     fun capturesInLightDarkAndLargeFont() {
         captureStable("DhmoTopBar") {
@@ -54,6 +53,14 @@ class LayoutComponentsScreenshotTest {
                 )
             }
         }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class SectionCardScreenshotTest {
+    @Test
+    fun capturesInLightDarkAndLargeFont() {
         captureStable("SectionCard") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 SectionCard(title = "This week") {
@@ -62,6 +69,14 @@ class LayoutComponentsScreenshotTest {
                 SectionCard { Text("A card without a title", style = MaterialTheme.typography.bodyLarge) }
             }
         }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class EmptyStateScreenshotTest {
+    @Test
+    fun capturesInLightDarkAndLargeFont() {
         captureStable("EmptyState") {
             EmptyState(
                 title = "No drinks yet",

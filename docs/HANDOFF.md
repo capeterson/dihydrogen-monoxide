@@ -42,7 +42,7 @@ Phase 4 (Drive) and Phase 5 (Health Connect, weather) are separate later PRs. We
 - **Memory:** build defaults in `gradle.properties` were tuned for an 8 GB machine (peak about 3 GB, one JVM for Gradle and Kotlin). Test JVMs default to a 1 GB heap and two at once (`dhmo.test.maxHeap`, `dhmo.test.parallelism` in `~/.gradle/gradle.properties`). See TESTING.md section 8a.
 
 ## Environment notes (learned on the first KVM host, "iron")
-- A JDK 21 is required for Robolectric (the build itself runs on 17+). It was installed under `~/opt/jdk-21.0.13+9`, with the Android SDK in `~/Android/Sdk` (cmdline-tools, platform 37.0, build-tools 37.0.0, emulator, `system-images;android-34;google_apis;x86_64` and `aosp_atd`). `sdkmanager` no longer needs a separate `--licenses` step.
+- A full JDK 25 is required for the build and Robolectric tests (the Android bytecode target remains 17). The original host used JDK 21, with the Android SDK in `~/Android/Sdk` (cmdline-tools, platform 37.0, build-tools 37.0.0, emulator, `system-images;android-34;google_apis;x86_64` and `aosp_atd`). `sdkmanager` no longer needs a separate `--licenses` step.
 - **On a Fedora host the emulator segfaults on every start while SELinux is enforcing** (no output from the emulator; the core dump shows a jump to an unmapped address). Setting SELinux permissive fixed it. If you see qemu crash 20–90 s after "performing a full startup", check `getenforce` first.
 - Start the emulator detached (`setsid nohup emulator ... & disown`) so a killed shell doesn't take it down, and don't run a full gate while it is up on an 8 GB machine.
 - `pkill -f qemu-system...` matches your own shell's command line; use `pkill -x qemu-system-x86` or `pgrep -x`.
@@ -52,7 +52,7 @@ Phase 4 (Drive) and Phase 5 (Health Connect, weather) are separate later PRs. We
 ## Step 1: set up and verify
 ```bash
 git fetch origin phase-1-3-wave1 && git checkout phase-1-3-wave1
-# JDK 21 + SDK as above, then:
+# JDK 25 + SDK as above, then:
 echo "sdk.dir=$ANDROID_HOME" > local.properties
 ./gradlew ktlintCheck detekt checkModuleGraph lint testDebugUnitTest :core:common:test :core:model:test \
           :core:domain:test :core:backup:test verifyRoborazziDebug assembleDebug

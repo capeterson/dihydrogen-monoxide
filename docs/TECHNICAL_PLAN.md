@@ -38,7 +38,7 @@ These settle points PLAN.md left open or stated two ways. None contradicts a con
 | D6 | Modules added | `:core:data`, `:core:backup`, `:core:common`, `:core:network`, `:core:reminders`, `:core:weather`, `:core:testing`, `:feature:onboarding`. | §3.2 |
 | D7 | Backup format home | `:core:backup` (pure Kotlin), available from Phase 3 for JSON and CSV export, reused by Drive in Phase 4. | §11.1 |
 | D8 | Kotlin plugin setup | AGP 9 built-in Kotlin: Android modules do not apply `org.jetbrains.kotlin.android`; KSP only, no kapt. | §3.3 |
-| D9 | detekt | Stable 1.23.8 with the plain `detekt` task (no type resolution) and a rule against post-2.0 syntax; detekt 2.x is alpha-only. | §3.8 |
+| D9 | detekt | Detekt 2.0.0-alpha.6 with the plain `detekt` task (no type resolution), required for Java 25. | §3.8 |
 | D10 | Health Connect artifacts | Stable `connect-client` 1.1.0 in the app; `connect-testing` 1.0.0-alpha03 for tests only, with its strict client dependency excluded. | §2.3 |
 | D11 | Navigation | Navigation Compose 2.10 with `@Serializable` routes; four top-level destinations (Today, History, Insights, Settings). | §13 |
 | D12 | Goal constants | Child table from EFSA × 0.8; "unspecified" sex uses the mean of the female and male values; activity minutes at 6 / 12 / 18 ml per minute by intensity, capped at 2,000 ml; child clamp 600–3,000 ml; halves round up in `roundTo50`; `calculatedMl` is nullable for manual-only users. | §7.2 |
@@ -103,7 +103,7 @@ In addition, a throwaway **smoke project** was built in the planning environment
 | Splash screen | `androidx.core:core-splashscreen` | **1.2.0** | lookup |
 | Paging | `androidx.paging:paging-compose`, `paging-runtime` | **3.5.3** | lookup |
 | OkHttp | `com.squareup.okhttp3:okhttp`, `mockwebserver3` | **5.5.1** | lookup + built ✔ |
-| detekt | `io.gitlab.arturbosch.detekt` | **1.23.8** | lookup + built ✔ |
+| detekt | `dev.detekt` | **2.0.0-alpha.6** | Java 25 migration |
 | ktlint Gradle plugin | `org.jlleitschuh.gradle.ktlint` | **14.2.0** | lookup + built ✔ |
 | ktlint engine | `com.pinterest.ktlint:ktlint-cli` (set through the plugin) | **1.8.0** | lookup + built ✔ |
 | Roborazzi | `io.github.takahirom.roborazzi:*`, plugin | **1.79.0** | lookup + built ✔ |
@@ -127,7 +127,7 @@ Not used, and why: protobuf (D1); kotlinx-datetime (`java.time` suffices at `min
 | Compose compiler | The `org.jetbrains.kotlin.plugin.compose` plugin is versioned with Kotlin (2.4.21) and worked with BOM 2026.09.00. |
 | Hilt ↔ AGP 9 | Hilt Gradle plugin 2.60.1 applied and aggregated correctly with AGP 9.5.1 and KSP. `hiltViewModel()` is imported from `androidx.hilt.lifecycle.viewmodel.compose` (available through `hilt-navigation-compose` 1.4.0); the old `androidx.hilt.navigation.compose` import is deprecated. |
 | Room | Room 2.8.5 with the `androidx.room` Gradle plugin exported the schema under KSP 2.3.14. |
-| detekt ↔ Kotlin | detekt 1.23.8 embeds Kotlin 2.0.21 and there is no stable 2.x (latest is `2.0.0-alpha.6`, built on Kotlin 2.4.10). The plain `detekt` task analysed Kotlin 2.4.21 sources in both module types and found the default source directories under AGP built-in Kotlin. Type-resolution tasks are not used. Constraint: avoid syntax newer than Kotlin 2.0 (§3.8). |
+| detekt ↔ Kotlin | detekt 2.0.0-alpha.6 uses Kotlin 2.4.10 and supports Java 25. The plain `detekt` task analyses the explicitly configured source directories; type-resolution tasks are not used. |
 | ktlint | Plugin 14.2.0 with engine 1.8.0 ran on Gradle 9.9.1 for both module types and for `.gradle.kts` files. |
 | Robolectric ↔ SDK | Robolectric 4.18 ran tests at SDK 37 (it downloaded its Android 17 image). No `@Config(sdk = …)` cap is needed; modules pin `sdk=37` in `robolectric.properties` for reproducible screenshots (§14.1). |
 | Roborazzi ↔ Robolectric | Roborazzi 1.79.0 with Robolectric 4.18 and `@GraphicsMode(NATIVE)` executed a Compose capture call. Only the call path was exercised: image recording and comparison (`recordRoborazziDebug` / `verifyRoborazziDebug`) were not run. |
@@ -156,7 +156,7 @@ Not used, and why: protobuf (D1); kotlinx-datetime (`java.time` suffices at `min
 | Base package / namespace | `casa.peterson.dhmo`; each module's namespace is `casa.peterson.dhmo.<path with dots>`, for example `casa.peterson.dhmo.core.database`, `casa.peterson.dhmo.feature.today`, `casa.peterson.dhmo.sync.drive` |
 | `minSdk` / `compileSdk` / `targetSdk` | 28 / 37 / 37 |
 | `buildToolsVersion` | `37.0.0` (set explicitly; AGP 9.5's default is 36.0.0) |
-| Java / Kotlin bytecode target | 17 (`compileOptions` source and target 17; Kotlin `jvmTarget` 17). **No Gradle toolchain is declared**, so the build runs on whatever JDK launches Gradle: 17 in CI, 21 locally. Both were confirmed sufficient (AGP 9.5 needs JDK 17 or newer). |
+| Java / Kotlin bytecode target | 17 (`compileOptions` source and target 17; Kotlin `jvmTarget` 17). The build and Robolectric tests use JDK 25; the bytecode target remains 17 (AGP 9.5 needs JDK 17 or newer). |
 | Version | `versionCode = 1`, `versionName = "0.1.0"` in `:app` |
 
 ### 3.2 Module graph
@@ -223,7 +223,7 @@ Forbidden: feature → feature; feature → `:core:database`, `:core:datastore`,
 | `dhmo.android.roborazzi` | `AndroidRoborazziConventionPlugin` | applies `io.github.takahirom.roborazzi`; adds `roborazzi`, `roborazzi-compose`, `roborazzi-junit-rule`, `robolectric`, `compose-ui-test-junit4` as `testImplementation`; `roborazzi { outputDir.set(file("src/test/screenshots")) }`; sets the system property `robolectric.pixelCopyRenderMode=hardware` for tests |
 | `dhmo.android.test` (applied by the library and application plugins, not directly) | `AndroidTestConventionPlugin` | `testImplementation`: JUnit 4, Truth, Turbine, `kotlinx-coroutines-test`, Robolectric, `androidx-test-core`, `androidx-test-ext-junit`; `androidTestImplementation`: `androidx-test-runner`, `androidx-test-ext-junit`, Truth; `testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"`; unit tests get `maxHeapSize = "2g"` |
 | `dhmo.jvm.library` | `JvmLibraryConventionPlugin` | applies `org.jetbrains.kotlin.jvm`, `dhmo.quality`; Java source and target 17, Kotlin `jvmTarget` 17; `explicitApi()` is **not** enabled; `testImplementation`: JUnit 4, Truth, Turbine, `kotlinx-coroutines-test`; `tasks.test { useJUnit() }` |
-| `dhmo.quality` | `QualityConventionPlugin` | applies `io.gitlab.arturbosch.detekt` and `org.jlleitschuh.gradle.ktlint` and configures both (§3.8) |
+| `dhmo.quality` | `QualityConventionPlugin` | applies `dev.detekt` and `org.jlleitschuh.gradle.ktlint` and configures both (§3.8) |
 
 Kotlin compiler options applied everywhere: `allWarningsAsErrors = true` unless `-Pdhmo.warningsAsErrors=false`; `freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"`; for Compose modules also `-opt-in=androidx.compose.material3.ExperimentalMaterial3Api`.
 
@@ -255,7 +255,7 @@ androidx-test-espresso = "3.7.0"
 androidx-test-ext-junit = "1.3.0"
 androidx-test-runner = "1.7.0"
 androidx-work = "2.12.0"
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.6"
 googleid = "1.2.1"
 hilt = "2.60.1"
 javax-inject = "1"
@@ -368,7 +368,7 @@ compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-
 ksp-gradlePlugin = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version.ref = "ksp" }
 room-gradlePlugin = { module = "androidx.room:room-gradle-plugin", version.ref = "androidx-room" }
 hilt-gradlePlugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hilt" }
-detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+detekt-gradlePlugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
 roborazzi-gradlePlugin = { module = "io.github.takahirom.roborazzi:roborazzi-gradle-plugin", version.ref = "roborazzi" }
 
@@ -381,7 +381,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 room = { id = "androidx.room", version.ref = "androidx-room" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 # Convention plugins (no version: they come from the included build)
@@ -497,27 +497,7 @@ ksp.incremental=true
 
 ### 3.8 Static analysis
 
-**detekt 1.23.8** (config `config/detekt/detekt.yml`, `buildUponDefaultConfig = true`, `parallel = true`, `autoCorrect = false`):
-
-- detekt 1.23.8 embeds the Kotlin 2.0.21 compiler. It parses and analyses this project's Kotlin 2.4.21 sources without type resolution, which was confirmed in a smoke build (§2.3). The convention plugin therefore uses **only the plain `detekt` task** (no `detektMain` / `detektDebug` type-resolution tasks) and sets the sources explicitly, because with AGP's built-in Kotlin the detekt plugin does not discover Android source sets on its own:
-
-  ```kotlin
-  extensions.configure<DetektExtension> {
-      buildUponDefaultConfig = true
-      parallel = true
-      config.setFrom(rootProject.files("config/detekt/detekt.yml"))
-      source.setFrom(files("src/main/kotlin", "src/test/kotlin", "src/androidTest/kotlin", "src/debug/kotlin"))
-  }
-  tasks.withType<Detekt>().configureEach { jvmTarget = "17"; reports { sarif.required.set(true); html.required.set(true) } }
-  // Keep detekt's own compiler: the Kotlin Gradle plugin must not upgrade it.
-  configurations.matching { it.name == "detekt" }.configureEach {
-      resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlin") useVersion("2.0.21") }
-  }
-  ```
-
-- All Kotlin sources live in `src/<set>/kotlin` (never `src/<set>/java`), so the list above is complete.
-- **Language-feature rule:** do not use Kotlin syntax introduced after 2.0 that detekt 1.23.8 cannot parse (context parameters, guard conditions in `when`, non-local `break`/`continue`, multi-dollar interpolation, nested type aliases and newer). If such syntax is ever needed, the fallback is to move to detekt 2.x (currently `2.0.0-alpha.6`, plugin id `dev.detekt`, built against Kotlin 2.4.10); that is a deliberate decision for a later PR, not for T0.
-- Rule set: defaults, plus `style.MaxLineLength.maxLineLength = 140`, `complexity.LongParameterList` thresholds 8 (functions) and 10 (constructors) with `ignoreDefaultParameters = true`, `naming.FunctionNaming.ignoreAnnotated = ["Composable"]`, `style.MagicNumber` off for tests and for `GoalPolicyV1.kt`, `style.UnusedPrivateMember.ignoreAnnotated = ["Preview"]`, `complexity.LongMethod.ignoreAnnotated = ["Composable"]`, `complexity.TooManyFunctions` off for DAOs and `*Repository`. **No detekt baseline file**; a suppression needs `@Suppress` with a comment.
+**detekt 2.0.0-alpha.6** uses `config/detekt/detekt.yml` and the plain `detekt` task. It runs on Java 25; 1.23.8's Kotlin parser does not. The convention plugin explicitly includes main, test, androidTest and debug Kotlin sources, builds on the default rules, and produces SARIF and HTML reports. The configuration retains the project's thresholds and Compose exclusions; there is no baseline file, and suppressions need a comment.
 
 **ktlint** through `org.jlleitschuh.gradle.ktlint` 14.2.0, with `ktlint { version.set("1.8.0"); android.set(true); outputToConsole.set(true) }`. Rules come from `.editorconfig` at the repository root:
 
@@ -3276,7 +3256,7 @@ Run with `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddev
 
 ### 14.2 CI workflows
 
-`.github/workflows/ci.yml` — on `pull_request` and on `push` to `main`; `concurrency` cancels superseded runs; Ubuntu runner; JDK 17 Temurin; Gradle set up with the official Gradle action (build cache, wrapper validation).
+`.github/workflows/ci.yml` — on `pull_request` and on `push` to `main`; `concurrency` cancels superseded runs; Ubuntu runner; JDK 25 Temurin; Gradle set up with the official Gradle action (build cache, wrapper validation).
 
 | Job | Command | Notes |
 |---|---|---|

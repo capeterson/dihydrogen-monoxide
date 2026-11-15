@@ -13,13 +13,13 @@ private const val ALPHA_SHIFT = 24
  * blank (fully transparent) frame for the second or third variant of a capture. A real rendering change still fails:
  * verify throws on every attempt, and a record run never writes a blank reference.
  */
-internal fun captureStable(name: String, content: @Composable () -> Unit) {
+internal fun captureStable(name: String, suffix: String? = null, content: @Composable () -> Unit) {
     var failure: Throwable? = null
     repeat(MAX_ATTEMPTS) {
         failure =
             try {
-                captureScreenVariants(name, content)
-                if (writtenImagesAreBlank(name)) AssertionError("A blank frame was written for $name") else return
+                captureScreenVariants(name, suffix, content)
+                if (writtenImagesAreBlank(name, suffix)) AssertionError("A blank frame was written for $name") else return
             } catch (error: AssertionError) {
                 error
             }
@@ -28,10 +28,10 @@ internal fun captureStable(name: String, content: @Composable () -> Unit) {
 }
 
 /** True when a recorded `<name>_*.png` has a transparent top-left pixel (every real screen has an opaque background). */
-private fun writtenImagesAreBlank(name: String): Boolean {
+private fun writtenImagesAreBlank(name: String, suffix: String?): Boolean {
     val directory = File(System.getProperty("roborazzi.output.dir") ?: "src/test/screenshots")
-    return listOf("light", "dark", "largefont").any { suffix ->
-        val file = File(directory, "${name}_$suffix.png")
+    return listOf("light", "dark", "largefont").filter { suffix == null || it == suffix }.any { variant ->
+        val file = File(directory, "${name}_$variant.png")
         file.exists() && (ImageIO.read(file).getRGB(0, 0) ushr ALPHA_SHIFT) == 0
     }
 }

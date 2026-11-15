@@ -34,10 +34,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.GraphicsMode
 
-/** ProgressRing, VolumeText, GoalChip, QuickAddButton, DayResultColors and HeatmapGrid. */
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-class ComponentsScreenshotTest {
+class ProgressRingScreenshotTest {
     @Test
     fun capturesInLightDarkAndLargeFont() {
         captureStable("ProgressRing") {
@@ -50,6 +49,14 @@ class ComponentsScreenshotTest {
                 }
             }
         }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class VolumeTextScreenshotTest {
+    @Test
+    fun capturesInLightDarkAndLargeFont() {
         captureStable("VolumeText") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 VolumeText(ml = 1250, unit = VolumeUnit.ML, style = MaterialTheme.typography.headlineMedium)
@@ -58,12 +65,28 @@ class ComponentsScreenshotTest {
                 VolumeText(ml = 250, unit = VolumeUnit.IMP_FL_OZ, style = MaterialTheme.typography.headlineMedium)
             }
         }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class GoalChipScreenshotTest {
+    @Test
+    fun capturesInLightDarkAndLargeFont() {
         captureStable("GoalChip") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 GoalChip(goalMl = 2400, unit = VolumeUnit.ML)
                 GoalChip(goalMl = 2400, unit = VolumeUnit.US_FL_OZ, onClick = {})
             }
         }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class QuickAddButtonScreenshotTest {
+    @Test
+    fun capturesInLightDarkAndLargeFont() {
         captureStable("QuickAddButton") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -74,11 +97,27 @@ class ComponentsScreenshotTest {
                 QuickAddButton(amountMl = 750, unit = VolumeUnit.ML, onClick = {}, enabled = false)
             }
         }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class DayResultColorsScreenshotTest {
+    @Test
+    fun capturesInLightDarkAndLargeFont() {
         captureStable("DayResultColors") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 DayResult.entries.forEach { DayResultBadge(it) }
             }
         }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+class HeatmapGridScreenshotTest {
+    @Test
+    fun capturesInLightDarkAndLargeFont() {
         captureStable("HeatmapGrid") { HeatmapSample() }
     }
 
