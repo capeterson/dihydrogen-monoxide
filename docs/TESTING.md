@@ -126,6 +126,15 @@ This is what must pass before a pull request is opened:
   verifyRoborazziDebug assembleDebug
 ```
 
+## 8a. Memory use
+
+The defaults in `gradle.properties` are sized for an 8 GB machine that also runs an emulator. A clean build of the unit-test and Roborazzi layer peaks at about 3 GB of Java memory in total (measured: 4.2 GB with the earlier 4 GB heap and a separate Kotlin daemon); the whole gate including lint and a release build peaks at about 3.9 GB.
+
+- One JVM does both the Gradle work and the Kotlin compiles (`kotlin.compiler.execution.strategy=in-process`), with `-XX:+UseSerialGC` and a shrinking heap. The daemon exits after 5 idle minutes; run `./gradlew --stop` to free it sooner.
+- Unit-test JVMs get a 1 GB heap and at most 2 run at once. Machine-local overrides in `~/.gradle/gradle.properties`: `dhmo.test.maxHeap` (for example `2g`) and `dhmo.test.parallelism` (for example `4`). Test workers were not the peak; the Gradle JVM was.
+- Don't run an emulator and a full gate at the same time on a small machine; boot the emulator, run the instrumented tests, then `adb emu kill`.
+- On CI the two managed-device tasks run one after the other, because each boots its own 2.5 GB emulator.
+
 ## 9. How CI runs the tests
 
 | Workflow | Trigger | What it runs |

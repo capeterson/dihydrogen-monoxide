@@ -116,7 +116,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Run instrumented tests on the managed device
-        run: ./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect --info 2>&1 | tee managed-device.log; exit "${PIPESTATUS[0]}"
+        # One module at a time: each managed device boots its own ~2.5 GB emulator, and two at once exhausted the
+        # runner's memory (the job was killed with exit code 143).
+        run: |
+          set -o pipefail
+          for module in :app :core:database; do
+            ./gradlew "$module:pixel6Api34DebugAndroidTest" -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect --info 2>&1 | tee -a managed-device.log
+          done
         shell: bash
 
       - name: Upload androidTest reports

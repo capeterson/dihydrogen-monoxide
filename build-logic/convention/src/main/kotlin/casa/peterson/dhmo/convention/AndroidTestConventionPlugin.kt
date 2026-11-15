@@ -25,8 +25,15 @@ class AndroidTestConventionPlugin : Plugin<Project> {
             add("androidTestImplementation", libs.library("truth"))
         }
         val toolchains = extensions.getByType<JavaToolchainService>()
+        // Machine-local knobs, set in ~/.gradle/gradle.properties: heap per test JVM and how many test JVMs may run at once.
+        val testHeap = providers.gradleProperty("dhmo.test.maxHeap").getOrElse(DEFAULT_TEST_HEAP)
+        val testParallelism = providers.gradleProperty("dhmo.test.parallelism").map(String::toInt).getOrElse(DEFAULT_TEST_PARALLELISM)
+        val testLimiter = gradle.sharedServices.registerIfAbsent("testConcurrency", TestConcurrencyService::class.java) {
+            maxParallelUsages.set(testParallelism)
+        }
         tasks.withType<Test>().configureEach {
-            maxHeapSize = "2g"
+            maxHeapSize = testHeap
+            usesService(testLimiter)
             // Robolectric needs Java 21 to load the API 37 framework, even though the build itself runs on and
             // targets Java 17. Only the unit-test JVM uses this launcher.
             javaLauncher.set(toolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(ROBOLECTRIC_JAVA_VERSION)) })
@@ -37,3 +44,5 @@ class AndroidTestConventionPlugin : Plugin<Project> {
 }
 
 private const val ROBOLECTRIC_JAVA_VERSION = 21
+private const val DEFAULT_TEST_HEAP = "1g"
+private const val DEFAULT_TEST_PARALLELISM = 2
