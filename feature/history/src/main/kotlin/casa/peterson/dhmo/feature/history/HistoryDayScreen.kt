@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -29,13 +30,16 @@ internal fun HistoryDayScreen(
     onEditEntry: (UUID) -> Unit,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
+    val locale = LocalConfiguration.current.locales[0]
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val dayFlow = remember(day, viewModel) { viewModel.entriesForDay(day) }
     val entries by dayFlow.collectAsStateWithLifecycle(initialValue = emptyList())
     val snackbar = remember { SnackbarHostState() }
     HistoryEffects(viewModel.effects, snackbar, viewModel::undoDelete)
     Scaffold(
-        topBar = { DhmoTopBar(day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)), onNavigateBack = onBack) },
+        topBar = {
+            DhmoTopBar(day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)), onNavigateBack = onBack)
+        },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {

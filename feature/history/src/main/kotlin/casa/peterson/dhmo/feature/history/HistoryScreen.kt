@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -48,7 +49,6 @@ import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Locale
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 
@@ -113,14 +113,15 @@ internal fun HistoryEffects(effects: Flow<HistoryEffect>, snackbar: SnackbarHost
 
 @Composable
 internal fun HistoryDayHeader(item: HistoryItem.DayHeader, units: VolumeUnit, onClick: (() -> Unit)? = null) {
-    val date = item.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL))
+    val locale = LocalConfiguration.current.locales[0]
+    val date = item.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale))
     val openLabel = stringResource(R.string.feature_history_day_open, date)
     val clickable = if (onClick == null) Modifier else Modifier.clickable(onClick = onClick).semantics { contentDescription = openLabel }
     Column(Modifier.fillMaxWidth().then(clickable).padding(horizontal = 16.dp, vertical = 12.dp)) {
         Text(date, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             VolumeText(item.totalMl, units, style = MaterialTheme.typography.titleSmall)
-            val goalText = item.goalMl?.let { VolumeFormatter.format(it, units, Locale.getDefault()) }
+            val goalText = item.goalMl?.let { VolumeFormatter.format(it, units, locale) }
             Text(
                 if (goalText ==
                     null
