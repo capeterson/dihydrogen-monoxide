@@ -25,5 +25,7 @@ object DhmoIcons {
 
     @DrawableRes val Close: Int = R.drawable.core_designsystem_ic_close
 
+    @DrawableRes val Remove: Int = R.drawable.core_designsystem_ic_remove
+
     @DrawableRes val Notifications: Int = R.drawable.core_designsystem_ic_notifications
 }
