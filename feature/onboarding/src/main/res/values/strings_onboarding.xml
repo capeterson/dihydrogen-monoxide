@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_onboarding_welcome_title">Welcome</string>
+    <string name="feature_onboarding_disclaimer_title">Disclaimer</string>
+    <string name="feature_onboarding_units_title">Units and day start</string>
+    <string name="feature_onboarding_goal_mode_title">Choose your goal</string>
+    <string name="feature_onboarding_profile_setup_title">About you</string>
+    <string name="feature_onboarding_manual_goal_title">Your daily goal</string>
+    <string name="feature_onboarding_goal_preview_title">Your goal</string>
+    <string name="feature_onboarding_notification_rationale_title">Reminders</string>
+    <string name="feature_onboarding_reminder_setup_title">Reminder times</string>
+    <string name="feature_onboarding_onboarding_done_title">All set</string>
+</resources>

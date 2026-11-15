@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 9-11 auto backup. Only the listed paths are backed up, so device_state.json is excluded implicitly. -->
+<full-backup-content>
+    <include domain="database" path="dhmo.db" />
+    <include domain="file" path="datastore/settings.json" />
+</full-backup-content>

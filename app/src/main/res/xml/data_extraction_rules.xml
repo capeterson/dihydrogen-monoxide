@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: only the listed paths are backed up and transferred, so device_state.json never is. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="dhmo.db" />
+        <include domain="file" path="datastore/settings.json" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="dhmo.db" />
+        <include domain="file" path="datastore/settings.json" />
+    </device-transfer>
+</data-extraction-rules>

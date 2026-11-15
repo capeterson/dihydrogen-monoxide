@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_settings_settings_title">Settings</string>
+    <string name="feature_settings_units_settings_title">Units and day start</string>
+    <string name="feature_settings_appearance_title">Appearance</string>
+    <string name="feature_settings_stats_settings_title">Statistics</string>
+    <string name="feature_settings_about_title">About</string>
+    <string name="feature_settings_export_title">Export</string>
+    <string name="feature_settings_backup_settings_title">Backup and restore</string>
+    <string name="feature_settings_weather_settings_title">Weather</string>
+    <string name="feature_settings_city_search_title">Choose a city</string>
+</resources>
