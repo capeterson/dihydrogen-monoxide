@@ -9,17 +9,17 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/** Smoke test: a fresh install starts and shows the onboarding welcome placeholder. */
+/** Smoke test: a fresh install starts and shows the onboarding welcome screen. */
 @RunWith(AndroidJUnit4::class)
 class AppLaunchTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
-    fun appStartsOnTheOnboardingWelcomePlaceholder() {
+    fun appStartsOnTheOnboardingWelcomeScreen() {
         composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodes(hasText("Welcome")).fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodes(hasText("Welcome to Dihydrogen Monoxide")).fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("Welcome").assertIsDisplayed()
+        composeRule.onNodeWithText("Welcome to Dihydrogen Monoxide").assertIsDisplayed()
     }
 }
