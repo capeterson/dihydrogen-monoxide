@@ -17,5 +17,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.work.runtime.ktx)
 
+    testImplementation(projects.core.testing)
     testImplementation(libs.androidx.work.testing)
 }
