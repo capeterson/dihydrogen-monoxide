@@ -1,10 +1,10 @@
 # Handoff: continuing implementation on a KVM host
 
-This is the starting prompt for the session that continues this work on a machine with KVM (the `iron` bridge environment). It is self-contained.
+This is the starting prompt for the session that continues this work on a machine with KVM (first used on `iron`; also fine on any other KVM machine). It is self-contained.
 
 ---
 
-You are continuing implementation of **Dihydrogen Monoxide**, a free Android water-intake tracker, in the repository `capeterson/dihydrogen-monoxide`. Work on branch `ccr-a06b5cae-xrdq04` (PR #3, "Phase 0 foundation", targets `main`) until that PR merges. Then start new branches from `main` for each follow-up PR.
+You are continuing implementation of **Dihydrogen Monoxide**, a free Android water-intake tracker, in the repository `capeterson/dihydrogen-monoxide`. Phase 0 is merged (PR #3). Work on branch `phase-1-3-wave1` (draft PR #4, base `main`, "Phases 1–3") until all of Phases 1–3 are in; open each later phase (4, 5) as its own branch and PR from `main`.
 
 ## Read first
 1. `docs/PLAN.md`: the approved product and architecture plan. The "Product decisions (confirmed)" table is final; don't revisit it. Wear OS is out of scope (issue #1).
@@ -12,39 +12,61 @@ You are continuing implementation of **Dihydrogen Monoxide**, a free Android wat
 3. `docs/TESTING.md`: how to run every test layer, the SDK packages, CI, and the manual device matrix.
 
 ## State at handoff
-- **Done (T0, Phase 0):** the Gradle build (AGP 9.5.1, Gradle 9.9.1, Kotlin 2.4.21, KSP 2.3.14, compileSdk/targetSdk 37, minSdk 28) with `build-logic` convention plugins; all 23 modules compile; Room schema v1 with exported `core/database/schemas/.../1.json` and DAO tests; DataStore; every `:core:data` interface (`Offline*Repository` bodies are `TODO("T4")`); goal, pace and stats signatures with `TODO("T1"/"T2"/"T3")` bodies; the app shell with navigation and placeholder screens; Hilt; detekt, ktlint and lint with no baselines and warnings as errors; Roborazzi with committed references; the Gradle Managed Device `pixel6Api34`; CI workflows `ci.yml`, `instrumented.yml` and `record-screenshots.yml`.
-- **Application id:** `casa.peterson.dhmo`, confirmed by the owner.
-- **Verified locally (no KVM):** `ktlintCheck detekt checkModuleGraph`, `testDebugUnitTest` plus the JVM module tests (80 tests, 0 failures), `verifyRoborazziDebug`, `lint`, `:app:assembleDebug :app:assembleRelease`.
-- **Never run:** any instrumented test. `AppLaunchTest` in `:app` and `MigrationTest` in `:core:database` compile only. The managed-device task exists but has not been executed.
-- **Known gaps:** onboarding has no navigation buttons yet (T8), so a fresh install stays on the welcome placeholder. `./gradlew :app:tasks --all` fails with a Compose Preview "unit tests disabled for this variant" error. It doesn't affect any gate command; look at it when convenient.
 
-## Step 1: verify the KVM host and run the instrumented layer
+**Phase 0 (T0) is merged** (PR #3): build, 23 modules, schema v1, CI. The instrumented layer was run on a KVM host and is green: `AppLaunchTest` and `MigrationTest` pass locally and in CI, and so does the managed device.
+
+**Phases 1–3 are in progress on branch `phase-1-3-wave1`, draft PR #4** (base `main`). **Wave 1 (T1–T6) is merged into it and all four CI checks are green.** Local full gate on the merged branch: 369 tests, 0 failures, `BUILD SUCCESSFUL`.
+
+| Task | State | Where |
+|---|---|---|
+| T1 goal calculator | done | `core/domain` goal (G01–G38, O1–O9) |
+| T2 pace and reminder decision | done | `core/domain` pace (R01–R25 + seeded property test) |
+| T3 stats and insights | done | `core/domain` stats (datasets A–G, T) |
+| T4 repositories, intake use cases, fakes | done | `core/data`, `core/testing` (`OfflineBackupRepository` stays `TODO("T16")`) |
+| T5 backup, crypto, merge, retention, CSV | done | `core/backup` |
+| T6 design system components | done | `core/designsystem`, 42 Roborazzi references |
+| **T7** goal use cases (incl. `ChangeDayStartUseCase`) | **next, not started** | |
+| T8–T16 | not started | wave 2, after T7 (T10, T14, T16 may start with it) |
+| T17 integration, e2e, accessibility pass | not started | wave 3 |
+
+Phase 4 (Drive) and Phase 5 (Health Connect, weather) are separate later PRs. Wear OS is out of scope (issue #1).
+
+### Decisions already made that later tasks must respect (all also in PR #4's description)
+- **T3 TREND text vs param:** the §9.13 example says "ml/day", but the `changeMl` param is the total change over the range (`changeOverRangeMl`, rounded to 10); `direction` and `weeks = 8` are separate params. **T15 (Insights UI) must decide:** derive ml/day from the param, add a per-day param, or fix the plan text. The WEEKEND example's "22%" is really `"21"` with dataset A.
+- **T4 error types:** the intake use cases throw `IllegalArgumentException` (invalid input), `ImportNotEditableException` (unadopted import), `EntryNotFoundException` (unknown or deleted id). T8, T9 and later must handle these. `IntakeRepository.get(id)` returns tombstoned rows (undo needs them).
+- **T4 / T7 boundary:** re-snapshotting `daily_goal` rows after a day-start change belongs to `ChangeDayStartUseCase` (T7); T4 only re-buckets entries (`rebucketFrom`).
+- **T4:** activity rates 6/12/18 ml/min are named constants in `OfflineActivityRepository` because `:core:domain` exposes none; consider moving them to the goal policy.
+- **T5:** `CsvExport.dailyTotals` takes `List<CsvDay>` (`:core:backup` may only depend on `:core:model`), so T16 must map `DayStat` to `CsvDay`. CSV local times take a `zone` parameter: pass the user's zone. `source_app` is `appLabels[origin] ?: origin`. `BackupMerge.merge(local, incoming)` exists for `BackupEntities` and `BackupDocument`. Passphrase check is `BackupCrypto.isAcceptablePassphrase()` (NFKC, at least 8 characters), not in `deriveKey`.
+- **T6 screenshot flakiness:** Roborazzi 1.79 on Robolectric NATIVE intermittently returned blank frames after many captures in one JVM. Worked around with `forkEvery = 1` in `:core:designsystem` tests and a `captureStable` retry wrapper (retries only on a blank image or an assertion error; a real diff still fails). The cause is unknown. If a verify run is flaky in CI, the proper fix is in `captureScreenVariants` in `:core:testing`, and other feature modules' screenshot tests (T8–T15) will hit the same thing.
+- **Plan edit:** `:core:designsystem` may depend on `:core:domain` (for `VolumeFormatter`); the `checkModuleGraph` allowlist and TECHNICAL_PLAN.md §3.2 agree.
+- **Memory:** build defaults in `gradle.properties` were tuned for an 8 GB machine (peak about 3 GB, one JVM for Gradle and Kotlin). Test JVMs default to a 1 GB heap and two at once (`dhmo.test.maxHeap`, `dhmo.test.parallelism` in `~/.gradle/gradle.properties`). See TESTING.md section 8a.
+
+## Environment notes (learned on the first KVM host, "iron")
+- A JDK 21 is required for Robolectric (the build itself runs on 17+). It was installed under `~/opt/jdk-21.0.13+9`, with the Android SDK in `~/Android/Sdk` (cmdline-tools, platform 37.0, build-tools 37.0.0, emulator, `system-images;android-34;google_apis;x86_64` and `aosp_atd`). `sdkmanager` no longer needs a separate `--licenses` step.
+- **On a Fedora host the emulator segfaults on every start while SELinux is enforcing** (no output from the emulator; the core dump shows a jump to an unmapped address). Setting SELinux permissive fixed it. If you see qemu crash 20–90 s after "performing a full startup", check `getenforce` first.
+- Start the emulator detached (`setsid nohup emulator ... & disown`) so a killed shell doesn't take it down, and don't run a full gate while it is up on an 8 GB machine.
+- `pkill -f qemu-system...` matches your own shell's command line; use `pkill -x qemu-system-x86` or `pgrep -x`.
+- **Watch CI yourself.** `gh` works (`gh pr checks <n> --repo capeterson/dihydrogen-monoxide`, `gh run view --job <id> --log`). Don't rely on subscription events alone; a Monitor loop over `gh pr checks` is reliable.
+- CI runners are small: the instrumented workflow frees disk before booting an emulator, and the two managed-device modules run one after the other.
+
+## Step 1: set up and verify
 ```bash
-ls -l /dev/kvm && nproc && free -g          # /dev/kvm must exist and be accessible to your user
-java -version                               # build runs on 17+; a JDK 21 must also be installed for Robolectric tests
-export ANDROID_HOME=${ANDROID_HOME:-$HOME/Android/Sdk}
-SDKM=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
-yes | $SDKM --licenses
-$SDKM "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" \
-      "emulator" "system-images;android-34;google_apis;x86_64" "system-images;android-34;aosp_atd;x86_64"
+git fetch origin phase-1-3-wave1 && git checkout phase-1-3-wave1
+# JDK 21 + SDK as above, then:
 echo "sdk.dir=$ANDROID_HOME" > local.properties
-
-./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
-# and/or on a booted AVD:
-$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n api34 -k "system-images;android-34;google_apis;x86_64" -d pixel_6
-$ANDROID_HOME/emulator/emulator -avd api34 -no-window -no-audio -no-snapshot -gpu swiftshader_indirect &
-adb wait-for-device && ./gradlew connectedDebugAndroidTest
+./gradlew ktlintCheck detekt checkModuleGraph lint testDebugUnitTest :core:common:test :core:model:test \
+          :core:domain:test :core:backup:test verifyRoborazziDebug assembleDebug
 ```
-If `/dev/kvm` is missing, stop and tell the user. Don't fall back to software emulation. Report the actual output of the instrumented runs, fix what fails (`AppLaunchTest`, `MigrationTest`), and push the fixes to PR #3 if it is still open, or to a new PR otherwise.
+This should be green before you start. The instrumented tests are in TESTING.md sections 5 and 6.
 
-## Step 2: continue the work breakdown (TECHNICAL_PLAN.md §15)
-Scope for the next PR, "Phases 1–3": **wave 1** (T1 goal calculator, T2 pace and reminder decision, T3 stats, T4 repositories and fakes, T5 backup format and CSV, T6 design system components, all parallel), then **wave 2** (T7 first; T10, T14 and T16 may start alongside it; then T8, T9, T11, T12, T13, T15), then **T17** (integration, end-to-end tests, accessibility pass). Phase 4 (Drive, T-DR1..3) and Phase 5 (Health Connect and weather, T-HC1..3, T-WX1..2, T-COR) are **separate later PRs**.
+## Step 2: continue the work breakdown (TECHNICAL_PLAN.md §15.5 onward), on branch `phase-1-3-wave1`
+1. **T7 first, alone** (needs T1 and T4, both merged). T10, T14 and T16 do not depend on it and may run next to it.
+2. **Then T8, T9, T11, T12, T13, T15** (and T10, T14, T16 if not started). They are UI-heavy, so run them **two at a time** with worktree isolation on a small machine; each agent must read its own task section of §15.5 plus the sections it references, stay inside the files it owns, and keep warnings-as-errors.
+3. **Then T17** (integration, end-to-end tests, accessibility pass), alone.
+4. Merge each agent's branch yourself, resolve conflicts (the only expected shared edits are single appended lines in `gradle/libs.versions.toml` and the per-module `build.gradle.kts`), and run the full gate once after each merge batch and at the end.
+5. Keep PR #4's description current: test results (actual counts and output), decisions and deviations, and the remaining-roadmap checklist (PLAN.md §11). Take the PR out of draft only when waves 2 and 3 are in and CI is green. **Never merge it yourself.**
 
-How to run it:
-- Use parallel implementation subagents with **git worktree isolation**, one per task. Give each its task section from §15, the §1–§3 context, and the sections its task references. Each agent must stay inside the files it owns (§15.1), keep warnings-as-errors, and never skip or disable tests to get green.
-- Merge results yourself and resolve conflicts. The only expected shared edit is single appended lines in `gradle/libs.versions.toml`.
-- Before opening a PR, the full gate must pass locally: `./gradlew ktlintCheck detekt checkModuleGraph lint testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test verifyRoborazziDebug assembleDebug`, plus the instrumented tests now that KVM is available.
-- PR descriptions include actual test output (including failures and skips) and a checklist of what remains from the roadmap (PLAN.md §11). After opening a PR, watch it and fix CI failures.
+Before opening or updating a PR: the full gate above plus, now that KVM is available, `connectedDebugAndroidTest` on a booted AVD and the managed-device task.
 
 ## Efficiency rules learned the hard way
 - **Use one Gradle daemon.** Invoke `./gradlew` the same way every time. Don't change JVM args or `-D` flags between runs, and don't use `--no-daemon`. Several daemons on one machine waste memory and slow everything down. With parallel worktree agents, expect contention; limit concurrency to what the machine's CPU and RAM handle (each Gradle build wants about 3–4 GB).
