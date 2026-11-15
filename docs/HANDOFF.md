@@ -21,7 +21,7 @@ You are continuing implementation of **Dihydrogen Monoxide**, a free Android wat
 ## Step 1: verify the KVM host and run the instrumented layer
 ```bash
 ls -l /dev/kvm && nproc && free -g          # /dev/kvm must exist and be accessible to your user
-java -version                               # 17+
+java -version                               # build runs on 17+; a JDK 21 must also be installed for Robolectric tests
 export ANDROID_HOME=${ANDROID_HOME:-$HOME/Android/Sdk}
 SDKM=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
 yes | $SDKM --licenses

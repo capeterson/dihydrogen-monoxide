@@ -6,7 +6,7 @@ How to run every test layer of Dihydrogen Monoxide locally and in CI, and what m
 
 | Tool | Version | Notes |
 |---|---|---|
-| JDK | 17 or newer (CI uses Temurin 17) | No Gradle toolchain is declared; Gradle runs on whatever `JAVA_HOME` points at. |
+| JDK | **21** installed (17 is enough to build) | The build runs on and targets Java 17, but Robolectric unit and screenshot tests run on a Java 21 toolchain: Robolectric needs Java 21 for the API 37 framework. Gradle finds an installed JDK 21 automatically (for example `/usr/lib/jvm/*`, SDKMAN, or `JAVA_HOME_21_X64`). CI installs Temurin 21 and 17. |
 | Gradle | via `./gradlew` (9.9.1) | Never use a system Gradle. |
 | Android SDK | see below | Point `ANDROID_HOME` at it, or write `sdk.dir=/path/to/sdk` in `local.properties` (gitignored). |
 
