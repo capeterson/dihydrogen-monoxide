@@ -1,14 +1,26 @@
 # Dihydrogen Monoxide: Android Hydration Tracker Plan
 
-An Android app that logs how much water you drink, works out a daily target from personal factors (which you can override), reminds you when you fall behind, and analyses your history. It backs up to Google Drive and syncs with Health Connect.
+**Dihydrogen Monoxide** (also the public app name) is a free Android app that logs how much water you drink. It works out a daily target from personal factors (which you can override), reminds you when you fall behind, and analyses your history. It backs up to Google Drive and syncs with Health Connect.
+
+## Product decisions (confirmed)
+
+| Topic | Decision |
+|---|---|
+| Monetisation | **Free.** No ads, no in-app purchases, no Play Billing. |
+| What is tracked | **Water only.** No beverage types and no hydration factors. |
+| Goal basis | **Drinking water only, not water from food.** |
+| Weather adjustment | **In v1, opt-in.** Uses a location permission or a manually chosen city (§4.4). |
+| Wear OS | Nice to have, after v1. Tracked in [#1](https://github.com/capeterson/dihydrogen-monoxide/issues/1). |
+| Multiple devices | **Backup and restore is enough.** No live sync. |
+| Name | "Dihydrogen Monoxide" is the public name. |
 
 ---
 
 ## 1. Goals and non-goals
 
 **Goals**
-- Logging a drink takes one tap from a notification, widget, Quick Settings tile or the app.
-- A recommended daily target that shows how it was worked out and responds to age, sex, weight, pregnancy or lactation, activity and climate.
+- Logging water takes one tap from a notification, widget, Quick Settings tile or the app.
+- A recommended daily target that shows how it was worked out and responds to age, sex, weight, pregnancy or lactation, activity and the day's weather.
 - Manual overrides at every level: a fixed global target, a target for one day, or adjusted inputs.
 - Smart reminders that only fire when you're behind pace, respect quiet hours, and can log a drink straight from the notification.
 - Reporting and trend analysis over any range: totals, how often the goal is met, streaks, time-of-day patterns, trends and correlations.
@@ -17,7 +29,9 @@ An Android app that logs how much water you drink, works out a daily target from
 
 **Non-goals for v1**
 - Medical advice or clinical fluid management. The app says this plainly, and the target is guidance only.
-- Live sync between devices. Drive is a backup, not a sync engine. See §11 for the later path.
+- Live sync between devices. Drive is a backup, not a sync engine, and that is the final scope.
+- Tracking coffee, tea, juice or other drinks. The app tracks water only.
+- Monetisation: no ads, purchases or subscriptions.
 - iOS or web clients.
 
 ---
@@ -79,8 +93,6 @@ IntakeEntry(
   instant: Instant,
   zoneOffset: ZoneOffset,
   volumeMl: Int,
-  beverageTypeId: Long,
-  hydrationFactor: Float,      // copied when logged, so later edits to the beverage don't rewrite history
   source: Source,              // MANUAL, WIDGET, NOTIFICATION, TILE, HEALTH_CONNECT_IMPORT, WEAR
   hcRecordId: String?,         // Health Connect record id once written/imported
   hcDataOrigin: String?,       // package name for imported records
@@ -90,11 +102,7 @@ IntakeEntry(
   deletedAt: Instant?          // tombstone, needed for Health Connect delete propagation and backup merges
 )
 
-BeverageType(id, name, icon, colorArgb, hydrationFactor, isBuiltIn, archived)
-// defaults: Water 1.0, Sparkling 1.0, Tea 1.0, Coffee 1.0, Milk 1.0, Juice 1.0, Sports drink 1.0,
-//           Soda 1.0, Beer 0.9, plus user-defined entries. Factors are configurable; whether they apply at all is a setting (§4.4).
-
-Container(id, name, volumeMl, icon, beverageTypeId?, sortOrder)   // quick-add presets: "Glass 250", "Bottle 750"
+Container(id, name, volumeMl, icon, sortOrder)   // quick-add presets: "Glass 250", "Bottle 750"
 
 ProfileSnapshot(id, effectiveFrom: LocalDate, birthDate, sex, weightKg, heightCm?,
                 activityLevel, climate, pregnancyStatus, lactating, source)
@@ -109,10 +117,13 @@ DailyGoal(date: LocalDate PK, targetMl, calculatedMl, mode: CALCULATED|GLOBAL_OV
 DayOverride(date PK, targetMl, reason?)
 
 ActivityAdjustment(date, sourceRecordId, minutes, extraMl, source)   // from Health Connect exercise sessions
+
+WeatherDay(date PK, latRounded, lonRounded, maxTempC, maxApparentTempC, meanRelHumidity,
+           extraMl, fetchedAt)   // used by the weather adjustment (§4.4) and correlations (§7.2)
 ```
 
 ### Settings (Proto DataStore)
-Units, day start, global goal override, reminder configuration, backup configuration, Health Connect toggles, theme, onboarding state, and whether hydration factors apply.
+Units, day start, global goal override, reminder configuration, backup configuration, Health Connect toggles, weather mode (off, device location, or manual city with its coordinates), theme and onboarding state.
 
 ### Derived views
 A Room `@DatabaseView` or materialised `DailyTotal(date, totalMl, effectiveMl, entryCount, firstAt, lastAt)` keeps reports fast across years of data. It is rebuilt incrementally whenever entries change.
@@ -125,7 +136,7 @@ A Room `@DatabaseView` or materialised `DailyTotal(date, totalMl, effectiveMl, e
 - **Transparent.** The goal screen lists each component, for example *"Base 2,310 ml (33 ml × 70 kg), +500 ml exercise, +300 ml hot weather = 3,110 ml"*.
 - **Evidence-anchored, with sources cited in the app.** It uses the EFSA (2010) and US National Academies (2004) adequate intakes and ACSM exercise guidance.
 - **Bounded.** Results are clamped to sane limits (for example 1,000–6,000 ml for adults). Anything outside those limits shows a "consult a clinician" note. For people with heart failure, kidney disease or a prescribed fluid restriction, the app recommends manual mode during onboarding.
-- **Drinks, not total water.** Published adequate intakes cover all water, including the roughly 20% that comes from food. By default the calculator targets **drinks only**, at about 80% of total water. It says so on screen, and a setting switches the target to total water.
+- **Drinking water only, not food.** Published adequate intakes cover all water, including the roughly 20% that comes from food. The calculator targets **drinking water only**, at about 80% of total water, and says so on screen. There is no setting for total water.
 
 ### 4.2 Algorithm (v1)
 
@@ -141,7 +152,8 @@ sexAgeFloor (drinks):  female ≈ 1,600 ml   male ≈ 2,000 ml    (EFSA total AI
 + lactation:   +700 ml     (EFSA)
 + activity:    planned or detected exercise → +~12 ml per active minute (~350 ml per 30 min),
                scaled by intensity; or a level-based default (sedentary 0 / light +250 / moderate +500 / very active +750)
-+ climate:     temperate 0 / warm +250 / hot or humid +500   (manual setting in v1; optional weather API in a later phase, §11)
++ climate:     automatic from the day's forecast when weather is on (§4.4);
+               otherwise a manual setting: temperate 0 / warm +250 / hot or humid +500
 + altitude:    optional manual +250 above roughly 2,500 m
 
 goal = roundTo50( clamp(baseline + adjustments, min, max) )
@@ -154,12 +166,32 @@ Highest priority first:
 1. **Day override.** "Today I'm hiking, set 4 L."
 2. **Global manual goal.** A fixed number every day, ignoring the calculator. Optionally a separate value for each weekday.
 3. **Calculated goal.** The default. Individual inputs can be pinned. For example, if weight sync is turned off, the manually entered weight is always used.
-4. **Adjustment toggles.** Each adjustment (activity, climate, pregnancy and so on) can be switched on or off independently.
+4. **Adjustment toggles.** Each adjustment (activity, weather, pregnancy and so on) can be switched on or off independently.
 
 The UI always shows both the **calculated** and the **effective** goal, so overriding never hides what the calculator suggests.
 
-### 4.4 Hydration factors
-Factors are off by default (every drink counts 1:1), which is simpler and closer to current evidence that most drinks hydrate about as well as water. Users who prefer factors can switch them on. Reports can then show both the raw volume and the "effective hydration" volume.
+### 4.4 Weather adjustment (opt-in)
+Weather is off by default. Onboarding and Settings offer two ways to turn it on:
+
+1. **Device location.** The app asks for `ACCESS_COARSE_LOCATION` only. It never requests precise or background location. It reads a location with `FusedLocationProviderClient.getCurrentLocation(PRIORITY_BALANCED_POWER_ACCURACY)` **only while the app is in the foreground**, and caches it. The daily worker reuses the cached location, so `ACCESS_BACKGROUND_LOCATION` is never needed.
+2. **Manual city.** The user searches for a city and the app saves its coordinates. This needs no permission, and suits people who don't want to grant location access or who live in one place.
+
+**Forecast source.** The [Open-Meteo](https://open-meteo.com) forecast API needs no API key and is free for non-commercial use, which fits a free app. Coordinates are rounded to 0.1° (about 11 km) before they're sent, and nothing else is sent. A thin `WeatherProvider` interface keeps the provider replaceable.
+
+**Fetch schedule.** One request per day, made by a WorkManager job shortly after the day starts and refreshed when the app opens if the data is more than 6 hours old. If the request fails, the app uses the manual climate setting for that day and says so on the goal screen.
+
+**Adjustment,** from the day's maximum *apparent* temperature (which combines heat and humidity):
+
+| Max apparent temp | Extra |
+|---|---|
+| < 25 °C | +0 ml |
+| 25–29 °C | +250 ml |
+| 30–34 °C | +500 ml |
+| ≥ 35 °C | +750 ml |
+
+The goal breakdown shows the reason, for example *"+500 ml: hot day (feels like 32 °C)"*. The forecast is also saved in `WeatherDay` so the insights can relate intake to temperature.
+
+**Privacy.** The Play Data safety form declares approximate location, shared with a weather service only to get the forecast. The rationale screen explains this before the permission prompt.
 
 ---
 
@@ -204,7 +236,7 @@ Factors are off by default (every drink counts 1:1), which is simpler and closer
 ### 7.1 Views
 | View | Content |
 |---|---|
-| **Day** | Hourly bars against the expected-pace line, beverage mix, and an entry list |
+| **Day** | Hourly bars against the expected-pace line, and an entry list |
 | **Week / Month** | Daily bars with a goal line, colour-coded by goal met, partly met (≥80%) or missed; average; days met |
 | **Year** | Calendar heatmap (GitHub style) of the percentage of goal |
 | **Custom range** | Any start and end date, with an optional comparison against the previous equivalent period |
@@ -218,8 +250,7 @@ Factors are off by default (every drink counts 1:1), which is simpler and closer
 - **Consistency score:** 1 − the coefficient of variation of daily intake over 30 days, shown on a scale of 0–100.
 - **Time-of-day profile:** the average cumulative curve and the median time to reach 50% and 100% of the goal. Flags patterns like "You drink 45% of your water after 6 pm".
 - **Day-of-week pattern:** mean intake per weekday, highlighting the weakest day.
-- **Beverage breakdown:** share by type over the period.
-- **Correlations,** when Health Connect data exists: intake against active minutes, steps, and weight trend. They are shown as scatter plots with a plain-language description, and the app avoids implying causation.
+- **Correlations,** when the data exists: intake against active minutes, steps and weight trend (from Health Connect), and against the day's temperature (from the weather adjustment). They are shown as scatter plots with a plain-language description, and the app avoids implying causation.
 - **Anomalies:** days more than 2.5 robust standard deviations from the 30-day median (using MAD), flagged in the history so logging mistakes stand out, such as a 5 L entry that was meant to be 500 ml.
 
 ### 7.3 Insights feed
@@ -279,6 +310,7 @@ Each permission is requested in context and on its own. For example, the weight 
 - **Writing.** Every local entry that is created, edited or deleted is queued. A `HealthConnectSyncWorker` inserts or updates `HydrationRecord(startTime = endTime = instant, volume)`, using `Metadata` with `clientRecordId = entry.id` and `clientRecordVersion = updatedAt.toEpochMilli()`. Health Connect then upserts idempotently. Deletes go through `deleteRecords` by `clientRecordId`.
 - **Reading.** The worker uses the **Changes API**. It stores a changes token, and each sync calls `getChanges(token)`. Upserts from other apps (`dataOrigin != ourPackage`) are imported as `IntakeEntry(source = HEALTH_CONNECT_IMPORT)`. Records written by this app are ignored. Deletions remove the matching imports. If the token has expired, the worker falls back to a time-range read and a reconciliation.
 - **Triggers.** Sync runs when the app comes to the foreground, after each local change (debounced), and periodically every 15 minutes or more through WorkManager. The periodic run only applies when the background-read permission has been granted.
+- **Non-water imports.** A `HydrationRecord` doesn't say what was drunk, so another app's records might include coffee or juice. Imports are therefore **off by default**. A setting ("Count water logged in other apps") turns them on, with a list of the source apps so each can be included or excluded.
 - **Conflicts.** Imported entries are read-only in the app by default and show the source app's name. The user can choose to "adopt" one and make it editable.
 - **Availability.** `HealthConnectClient.getSdkStatus()` decides whether to show "Install or update Health Connect" (which opens the Play Store on Android 9–13) or to hide the feature.
 
@@ -300,8 +332,8 @@ Health Connect is the integration point on the device. Google's consumer health 
 - **CI:** GitHub Actions running lint, detekt, ktlint, unit tests and assembleRelease, with a managed-device job for instrumented tests.
 
 ### Privacy
-- No analytics or ads in v1. Crash reporting, if added, is opt-in.
-- All data stays on the device, in the user's own Drive appDataFolder, or in Health Connect. No server belongs to the app.
+- No analytics, ads or purchases. Crash reporting, if added, is opt-in.
+- All data stays on the device, in the user's own Drive appDataFolder, or in Health Connect. No server belongs to the app. The only other network call is the opt-in weather request, which sends rounded coordinates.
 - Before release: the Play **Data safety** form, the **Health apps declaration**, the **Health Connect permissions declaration form** (Play reviews each requested data type), and a hosted privacy policy linked from the rationale activity.
 - A medical disclaimer appears at onboarding and on the goal screen.
 
@@ -315,16 +347,16 @@ All strings go in resources from day one. Formatting is locale-aware for numbers
 | Phase | Scope | Exit criteria |
 |---|---|---|
 | **0. Foundation** (~1 wk) | Project scaffold, modules, CI, design system, Room schema v1, DataStore | CI green; empty app runs |
-| **1. MVP logging** (~2 wks) | Onboarding and profile, goal calculator and overrides, Today screen, containers and beverages, history with edit, units, day start | Can log a day end to end; calculator fully unit-tested |
+| **1. MVP logging** (~2 wks) | Onboarding and profile, goal calculator and overrides, Today screen, containers, history with edit, units, day start | Can log a day end to end; calculator fully unit-tested |
 | **2. Reminders** (~1 wk) | Pace-aware scheduler, actionable notifications, quiet hours, reboot handling | Reminders behave correctly across Doze, reboot and timezone changes (manual test matrix) |
 | **3. Insights** (~2 wks) | Day/week/month/year views, metrics, trends, heatmap, insights feed, CSV/JSON export | Stats verified against golden datasets |
 | **4. Drive backup** (~1.5 wks) | Auth, appDataFolder backup and restore, retention, encryption, new-device restore | Round-trip restore on a clean device keeps 100% of the data |
-| **5. Health Connect** (~1.5 wks) | Hydration two-way sync, weight import, exercise-based goal adjustment, correlations | Fake-client tests pass; verified against the Fitbit and Samsung Health apps on real devices |
+| **5. Health Connect and weather** (~2 wks) | Hydration two-way sync, weight import, exercise-based goal adjustment, opt-in weather adjustment (location or manual city), correlations | Fake-client tests pass; verified against the Fitbit and Samsung Health apps on real devices; weather falls back cleanly when offline or permission is denied |
 | **6. Surfaces and polish** (~1.5 wks) | Glance widgets, QS tile, shortcuts, PDF report, accessibility pass, localization scaffolding | Accessibility Scanner clean; screenshot tests across themes |
 | **7. Release** (~1 wk) | Play declarations, privacy policy, OAuth verification, closed testing track | Approved for production |
-| **Later** | Wear OS tile and complication; weather-based climate adjustment (an opt-in coarse location and a keyless forecast API such as Open-Meteo); smart-bottle BLE integrations; multi-device sync (a Drive-based change log, or Firestore if a backend is acceptable); caffeine and alcohol tracking | |
+| **Later** | Wear OS tile and complication ([#1](https://github.com/capeterson/dihydrogen-monoxide/issues/1)); smart-bottle BLE integrations | |
 
-Rough total for v1: **about 11–12 weeks for one experienced Android developer.**
+Rough total for v1: **about 12 weeks for one experienced Android developer.**
 
 ---
 
@@ -338,15 +370,10 @@ Rough total for v1: **about 11–12 weeks for one experienced Android developer.
 | The calculator is mistaken for medical advice | Show the breakdown, cite sources, add disclaimers, and steer users with relevant conditions to manual mode. |
 | Duplicates between the app and other apps in Health Connect | `clientRecordId` idempotency, ignoring the app's own data origin on read, and a dedupe heuristic for near-identical imports. |
 | Timezones and DST corrupt day totals | Store the offset with every entry, snapshot each day's boundary, and test with golden data covering DST transitions. |
+| The weather service is down or changes its terms | Fall back to the manual climate setting. The `WeatherProvider` interface makes it easy to switch providers. |
 
 ---
 
 ## 13. Open questions
 
-1. **Monetisation:** free, paid, or freemium (for example, advanced insights and PDF export in a paid tier)? This affects whether the app needs Play Billing.
-2. **Hydration factors:** off by default (as proposed) or on?
-3. **Goal basis:** drinks only (proposed) or total water, including food?
-4. **Weather adjustment:** is an opt-in location permission acceptable in a later phase?
-5. **Wear OS:** a v1 requirement or a later phase?
-6. **Multi-device:** is "backup and restore" enough, or is live sync between devices (for example a phone and a tablet) needed?
-7. **App name and branding:** keep "Dihydrogen Monoxide" as the public name, or use it only as a codename?
+None at the moment. The product decisions are listed at the top of this document.
