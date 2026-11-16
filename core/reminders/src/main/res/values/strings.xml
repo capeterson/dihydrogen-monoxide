@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- T13 owns this file: channel names and notification texts. -->
+    <string name="core_reminders_channel_reminders">Reminders</string>
+    <string name="core_reminders_channel_reminders_description">Nudges when you fall behind your pace for the day</string>
+    <string name="core_reminders_channel_summaries">Daily summary</string>
+    <string name="core_reminders_channel_summaries_description">An end-of-day summary of what you drank</string>
+    <string name="core_reminders_channel_backup">Backup and sync problems</string>
+    <string name="core_reminders_channel_backup_description">Only shown when a backup or sync needs your attention</string>
+
+    <string name="core_reminders_nudge_title">Time for some water</string>
+    <string name="core_reminders_nudge_text">You’re %1$s behind pace</string>
+    <string name="core_reminders_escalation_text">You’re well behind today: %1$s to go</string>
+    <string name="core_reminders_action_log">+ %1$s (%2$s)</string>
+    <string name="core_reminders_action_snooze">Snooze %1$d min</string>
+    <string name="core_reminders_action_custom">Custom…</string>
+
+    <string name="core_reminders_summary_title">Today’s water</string>
+    <string name="core_reminders_summary_met">Goal met: %1$s of %2$s</string>
+    <string name="core_reminders_summary_short">%1$s of %2$s so far today</string>
 </resources>

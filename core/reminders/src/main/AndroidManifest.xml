@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- TECHNICAL_PLAN §8.10. No exact-alarm permission, ever: alarms are inexact (setAndAllowWhileIdle). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Runtime, opt-in: requested only by the "Avoid calendar events" switch in reminder settings. -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
 
-    <!--
-        T13 adds the rest of TECHNICAL_PLAN §8.10 here: the receivers, and READ_CALENDAR together with the calendar
-        opt-in that requests it. Until then no dangerous permission the app never requests is in the merged manifest.
-        No exact-alarm permission, ever.
-    -->
+    <application>
+        <receiver
+            android:name=".ReminderAlarmReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".ReminderActionReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".SystemEventReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>
