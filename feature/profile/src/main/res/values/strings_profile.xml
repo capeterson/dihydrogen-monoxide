@@ -6,4 +6,130 @@
     <string name="feature_profile_day_override_title">Goal for this day</string>
     <string name="feature_profile_adjustments_title">Adjustments</string>
     <string name="feature_profile_sources_title">Sources</string>
+    <string name="feature_profile_loading">Loading…</string>
+
+    <!-- Goal summary -->
+    <string name="feature_profile_effective_goal">Today’s goal</string>
+    <string name="feature_profile_calculated_goal">Calculated goal: %1$s</string>
+    <string name="feature_profile_calculated_goal_none">No calculated goal: add a profile to get one.</string>
+    <string name="feature_profile_mode_calculated">Using the calculated goal</string>
+    <string name="feature_profile_mode_global">Using your fixed goal instead of the calculated one</string>
+    <string name="feature_profile_mode_day">Using the goal you set for today</string>
+    <string name="feature_profile_clamp_high">Your inputs add up to %1$s, above the %2$s upper limit. If you really need this much, talk to a clinician.</string>
+    <string name="feature_profile_clamp_low">Your inputs add up to %1$s, below the %2$s lower limit. Talk to a clinician about the right goal for you.</string>
+
+    <!-- Breakdown -->
+    <string name="feature_profile_breakdown_title">How the goal is calculated</string>
+    <string name="feature_profile_breakdown_total">Total %1$s; calculated goal %2$s</string>
+    <string name="feature_profile_breakdown_not_applied">Off in Adjustments, not counted</string>
+    <string name="feature_profile_drinks_only">This goal covers drinks only. About 20% of the water you need comes from food.</string>
+    <string name="feature_profile_component_base_child">Base %1$s (age %2$s)</string>
+    <string name="feature_profile_component_base_weight">Base %1$s (%2$s × %3$s kg)</string>
+    <string name="feature_profile_component_base_floor">Base %1$s (minimum recommended intake; weight-based value was %2$s)</string>
+    <string name="feature_profile_component_pregnancy">+%1$s pregnancy</string>
+    <string name="feature_profile_component_lactation">+%1$s breastfeeding</string>
+    <string name="feature_profile_component_level_sedentary">+%1$s sedentary</string>
+    <string name="feature_profile_component_level_light">+%1$s lightly active</string>
+    <string name="feature_profile_component_level_moderate">+%1$s moderately active</string>
+    <string name="feature_profile_component_level_very_active">+%1$s very active</string>
+    <string name="feature_profile_component_minutes">+%1$s exercise (%2$s min)</string>
+    <string name="feature_profile_component_minutes_capped">+%1$s exercise (%2$s min, capped at the daily maximum)</string>
+    <string name="feature_profile_component_climate_temperate">+%1$s temperate climate</string>
+    <string name="feature_profile_component_climate_warm">+%1$s warm climate</string>
+    <string name="feature_profile_component_climate_hot_humid">+%1$s hot or humid climate</string>
+    <string name="feature_profile_component_forecast_mild">+%1$s mild day (feels like %2$s °C)</string>
+    <string name="feature_profile_component_forecast_warm">+%1$s warm day (feels like %2$s °C)</string>
+    <string name="feature_profile_component_forecast_hot">+%1$s hot day (feels like %2$s °C)</string>
+    <string name="feature_profile_component_forecast_very_hot">+%1$s very hot day (feels like %2$s °C)</string>
+    <string name="feature_profile_component_altitude">+%1$s high altitude</string>
+    <string name="feature_profile_forecast_fallback">Forecast unavailable, using your climate setting</string>
+
+    <!-- Day override -->
+    <string name="feature_profile_today_override_title">Today only</string>
+    <string name="feature_profile_today_override_active">Today’s goal is set to %1$s.</string>
+    <string name="feature_profile_today_override_reason">Reason: %1$s</string>
+    <string name="feature_profile_today_override_none">Need a different goal today, for example for a long hike? Set it here. It applies to this day only.</string>
+    <string name="feature_profile_set_today_goal">Set today’s goal</string>
+    <string name="feature_profile_change">Change</string>
+    <string name="feature_profile_clear">Clear</string>
+    <string name="feature_profile_day_override_for">Goal for %1$s</string>
+    <string name="feature_profile_day_override_calculated">Without an override this day’s goal is %1$s.</string>
+    <string name="feature_profile_day_override_amount">Goal (%1$s)</string>
+    <string name="feature_profile_day_override_reason">Reason (optional)</string>
+    <string name="feature_profile_remove_override">Remove override</string>
+
+    <!-- Planned exercise -->
+    <string name="feature_profile_planned_title">Planned exercise today</string>
+    <string name="feature_profile_planned_none">No exercise planned. Planned exercise replaces your activity level for today.</string>
+    <string name="feature_profile_planned_session">%1$s min, %2$s</string>
+    <string name="feature_profile_planned_minutes">Minutes</string>
+    <string name="feature_profile_planned_add">Add exercise</string>
+    <string name="feature_profile_planned_remove">Remove %1$s</string>
+    <string name="feature_profile_planned_invalid">Enter between 1 and 600 minutes.</string>
+    <string name="feature_profile_planned_pinned">Your activity level is pinned in Adjustments, so planned exercise is not counted.</string>
+    <string name="feature_profile_intensity">Intensity</string>
+    <string name="feature_profile_intensity_light">light</string>
+    <string name="feature_profile_intensity_moderate">moderate</string>
+    <string name="feature_profile_intensity_vigorous">vigorous</string>
+
+    <!-- Rows -->
+    <string name="feature_profile_more_title">Settings for your goal</string>
+    <string name="feature_profile_row_profile">Profile</string>
+    <string name="feature_profile_row_profile_summary">Age %1$d, %2$s kg</string>
+    <string name="feature_profile_row_profile_missing">Not set up</string>
+    <string name="feature_profile_row_fixed_on">On: %1$s</string>
+    <string name="feature_profile_row_fixed_off">Off</string>
+    <string name="feature_profile_row_adjustments_summary">Turn adjustments on or off and pin inputs</string>
+    <string name="feature_profile_row_sources_summary">Where the numbers come from, and a medical disclaimer</string>
+    <string name="feature_profile_disclaimer">This goal is general guidance, not medical advice. If you have heart or kidney disease, a prescribed fluid restriction, or another condition affecting fluid intake, follow your clinician’s advice.</string>
+
+    <!-- Edit profile -->
+    <string name="feature_profile_birth_date">Birth date (YYYY-MM-DD)</string>
+    <string name="feature_profile_weight">Weight (kg)</string>
+    <string name="feature_profile_height">Height (cm, optional)</string>
+    <string name="feature_profile_sex">Sex</string>
+    <string name="feature_profile_sex_female">Female</string>
+    <string name="feature_profile_sex_male">Male</string>
+    <string name="feature_profile_sex_unspecified">Prefer not to say</string>
+    <string name="feature_profile_activity">Usual activity level</string>
+    <string name="feature_profile_level_sedentary">Sedentary</string>
+    <string name="feature_profile_level_light">Lightly active</string>
+    <string name="feature_profile_level_moderate">Moderately active</string>
+    <string name="feature_profile_level_very_active">Very active</string>
+    <string name="feature_profile_climate">Climate where you live</string>
+    <string name="feature_profile_climate_temperate">Temperate</string>
+    <string name="feature_profile_climate_warm">Warm</string>
+    <string name="feature_profile_climate_hot_humid">Hot or humid</string>
+    <string name="feature_profile_pregnant">Pregnant</string>
+    <string name="feature_profile_lactating">Breastfeeding</string>
+    <string name="feature_profile_altitude">I live above about 2,500 m</string>
+    <string name="feature_profile_profile_invalid">Check the birth date (YYYY-MM-DD, not in the future), weight (2–400 kg) and height (30–272 cm).</string>
+    <string name="feature_profile_save">Save</string>
+
+    <!-- Global override -->
+    <string name="feature_profile_global_enable">Use a fixed goal</string>
+    <string name="feature_profile_global_enable_summary">Ignore the calculated goal and use the same amount every day</string>
+    <string name="feature_profile_global_amount">Daily goal (%1$s)</string>
+    <string name="feature_profile_global_weekday_title">Different goal on some days (optional)</string>
+    <string name="feature_profile_global_weekday_hint">Leave a day empty to use the daily goal.</string>
+    <string name="feature_profile_global_invalid">Each goal must be between %1$s and %2$s.</string>
+
+    <!-- Adjustments -->
+    <string name="feature_profile_adjustments_intro">Turn off an adjustment to leave it out of the calculated goal. It still appears in the breakdown.</string>
+    <string name="feature_profile_toggle_activity">Activity and exercise</string>
+    <string name="feature_profile_toggle_climate">Climate and weather</string>
+    <string name="feature_profile_toggle_pregnancy">Pregnancy and breastfeeding</string>
+    <string name="feature_profile_toggle_altitude">High altitude</string>
+    <string name="feature_profile_pinned_title">Pinned inputs</string>
+    <string name="feature_profile_pin_weight">Always use my entered weight</string>
+    <string name="feature_profile_pin_weight_summary">Ignore weight readings from Health Connect</string>
+    <string name="feature_profile_pin_activity">Always use my activity level</string>
+    <string name="feature_profile_pin_activity_summary">Ignore measured and planned exercise</string>
+
+    <!-- Sources -->
+    <string name="feature_profile_sources_intro">The calculated goal follows published adequate intakes for water. The per-kilogram factors and the activity, climate and altitude amounts are this app’s own guidance values, not clinical values.</string>
+    <string name="feature_profile_source_efsa">EFSA Panel on Dietetic Products, Nutrition and Allergies (2010). Scientific Opinion on Dietary Reference Values for water. EFSA Journal 8(3):1459. Used for the adequate intakes by age and sex, and for pregnancy and breastfeeding.</string>
+    <string name="feature_profile_source_nasem">US National Academies (2004). Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate. Basis for counting about 80% of total water as drinks.</string>
+    <string name="feature_profile_source_acsm">American College of Sports Medicine (2007). Exercise and Fluid Replacement, position stand. Basis for the per-minute exercise allowance.</string>
+    <string name="feature_profile_limits">Calculated goals are kept between %1$s and %2$s for adults and %3$s and %4$s for children under 14.</string>
 </resources>
