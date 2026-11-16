@@ -25,6 +25,17 @@ class OfflineContainerRepositoryTest {
     private fun repository() = OfflineContainerRepository(env.db.containerDao(), env.transactions, clock)
 
     @Test
+    fun `reorder ignores repeated and unknown ids without leaving gaps`() = runTest {
+        val repo = repository()
+        repo.seedDefaultsIfEmpty(VolumeUnit.ML)
+        repo.reorder(listOf(TestData.BOTTLE_ID, UUID.randomUUID(), TestData.BOTTLE_ID, TestData.GLASS_ID))
+        val all = repo.getAll()
+        assertThat(all.map { it.id })
+            .containsExactly(TestData.BOTTLE_ID, TestData.GLASS_ID, TestData.LARGE_BOTTLE_ID).inOrder()
+        assertThat(all.map { it.sortOrder }).containsExactly(0, 1, 2).inOrder()
+    }
+
+    @Test
     fun `seeds 250 500 750 ml for millilitres`() = runTest {
         val repo = repository()
         repo.seedDefaultsIfEmpty(VolumeUnit.ML)

@@ -35,6 +35,16 @@ class CsvExportTest {
         StringBuilder().also { CsvExport.entries(e.toList(), labels, it) }.toString()
 
     @Test
+    fun `untrusted text cannot become spreadsheet formulas`() {
+        for (text in listOf("=1+1", "+SUM(1,2)", "-1+2", "@SUM(1,2)", "\t=1", "\r=1", "\n=1", "  =1")) {
+            val csv = entriesCsv(entry(note = text, origin = "external"), labels = mapOf("external" to text))
+            val escaped = "\"'" + text.replace("\"", "\"\"") + "\""
+            assertThat(csv).contains(",$escaped,$escaped,")
+        }
+        assertThat(entriesCsv(entry(note = "after run"))).contains(",after run,")
+    }
+
+    @Test
     fun `entries csv has header crlf and the documented columns`() {
         val csv = entriesCsv(entry(note = "after run", origin = "com.fitbit.FitbitMobile"))
         val lines = csv.split("\r\n")

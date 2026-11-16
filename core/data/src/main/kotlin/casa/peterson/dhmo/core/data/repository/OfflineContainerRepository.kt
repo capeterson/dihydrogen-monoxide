@@ -38,8 +38,10 @@ constructor(
         val now = clock.instant()
         transactions.run {
             val live = dao.getAll()
-            val listed = idsInOrder.mapNotNull { id -> live.firstOrNull { it.id == id } }
-            val rest = live.filter { row -> row.id !in idsInOrder }
+            val byId = live.associateBy { it.id }
+            val requested = idsInOrder.toSet()
+            val listed = requested.mapNotNull(byId::get)
+            val rest = live.filter { row -> row.id !in requested }
             (listed + rest).forEachIndexed { index, row ->
                 if (row.sortOrder != index) dao.upsert(row.copy(sortOrder = index, updatedAt = now))
             }

@@ -47,8 +47,8 @@ object CsvExport {
                     e.hydrationDay.toString(),
                     e.volumeMl.toString(),
                     e.source.name,
-                    e.hcDataOrigin?.let { appLabels[it] ?: it }.orEmpty(),
-                    e.note.orEmpty(),
+                    safeText(e.hcDataOrigin?.let { appLabels[it] ?: it }.orEmpty()),
+                    safeText(e.note.orEmpty()),
                     e.createdAt.toString(),
                     e.updatedAt.toString(),
                 ),
@@ -103,7 +103,15 @@ object CsvExport {
         out.append(CRLF)
     }
 
-    private fun escape(field: String): String = if (field.indexOfAny(specialChars) >= 0) {
+    // Quoting CSV alone does not prevent spreadsheet applications from executing cell formulas.
+    // Apply this only to untrusted text, so numeric values and UTC offsets retain their types.
+    private fun safeText(field: String): String {
+        val first = field.dropWhile { it.isWhitespace() }.firstOrNull()
+        val dangerous = first in listOf('=', '+', '-', '@') || field.firstOrNull() in listOf('\t', '\r', '\n')
+        return if (dangerous) "'" + field else field
+    }
+
+    private fun escape(field: String): String = if (field.startsWith("'") || field.indexOfAny(specialChars) >= 0) {
         '"' + field.replace("\"", "\"\"") + '"'
     } else {
         field

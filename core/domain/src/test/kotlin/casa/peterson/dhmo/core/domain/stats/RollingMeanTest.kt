@@ -1,6 +1,7 @@
 package casa.peterson.dhmo.core.domain.stats
 
 import com.google.common.truth.Truth.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class RollingMeanTest {
@@ -14,6 +15,22 @@ class RollingMeanTest {
                 assertThat(actual[i]!!).isWithin(TOLERANCE).of(want)
             }
         }
+    }
+
+    @Test
+    fun `window must be positive even for empty input`() {
+        for (window in listOf(0, -1, Int.MIN_VALUE)) {
+            assertThrows(IllegalArgumentException::class.java) { rollingMean(emptyList(), window, false) }
+            assertThrows(IllegalArgumentException::class.java) { rollingMean(datasetA(), window, true) }
+        }
+    }
+
+    @Test
+    fun `window one and windows longer than input`() {
+        val days = daysOf(listOf(2000, 0, 1000))
+        assertSeries(rollingMean(days, 1, false), listOf(2000.0, null, 1000.0))
+        assertSeries(rollingMean(days, 1, true), listOf(2000.0, 0.0, 1000.0))
+        assertSeries(rollingMean(days, Int.MAX_VALUE, true), listOf(null, null, null))
     }
 
     @Test
