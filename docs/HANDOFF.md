@@ -1,6 +1,6 @@
 # Handoff: Phases 1–3 continuation
 
-Continue on `phase-1-3-wave1`, draft PR #4 against `main`. Do not merge it. Phase 4 (Drive) and Phase 5 (Health Connect and weather) each get a later branch and PR from `main`; Wear OS is out of scope. Read `docs/PLAN.md`, `docs/TECHNICAL_PLAN.md` §15, and `docs/TESTING.md` first. The confirmed product decisions in PLAN.md are final.
+Continue on `phase-1-3-wave1`, PR #4 against `main`. Its review scope is the completed work listed below; it does not claim all Phases 1–3 are complete. Do not merge it. Phase 4 (Drive) and Phase 5 (Health Connect and weather) each get a later branch and PR from `main`; Wear OS is out of scope. Read `docs/PLAN.md`, `docs/TECHNICAL_PLAN.md` §15, and `docs/TESTING.md` first. The confirmed product decisions in PLAN.md are final.
 
 ## Current implementation
 
@@ -12,7 +12,7 @@ History's paging query now sorts by hydration day and then instant, so travel an
 
 ## Today work in progress
 
-The unfinished branch `task-t9-today`, commit `9069de2`, and its worktree `/tmp/dhmo-t9` preserve T9 work. The branch is pushed to `origin` so it can be fetched on another machine. It is based on `ae3fc55` (before History, reminder settings and onboarding were integrated). It is not part of PR #4. Rebase or cherry-pick it onto the current PR branch only after reviewing it; it is explicitly WIP, not a completed task. Fetch it with `git fetch origin task-t9-today` on another machine.
+The unfinished branch `task-t9-today`, commit `9069de2`, and its worktree `/tmp/dhmo-t9` preserve T9 work (tracked in [issue #7](https://github.com/capeterson/dihydrogen-monoxide/issues/7)). The branch is pushed to `origin` so it can be fetched on another machine. It is based on `ae3fc55` (before History, reminder settings and onboarding were integrated). It is not part of PR #4. Rebase or cherry-pick it onto the current PR branch only after reviewing it; it is explicitly WIP, not a completed task. Fetch it with `git fetch origin task-t9-today` on another machine.
 
 T9 has initial Today, edit-entry, container, battery-help and QuickLog code and preliminary tests. The latest focused run compiled but failed 2 of 5 tests: `TodayViewModelTest.quickAddDeleteAndUndo` timed out waiting for an emission, and `TodayScreenTest.quickAddAndSwipeInvokeTheirActions` could not find the expected `250 ml` node. No Today screenshot references have been recorded. Review functionality and accessibility, fix those failures, implement and test any missing acceptance criteria in §15.5 (including `QuickLogActivityTest`), record the five states in three variants, and run the module checks and app assembly before integration. The test logs from this host were `/tmp/dhmo-t9-tests.log`; do not assume `/tmp` survives.
 
@@ -37,4 +37,4 @@ The original checkout has pre-existing user changes in `gradle.properties` and u
 - T15 must resolve the TREND text/parameter mismatch: `changeMl` is total change across the range, while the plan example says ml/day. The WEEKEND example's 22% rounds to `21` for dataset A.
 - Intake use cases throw `IllegalArgumentException`, `ImportNotEditableException`, and `EntryNotFoundException`; `IntakeRepository.get(id)` includes tombstones.
 - T16 maps `DayStat` to `CsvDay`, passes the user's zone to CSV export, and uses `BackupCrypto.isAcceptablePassphrase()` for NFKC-normalized passphrase validation.
-- Existing PR #4 is draft and must stay draft until the remaining Phase 1–3 tasks are integrated and CI is green. Never merge it yourself. Its description should include the final gate result, the scoped device successes, and the aggregate connected OOM result. Do not claim the aggregate connected task passed.
+- Remaining work is split into issues: [T9 #7](https://github.com/capeterson/dihydrogen-monoxide/issues/7), [T11 #8](https://github.com/capeterson/dihydrogen-monoxide/issues/8), [T12 #9](https://github.com/capeterson/dihydrogen-monoxide/issues/9), [T13 #10](https://github.com/capeterson/dihydrogen-monoxide/issues/10), [T15 #11](https://github.com/capeterson/dihydrogen-monoxide/issues/11), [T16 #12](https://github.com/capeterson/dihydrogen-monoxide/issues/12), and [T17 #13](https://github.com/capeterson/dihydrogen-monoxide/issues/13). The PR description defines the delivered scope and records verification. Do not claim the aggregate connected task passed; its emulator was killed during a host-wide OOM.
