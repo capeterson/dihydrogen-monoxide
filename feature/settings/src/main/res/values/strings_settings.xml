@@ -9,4 +9,75 @@
     <string name="feature_settings_backup_settings_title">Backup and restore</string>
     <string name="feature_settings_weather_settings_title">Weather</string>
     <string name="feature_settings_city_search_title">Choose a city</string>
+
+    <!-- Root -->
+    <string name="feature_settings_section_goal">Goal and reminders</string>
+    <string name="feature_settings_section_general">General</string>
+    <string name="feature_settings_section_data">Your data</string>
+    <string name="feature_settings_section_integrations">Connected services</string>
+    <string name="feature_settings_section_about">About</string>
+    <string name="feature_settings_row_profile">Profile and goal</string>
+    <string name="feature_settings_row_profile_summary">Body details, goal breakdown and overrides</string>
+    <string name="feature_settings_row_reminders">Reminders</string>
+    <string name="feature_settings_row_health_connect">Health Connect</string>
+    <string name="feature_settings_on">On</string>
+    <string name="feature_settings_off">Off</string>
+    <string name="feature_settings_units_summary">%1$s · day starts at %2$s</string>
+    <string name="feature_settings_stats_summary">Days without entries and streak freezes</string>
+    <string name="feature_settings_export_summary">Save your entries as CSV or JSON</string>
+    <string name="feature_settings_backup_not_configured">Restore from a file</string>
+    <string name="feature_settings_backup_signed_out">Google Drive: signed out</string>
+    <string name="feature_settings_backup_ready">Google Drive: on</string>
+    <string name="feature_settings_backup_running">Google Drive: backing up…</string>
+    <string name="feature_settings_backup_reconnect">Google Drive: reconnect needed</string>
+    <string name="feature_settings_backup_error">Google Drive: last backup failed</string>
+    <string name="feature_settings_hc_available">Available, not connected</string>
+    <string name="feature_settings_hc_update_required">Update Health Connect to use it</string>
+    <string name="feature_settings_hc_unavailable">Not available on this device</string>
+    <string name="feature_settings_weather_device">Using approximate device location</string>
+    <string name="feature_settings_weather_city">Using a chosen city</string>
+    <string name="feature_settings_version">Version %1$s</string>
+
+    <!-- Units and day start -->
+    <string name="feature_settings_units_heading">Volume unit</string>
+    <string name="feature_settings_unit_ml">Millilitres (ml)</string>
+    <string name="feature_settings_unit_l">Litres (L)</string>
+    <string name="feature_settings_unit_us_fl_oz">US fluid ounces (fl oz)</string>
+    <string name="feature_settings_unit_imp_fl_oz">Imperial fluid ounces (fl oz)</string>
+    <string name="feature_settings_day_start_heading">Day start</string>
+    <string name="feature_settings_day_start_explainer">Drinks logged before this time count towards the previous day. Night owls can move it past midnight.</string>
+    <string name="feature_settings_day_start">Day starts at</string>
+    <string name="feature_settings_day_start_applying">Regrouping entries…</string>
+    <string name="feature_settings_day_start_confirm_title">Start the day at %1$s?</string>
+    <string name="feature_settings_day_start_confirm_body">Entries from the day in progress onward are regrouped using %2$s instead of %1$s. Because of this, the current day will be shorter or longer than 24 hours once, and its goal is recalculated. Earlier days keep their totals and goals.</string>
+    <string name="feature_settings_day_start_confirm">Change</string>
+    <string name="feature_settings_cancel">Cancel</string>
+
+    <!-- Appearance -->
+    <string name="feature_settings_theme_heading">Theme</string>
+    <string name="feature_settings_theme_system">Follow system</string>
+    <string name="feature_settings_theme_light">Light</string>
+    <string name="feature_settings_theme_dark">Dark</string>
+    <string name="feature_settings_dynamic_color">Dynamic colour</string>
+    <string name="feature_settings_dynamic_color_summary">Use colours from your wallpaper</string>
+    <string name="feature_settings_dynamic_color_unsupported">Needs Android 12 or later</string>
+
+    <!-- Statistics -->
+    <string name="feature_settings_include_no_log_days">Count days without entries</string>
+    <string name="feature_settings_include_no_log_days_summary">Off: days with nothing logged are left out of averages and attainment. On: they count as 0.</string>
+    <string name="feature_settings_weekly_freeze">Weekly streak freeze</string>
+    <string name="feature_settings_weekly_freeze_summary">One missed day per week (Monday to Sunday) keeps a streak alive without adding to it.</string>
+
+    <!-- About -->
+    <string name="feature_settings_app_name" translatable="false">Dihydrogen Monoxide</string>
+    <string name="feature_settings_unknown">unknown</string>
+    <string name="feature_settings_disclaimer_title">Not medical advice</string>
+    <string name="feature_settings_disclaimer_body">This app gives general guidance based on published intake references. It is not medical advice. If you have heart or kidney disease, a prescribed fluid restriction, or another condition affecting fluid intake, follow your clinician’s advice and set your goal manually.</string>
+    <string name="feature_settings_privacy_policy">Privacy policy</string>
+    <string name="feature_settings_privacy_policy_summary">Opens in your browser</string>
+    <string name="feature_settings_privacy_policy_url" translatable="false">https://github.com/capeterson/dihydrogen-monoxide/blob/main/docs/PRIVACY.md</string>
+    <string name="feature_settings_licences">Open-source licences</string>
+    <string name="feature_settings_licences_summary">Libraries this app is built with</string>
+    <string name="feature_settings_licences_intro">This app includes the following open-source software. Full licence texts are at apache.org/licenses/LICENSE-2.0.</string>
+    <string name="feature_settings_close">Close</string>
 </resources>
