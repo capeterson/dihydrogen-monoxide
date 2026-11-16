@@ -20,13 +20,13 @@ The stopped T8 agent's work was completed and integrated. Its temporary worktree
 
 ## Verification and environment
 
-JDK 25 with `javac` is required for the build and Robolectric; the SDK is at `/home/cpeterson/Android/Sdk`. The full gate below passed after T8 was integrated (`BUILD SUCCESSFUL in 2m 13s`):
+JDK 25 with `javac` is required for the build and Robolectric; the SDK is at `/home/cpeterson/Android/Sdk`. The final full gate passed on the integrated branch (`BUILD SUCCESSFUL in 16s`; 1,402 actionable tasks, 32 executed, 1,370 up to date):
 
 ```bash
 ./gradlew ktlintCheck detekt checkModuleGraph lint testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test verifyRoborazziDebug assembleDebug
 ```
 
-Earlier in this continuation, `connectedDebugAndroidTest`, `:app:pixel6Api34DebugAndroidTest`, and `:core:database:pixel6Api34DebugAndroidTest` passed on API 34. Those device results preceded the T8 and T10/T14 integrations and must be repeated on the final branch before the PR is updated, as must the full gate. T8's own module tests, all 30 screenshot references, lint and app assembly passed on Java 25. T10 and T14 passed their module tests and screenshots on Java 21 before integration; the integrated full Java 25 gate passed afterward.
+On the final integrated branch, the app and database `connectedDebugAndroidTest` tasks passed sequentially on API 34 with `--max-workers=1` (`BUILD SUCCESSFUL in 1m 35s`). The app and database managed-device tasks also passed sequentially (`BUILD SUCCESSFUL in 3m 8s`, SwiftShader). SELinux remained Enforcing throughout; the user's updated policy allowed QEMU to boot. The aggregate `connectedDebugAndroidTest` invocation did not finish: host-wide OOM killed the emulator. There was no SELinux denial or QEMU crash in that run. T8's module tests, all 30 screenshot references, lint and app assembly passed on Java 25. T10 and T14 passed their module tests and screenshots on Java 21 before integration; an integrated Java 25 full gate passed after integration.
 
 This host has KVM and an AVD named `dhmo-api34`. Previously QEMU segfaulted when SELinux was enforcing. The user installed a new policy; the API 34 emulator booted and the scoped app and database connected tests passed with SELinux enforcing. An aggregate connected run lost the emulator during a host-wide out-of-memory event; the kernel log showed OOM kills, with no new QEMU core or SELinux denial in that window. Do not change host-wide SELinux settings without the user's help. Run the app and database managed-device tasks sequentially; see TESTING.md §§5–6.
 
@@ -37,4 +37,4 @@ The original checkout has pre-existing user changes in `gradle.properties` and u
 - T15 must resolve the TREND text/parameter mismatch: `changeMl` is total change across the range, while the plan example says ml/day. The WEEKEND example's 22% rounds to `21` for dataset A.
 - Intake use cases throw `IllegalArgumentException`, `ImportNotEditableException`, and `EntryNotFoundException`; `IntakeRepository.get(id)` includes tombstones.
 - T16 maps `DayStat` to `CsvDay`, passes the user's zone to CSV export, and uses `BackupCrypto.isAcceptablePassphrase()` for NFKC-normalized passphrase validation.
-- Re-run the full gate and connected plus managed device tests before opening or updating PR #4, keep its description current, and only mark it ready when T8–T17 are integrated and CI is green. Never merge it yourself.
+- Existing PR #4 is draft and must stay draft until the remaining Phase 1–3 tasks are integrated and CI is green. Never merge it yourself. Its description should include the final gate result, the scoped device successes, and the aggregate connected OOM result. Do not claim the aggregate connected task passed.
