@@ -2,6 +2,7 @@ package casa.peterson.dhmo.convention
 
 import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.extensions.DetektExtension
+import dev.detekt.gradle.plugin.getSupportedKotlinVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -27,6 +28,14 @@ class QualityConventionPlugin : Plugin<Project> {
                 html.required.set(true)
             }
         }
+        // Keep detekt's own compiler version: the Kotlin Gradle plugin must not upgrade it.
+        val detektKotlinVersion = getSupportedKotlinVersion()
+        configurations.matching { it.name == "detekt" }.configureEach {
+            resolutionStrategy.eachDependency {
+                if (requested.group == "org.jetbrains.kotlin") useVersion(detektKotlinVersion)
+            }
+        }
+
         extensions.configure<KtlintExtension> {
             version.set(libs.findVersion("ktlint").get().requiredVersion)
             android.set(true)

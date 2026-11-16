@@ -20,7 +20,7 @@ The stopped T8 agent's work was completed and integrated. Its temporary worktree
 
 ## Verification and environment
 
-JDK 25 with `javac` is required for the build and Robolectric; the SDK is at `/home/cpeterson/Android/Sdk`. The final full gate passed on the integrated branch (`BUILD SUCCESSFUL in 16s`; 1,402 actionable tasks, 32 executed, 1,370 up to date):
+The build and Robolectric tests run on Temurin 25, which Gradle downloads into `~/.gradle/jdks` if it is not installed (`gradle/gradle-daemon-jvm.properties`); any JDK 17+ on the `PATH` can start `./gradlew`. The SDK is at `/home/cpeterson/Android/Sdk`. The final full gate passed on the integrated branch (`BUILD SUCCESSFUL in 16s`; 1,402 actionable tasks, 32 executed, 1,370 up to date):
 
 ```bash
 ./gradlew ktlintCheck detekt checkModuleGraph lint testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test verifyRoborazziDebug assembleDebug

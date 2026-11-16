@@ -34,14 +34,14 @@ class AndroidTestConventionPlugin : Plugin<Project> {
         tasks.withType<Test>().configureEach {
             maxHeapSize = testHeap
             usesService(testLimiter)
-            // Run Robolectric on Java 25; the application still targets Java 17 bytecode.
-            javaLauncher.set(toolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(ROBOLECTRIC_JAVA_VERSION)) })
+            // Robolectric needs Java 21+ to load the API 37 framework. Tests run on the project's JDK (25, the same as
+            // the Gradle daemon), stated here so a daemon started some other way cannot pick an older one.
+            javaLauncher.set(toolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(JDK_VERSION)) })
             // Modules ship robolectric.properties before their first test; Gradle 9 would otherwise fail the task.
             failOnNoDiscoveredTests.set(false)
         }
     }
 }
 
-private const val ROBOLECTRIC_JAVA_VERSION = 25
 private const val DEFAULT_TEST_HEAP = "1g"
 private const val DEFAULT_TEST_PARALLELISM = 2

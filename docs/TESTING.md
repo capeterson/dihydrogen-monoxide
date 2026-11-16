@@ -6,7 +6,7 @@ How to run every test layer of Dihydrogen Monoxide locally and in CI, and what m
 
 | Tool | Version | Notes |
 |---|---|---|
-| JDK | **25** (full JDK, including `javac`) | Gradle and Robolectric tests run on Java 25; the app targets Java 17 bytecode. Robolectric requires at least Java 21 for the API 37 framework. CI installs Temurin 25. |
+| JDK | **25** (Temurin), provisioned by Gradle | `gradle/gradle-daemon-jvm.properties` pins the Gradle daemon to Temurin 25; unit and screenshot tests run on the same JDK. If no matching JDK is installed, Gradle downloads one into `~/.gradle/jdks` (foojay resolver), so any JDK 17+ on the `PATH` is enough to start `./gradlew`. Pinning the vendor makes local and CI builds identical. detekt is `2.0.0-alpha.6`, the first detekt that runs on JDK 25 (1.23.x embeds a Kotlin 2.0 compiler that rejects it); move to 2.0.0 stable when it ships. Bytecode still targets Java 17. CI installs Temurin 25. To move to a newer JDK, run `./gradlew updateDaemonJvm --jvm-version=<n> --jvm-vendor=adoptium` and change `JDK_VERSION` in `build-logic`. |
 | Gradle | via `./gradlew` (9.9.1) | Never use a system Gradle. |
 | Android SDK | see below | Point `ANDROID_HOME` at it, or write `sdk.dir=/path/to/sdk` in `local.properties` (gitignored). |
 

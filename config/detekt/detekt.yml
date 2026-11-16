@@ -23,8 +23,9 @@ style:
 
 complexity:
   LongParameterList:
-    allowedFunctionParameters: 8
-    allowedConstructorParameters: 10
+    # detekt 2 counts what is allowed; detekt 1's thresholds 8 and 10 meant "8 or more is reported".
+    allowedFunctionParameters: 7
+    allowedConstructorParameters: 9
     ignoreDefaultParameters: true
     ignoreDataClasses: true
   LongMethod:

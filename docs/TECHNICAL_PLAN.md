@@ -38,7 +38,7 @@ These settle points PLAN.md left open or stated two ways. None contradicts a con
 | D6 | Modules added | `:core:data`, `:core:backup`, `:core:common`, `:core:network`, `:core:reminders`, `:core:weather`, `:core:testing`, `:feature:onboarding`. | §3.2 |
 | D7 | Backup format home | `:core:backup` (pure Kotlin), available from Phase 3 for JSON and CSV export, reused by Drive in Phase 4. | §11.1 |
 | D8 | Kotlin plugin setup | AGP 9 built-in Kotlin: Android modules do not apply `org.jetbrains.kotlin.android`; KSP only, no kapt. | §3.3 |
-| D9 | detekt | Detekt 2.0.0-alpha.6 with the plain `detekt` task (no type resolution), required for Java 25. | §3.8 |
+| D9 | detekt | `2.0.0-alpha.6` with the plain `detekt` task (no type resolution). 1.23.8 was used until the move to JDK 25, which it cannot run on; take 2.0.0 stable when it ships. | §3.8 |
 | D10 | Health Connect artifacts | Stable `connect-client` 1.1.0 in the app; `connect-testing` 1.0.0-alpha03 for tests only, with its strict client dependency excluded. | §2.3 |
 | D11 | Navigation | Navigation Compose 2.10 with `@Serializable` routes; four top-level destinations (Today, History, Insights, Settings). | §13 |
 | D12 | Goal constants | Child table from EFSA × 0.8; "unspecified" sex uses the mean of the female and male values; activity minutes at 6 / 12 / 18 ml per minute by intensity, capped at 2,000 ml; child clamp 600–3,000 ml; halves round up in `roundTo50`; `calculatedMl` is nullable for manual-only users. | §7.2 |
@@ -77,7 +77,7 @@ In addition, a throwaway **smoke project** was built in the planning environment
 | Android Gradle plugin | `com.android.application` / `com.android.library` | **9.5.1** | lookup + built ✔ |
 | Kotlin | `org.jetbrains.kotlin:kotlin-gradle-plugin`, `org.jetbrains.kotlin.jvm`, `.plugin.compose`, `.plugin.serialization` | **2.4.21** | lookup + built ✔ |
 | KSP | `com.google.devtools.ksp` | **2.3.14** | lookup + built ✔ |
-| JDK | Temurin 17 in CI; 21 locally | 17 minimum | built on 21 ✔; 17 per AGP notes |
+| JDK | Temurin 25, CI and local (Gradle daemon JVM criteria) | 17 minimum | built on 25 ✔ |
 | compileSdk / targetSdk / minSdk | platform `android-37.0` | **37 / 37 / 28** | built ✔ |
 | Build tools | | **37.0.0** | built ✔ |
 | Compose BOM | `androidx.compose:compose-bom` | **2026.09.00** (Compose UI 1.12.1, Material 3 1.4.0) | lookup + built ✔ |
@@ -103,7 +103,7 @@ In addition, a throwaway **smoke project** was built in the planning environment
 | Splash screen | `androidx.core:core-splashscreen` | **1.2.0** | lookup |
 | Paging | `androidx.paging:paging-compose`, `paging-runtime` | **3.5.3** | lookup |
 | OkHttp | `com.squareup.okhttp3:okhttp`, `mockwebserver3` | **5.5.1** | lookup + built ✔ |
-| detekt | `dev.detekt` | **2.0.0-alpha.6** | Java 25 migration |
+| detekt | `dev.detekt` | **2.0.0-alpha.6** | built on JDK 25 ✔ |
 | ktlint Gradle plugin | `org.jlleitschuh.gradle.ktlint` | **14.2.0** | lookup + built ✔ |
 | ktlint engine | `com.pinterest.ktlint:ktlint-cli` (set through the plugin) | **1.8.0** | lookup + built ✔ |
 | Roborazzi | `io.github.takahirom.roborazzi:*`, plugin | **1.79.0** | lookup + built ✔ |
@@ -127,7 +127,7 @@ Not used, and why: protobuf (D1); kotlinx-datetime (`java.time` suffices at `min
 | Compose compiler | The `org.jetbrains.kotlin.plugin.compose` plugin is versioned with Kotlin (2.4.21) and worked with BOM 2026.09.00. |
 | Hilt ↔ AGP 9 | Hilt Gradle plugin 2.60.1 applied and aggregated correctly with AGP 9.5.1 and KSP. `hiltViewModel()` is imported from `androidx.hilt.lifecycle.viewmodel.compose` (available through `hilt-navigation-compose` 1.4.0); the old `androidx.hilt.navigation.compose` import is deprecated. |
 | Room | Room 2.8.5 with the `androidx.room` Gradle plugin exported the schema under KSP 2.3.14. |
-| detekt ↔ Kotlin | detekt 2.0.0-alpha.6 uses Kotlin 2.4.10 and supports Java 25. The plain `detekt` task analyses the explicitly configured source directories; type-resolution tasks are not used. |
+| detekt ↔ Kotlin | detekt 2.0.0-alpha.6 embeds Kotlin 2.4.10 (1.23.8 embedded 2.0.21, whose JDK version check rejects JDK 25). The plain `detekt` task analysed Kotlin 2.4.21 sources in both module types and found the default source directories under AGP built-in Kotlin. Type-resolution tasks are not used. |
 | ktlint | Plugin 14.2.0 with engine 1.8.0 ran on Gradle 9.9.1 for both module types and for `.gradle.kts` files. |
 | Robolectric ↔ SDK | Robolectric 4.18 ran tests at SDK 37 (it downloaded its Android 17 image). No `@Config(sdk = …)` cap is needed; modules pin `sdk=37` in `robolectric.properties` for reproducible screenshots (§14.1). |
 | Roborazzi ↔ Robolectric | Roborazzi 1.79.0 with Robolectric 4.18 and `@GraphicsMode(NATIVE)` executed a Compose capture call. Only the call path was exercised: image recording and comparison (`recordRoborazziDebug` / `verifyRoborazziDebug`) were not run. |
@@ -156,7 +156,7 @@ Not used, and why: protobuf (D1); kotlinx-datetime (`java.time` suffices at `min
 | Base package / namespace | `casa.peterson.dhmo`; each module's namespace is `casa.peterson.dhmo.<path with dots>`, for example `casa.peterson.dhmo.core.database`, `casa.peterson.dhmo.feature.today`, `casa.peterson.dhmo.sync.drive` |
 | `minSdk` / `compileSdk` / `targetSdk` | 28 / 37 / 37 |
 | `buildToolsVersion` | `37.0.0` (set explicitly; AGP 9.5's default is 36.0.0) |
-| Java / Kotlin bytecode target | 17 (`compileOptions` source and target 17; Kotlin `jvmTarget` 17). The build and Robolectric tests use JDK 25; the bytecode target remains 17 (AGP 9.5 needs JDK 17 or newer). |
+| Java / Kotlin bytecode target | 17 (`compileOptions` source and target 17; Kotlin `jvmTarget` 17). The Gradle daemon is pinned to Temurin 25 by `gradle/gradle-daemon-jvm.properties` (downloaded through the foojay resolver when missing), and unit tests run on a JDK 25 toolchain (`JDK_VERSION` in `build-logic`). Bytecode stays at 17 because Android (minSdk 28) lacks Java 21+ library APIs. |
 | Version | `versionCode = 1`, `versionName = "0.1.0"` in `:app` |
 
 ### 3.2 Module graph
@@ -497,7 +497,28 @@ ksp.incremental=true
 
 ### 3.8 Static analysis
 
-**detekt 2.0.0-alpha.6** uses `config/detekt/detekt.yml` and the plain `detekt` task. It runs on Java 25; 1.23.8's Kotlin parser does not. The convention plugin explicitly includes main, test, androidTest and debug Kotlin sources, builds on the default rules, and produces SARIF and HTML reports. The configuration retains the project's thresholds and Compose exclusions; there is no baseline file, and suppressions need a comment.
+**detekt 2.0.0-alpha.6** (config `config/detekt/detekt.yml`, `buildUponDefaultConfig = true`, `parallel = true`, `autoCorrect = false`):
+
+- detekt 2.0.0-alpha.6 embeds the Kotlin 2.4.10 compiler and runs on JDK 25 (1.23.8, used before, does not). The convention plugin uses **only the plain `detekt` task** (no `detektMain` / `detektDebug` type-resolution tasks) and sets the sources explicitly, because with AGP's built-in Kotlin the detekt plugin does not discover Android source sets on its own:
+
+  ```kotlin
+  extensions.configure<DetektExtension> {
+      buildUponDefaultConfig.set(true)
+      parallel.set(true)
+      config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+      source.setFrom(files("src/main/kotlin", "src/test/kotlin", "src/androidTest/kotlin", "src/debug/kotlin"))
+  }
+  tasks.withType<Detekt>().configureEach { jvmTarget.set("17"); reports { sarif.required.set(true); html.required.set(true) } }
+  // Keep detekt's own compiler version: the Kotlin Gradle plugin must not upgrade it.
+  val detektKotlinVersion = getSupportedKotlinVersion() // dev.detekt.gradle.plugin
+  configurations.matching { it.name == "detekt" }.configureEach {
+      resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlin") useVersion(detektKotlinVersion) }
+  }
+  ```
+
+- All Kotlin sources live in `src/<set>/kotlin` (never `src/<set>/java`), so the list above is complete.
+- **Language-feature rule:** detekt's embedded compiler (2.4.10) must be able to parse the sources, so don't use syntax newer than Kotlin 2.4. The earlier limit to Kotlin 2.0 syntax ended with the move off detekt 1.23.8.
+- Rule set: defaults, plus `style.MaxLineLength.maxLineLength = 140`, `complexity.LongParameterList` `allowedFunctionParameters = 7`, `allowedConstructorParameters = 9` (detekt 1's thresholds 8 and 10) with `ignoreDefaultParameters = true`, `naming.FunctionNaming.ignoreAnnotated = ["Composable"]`, `style.MagicNumber` off for tests and for `GoalPolicyV1.kt`, `style.UnusedPrivateFunction.ignoreAnnotated = ["Preview"]`, `complexity.LongMethod.ignoreAnnotated = ["Composable"]`, `complexity.TooManyFunctions` off for DAOs and `*Repository`. **No detekt baseline file**; a suppression needs `@Suppress` with a comment.
 
 **ktlint** through `org.jlleitschuh.gradle.ktlint` 14.2.0, with `ktlint { version.set("1.8.0"); android.set(true); outputToConsole.set(true) }`. Rules come from `.editorconfig` at the repository root:
 
