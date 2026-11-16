@@ -3,4 +3,131 @@
     <string name="feature_insights_insights_title">Insights</string>
     <string name="feature_insights_custom_range_title">Custom range</string>
     <string name="feature_insights_correlation_title">Correlation</string>
+    <string name="feature_insights_correlation_placeholder">Correlations with weather and activity arrive with Health Connect and weather support.</string>
+
+    <!-- Range tabs and navigation -->
+    <string name="feature_insights_range_day">Day</string>
+    <string name="feature_insights_range_week">Week</string>
+    <string name="feature_insights_range_month">Month</string>
+    <string name="feature_insights_range_year">Year</string>
+    <string name="feature_insights_range_custom">Custom</string>
+    <string name="feature_insights_previous">Previous period</string>
+    <string name="feature_insights_next">Next period</string>
+    <string name="feature_insights_range_label">%1$s – %2$s</string>
+    <string name="feature_insights_loading">Loading…</string>
+    <string name="feature_insights_empty_title">No insights yet</string>
+    <string name="feature_insights_empty_message">Log a few drinks and your charts and patterns will appear here.</string>
+    <string name="feature_insights_today_excluded">Averages and patterns use complete days, so today is not counted yet.</string>
+
+    <!-- Charts -->
+    <string name="feature_insights_chart_daily">Daily totals</string>
+    <plurals name="feature_insights_chart_daily_description">
+        <item quantity="one">Bar chart of daily totals from %1$s to %2$s. Goal %3$s. %4$d of %5$d day met the goal.</item>
+        <item quantity="other">Bar chart of daily totals from %1$s to %2$s. Goal %3$s. %4$d of %5$d days met the goal.</item>
+    </plurals>
+    <string name="feature_insights_chart_hourly">Through the day</string>
+    <string name="feature_insights_chart_hourly_caption">Bars: your running total at the end of each hour. Line: where your pace curve expects you to be.</string>
+    <string name="feature_insights_chart_hourly_description">Running total by hour. %1$s by the end of the day; expected pace reaches %2$s.</string>
+    <string name="feature_insights_chart_year">Year at a glance</string>
+    <string name="feature_insights_day_total">Total / goal</string>
+    <string name="feature_insights_legend_goal">Goal</string>
+    <string name="feature_insights_legend_rolling7">7-day average</string>
+    <string name="feature_insights_legend_rolling30">30-day average</string>
+    <string name="feature_insights_legend_expected">Expected pace</string>
+
+    <!-- Metric cards -->
+    <string name="feature_insights_card_overview">Overview</string>
+    <string name="feature_insights_average">Daily average</string>
+    <string name="feature_insights_days_met">Days goal met</string>
+    <string name="feature_insights_days_met_value">%1$d of %2$d</string>
+    <string name="feature_insights_compare_previous">Previous period average</string>
+    <string name="feature_insights_compare_change">%1$s%2$s vs the previous period</string>
+    <string name="feature_insights_card_attainment">Goal attainment</string>
+    <string name="feature_insights_bucket_below50">Below 50%</string>
+    <string name="feature_insights_bucket_50_80">50–80%</string>
+    <string name="feature_insights_bucket_80_100">80–100%</string>
+    <string name="feature_insights_bucket_100">Goal met</string>
+    <string name="feature_insights_card_streaks">Streaks</string>
+    <plurals name="feature_insights_streak_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="feature_insights_goal_streak">Goal streak</string>
+    <string name="feature_insights_logging_streak">Logging streak</string>
+    <string name="feature_insights_streak_value">%1$s (longest %2$s)</string>
+    <string name="feature_insights_card_trend">Trend</string>
+    <string name="feature_insights_trend_up">Rising: about %1$s more per day each week.</string>
+    <string name="feature_insights_trend_down">Falling: about %1$s less per day each week.</string>
+    <string name="feature_insights_trend_stable">Steady: no clear rise or fall.</string>
+    <plurals name="feature_insights_trend_insufficient">
+        <item quantity="one">Needs at least 8 complete days with entries (%d so far).</item>
+        <item quantity="other">Needs at least 8 complete days with entries (%d so far).</item>
+    </plurals>
+    <string name="feature_insights_card_consistency">Consistency</string>
+    <string name="feature_insights_consistency_value">%1$d of 100</string>
+    <string name="feature_insights_consistency_none">Needs at least 7 complete days with entries.</string>
+    <string name="feature_insights_card_time_of_day">Time of day</string>
+    <string name="feature_insights_half_goal_by">Half your goal by %1$s (typical day)</string>
+    <string name="feature_insights_full_goal_by">Full goal by %1$s (typical day)</string>
+    <string name="feature_insights_evening_share">%1$d%% after %2$s</string>
+    <string name="feature_insights_card_day_of_week">Day of the week</string>
+    <string name="feature_insights_weakest">Lowest: %1$s</string>
+    <string name="feature_insights_no_data">No data</string>
+    <string name="feature_insights_card_feed">Insights</string>
+
+    <!-- Custom range picker -->
+    <string name="feature_insights_picker_from">From</string>
+    <string name="feature_insights_picker_to">To</string>
+    <string name="feature_insights_picker_last_7">Last 7 days</string>
+    <string name="feature_insights_picker_last_30">Last 30 days</string>
+    <string name="feature_insights_picker_last_90">Last 90 days</string>
+    <string name="feature_insights_picker_compare">Compare with the previous period</string>
+    <string name="feature_insights_picker_apply">Show</string>
+    <string name="feature_insights_picker_cancel">Cancel</string>
+    <string name="feature_insights_picker_ok">OK</string>
+    <string name="feature_insights_picker_error_order">The start must be on or before the end.</string>
+    <string name="feature_insights_picker_error_future">The range can’t end after today.</string>
+    <string name="feature_insights_picker_error_length">Choose at most 366 days.</string>
+
+    <!-- Insight feed (TECHNICAL_PLAN §9.13) -->
+    <plurals name="feature_insights_text_goal_hits">
+        <item quantity="one">You’ve hit your goal %1$d of the last %2$d day.</item>
+        <item quantity="other">You’ve hit your goal %1$d of the last %2$d days.</item>
+    </plurals>
+    <plurals name="feature_insights_text_streak">
+        <item quantity="one">You’re on a %d-day streak.</item>
+        <item quantity="other">You’re on a %d-day streak.</item>
+    </plurals>
+    <plurals name="feature_insights_text_streak_longest">
+        <item quantity="one">You’re on a %d-day streak, your longest yet.</item>
+        <item quantity="other">You’re on a %d-day streak, your longest yet.</item>
+    </plurals>
+    <plurals name="feature_insights_text_trend_up">
+        <item quantity="one">Your daily intake is up %1$s over the last %2$d week.</item>
+        <item quantity="other">Your daily intake is up %1$s over the last %2$d weeks.</item>
+    </plurals>
+    <plurals name="feature_insights_text_trend_down">
+        <item quantity="one">Your daily intake is down %1$s over the last %2$d week.</item>
+        <item quantity="other">Your daily intake is down %1$s over the last %2$d weeks.</item>
+    </plurals>
+    <string name="feature_insights_text_weekend_lower">Your weekend average is %1$d%% lower than weekdays.</string>
+    <string name="feature_insights_text_weekend_higher">Your weekend average is %1$d%% higher than weekdays.</string>
+    <string name="feature_insights_text_weakest_day">%1$s is usually your lowest day, %2$d%% below average.</string>
+    <string name="feature_insights_text_gap_block">%1$s (%2$s–%3$s) are your biggest gap.</string>
+    <string name="feature_insights_block_morning">Mornings</string>
+    <string name="feature_insights_block_midday">Middays</string>
+    <string name="feature_insights_block_afternoon">Afternoons</string>
+    <string name="feature_insights_block_evening">Early evenings</string>
+    <string name="feature_insights_text_evening_share">You drink %1$d%% of your water after %2$s.</string>
+    <string name="feature_insights_text_consistency_high">Very consistent: your daily intake barely varies (score %1$d).</string>
+    <string name="feature_insights_text_consistency_low">Your intake varies a lot from day to day (score %1$d).</string>
+    <string name="feature_insights_text_anomaly">%2$s on %1$s looks unusual. Was it a typo?</string>
+    <string name="feature_insights_text_temperature_more">On hotter days you tended to drink more</string>
+    <string name="feature_insights_text_temperature_less">On hotter days you tended to drink less</string>
+    <string name="feature_insights_text_activity_more">On more active days you tended to drink more</string>
+    <string name="feature_insights_text_activity_less">On more active days you tended to drink less</string>
+    <string name="feature_insights_text_correlation">%1$s (%2$s link).</string>
+    <string name="feature_insights_strength_strong">strong</string>
+    <string name="feature_insights_strength_moderate">moderate</string>
+    <string name="feature_insights_strength_weak">weak</string>
 </resources>
