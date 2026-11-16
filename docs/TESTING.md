@@ -6,7 +6,7 @@ How to run every test layer of Dihydrogen Monoxide locally and in CI, and what m
 
 | Tool | Version | Notes |
 |---|---|---|
-| JDK | **21** installed (17 is enough to build) | The build runs on and targets Java 17, but Robolectric unit and screenshot tests run on a Java 21 toolchain: Robolectric needs Java 21 for the API 37 framework. Gradle finds an installed JDK 21 automatically (for example `/usr/lib/jvm/*`, SDKMAN, or `JAVA_HOME_21_X64`). CI installs Temurin 21 and 17. |
+| JDK | **25** (Temurin), provisioned by Gradle | `gradle/gradle-daemon-jvm.properties` pins the Gradle daemon to Temurin 25; unit and screenshot tests run on the same JDK. If no matching JDK is installed, Gradle downloads one into `~/.gradle/jdks` (foojay resolver), so any JDK 17+ on the `PATH` is enough to start `./gradlew`. Pinning the vendor makes local and CI builds identical. detekt is `2.0.0-alpha.6`, the first detekt that runs on JDK 25 (1.23.x embeds a Kotlin 2.0 compiler that rejects it); move to 2.0.0 stable when it ships. Bytecode still targets Java 17. CI installs Temurin 25. To move to a newer JDK, run `./gradlew updateDaemonJvm --jvm-version=<n> --jvm-vendor=adoptium` and change `JDK_VERSION` in `build-logic`. |
 | Gradle | via `./gradlew` (9.9.1) | Never use a system Gradle. |
 | Android SDK | see below | Point `ANDROID_HOME` at it, or write `sdk.dir=/path/to/sdk` in `local.properties` (gitignored). |
 
@@ -139,7 +139,7 @@ The defaults in `gradle.properties` are sized for an 8 GB machine that also runs
 
 | Workflow | Trigger | What it runs |
 |---|---|---|
-| `.github/workflows/ci.yml` | every push and pull request | JDK 17 (Temurin) and `gradle/actions/setup-gradle` caching; ktlint, detekt, the module-graph check, Android lint, JVM and Robolectric unit tests, Roborazzi verification, `assembleDebug`. Test reports, Roborazzi diffs and lint HTML are uploaded as artifacts when a step fails. |
+| `.github/workflows/ci.yml` | every push and pull request | JDK 25 (Temurin) and `gradle/actions/setup-gradle` caching; ktlint, detekt, the module-graph check, Android lint, JVM and Robolectric unit tests, Roborazzi verification, `assembleDebug`. Test reports, Roborazzi diffs and lint HTML are uploaded as artifacts when a step fails. |
 | `.github/workflows/instrumented.yml` | pull requests to `main`, and manual dispatch | KVM is enabled on the `ubuntu-latest` runner with a udev rule. The AVD (API 34, `google_apis`, `x86_64`) is cached. `reactivecircus/android-emulator-runner` boots it and runs `connectedDebugAndroidTest`. A second job runs the GMD task `pixel6Api34DebugAndroidTest`. Android test reports are uploaded on failure. |
 | `.github/workflows/record-screenshots.yml` | manual dispatch | Re-records Roborazzi references on Linux and commits them to the branch. |
 

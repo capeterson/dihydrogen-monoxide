@@ -1,58 +1,40 @@
-# Handoff: continuing implementation on a KVM host
+# Handoff: Phases 1–3 continuation
 
-This is the starting prompt for the session that continues this work on a machine with KVM (the `iron` bridge environment). It is self-contained.
+Continue on `phase-1-3-wave1`, PR #4 against `main`. Its review scope is the completed work listed below; it does not claim all Phases 1–3 are complete. Do not merge it. Phase 4 (Drive) and Phase 5 (Health Connect and weather) each get a later branch and PR from `main`; Wear OS is out of scope. Read `docs/PLAN.md`, `docs/TECHNICAL_PLAN.md` §15, and `docs/TESTING.md` first. The confirmed product decisions in PLAN.md are final.
 
----
+## Current implementation
 
-You are continuing implementation of **Dihydrogen Monoxide**, a free Android water-intake tracker, in the repository `capeterson/dihydrogen-monoxide`. Work on branch `ccr-a06b5cae-xrdq04` (PR #3, "Phase 0 foundation", targets `main`) until that PR merges. Then start new branches from `main` for each follow-up PR.
+Phase 0 and wave 1 (T0–T6) were already complete. This continuation adds Java 25, T7 (goal use cases and Today stream), T8 (onboarding), T10 (History), and T14 (reminder settings) to the PR branch. T9 is **not** integrated. T11, T12, T13, T15, T16 and T17 remain. T14 provides settings UI but still relies on the no-op scheduler until T13. Phase 4 and Phase 5 are not started.
 
-## Read first
-1. `docs/PLAN.md`: the approved product and architecture plan. The "Product decisions (confirmed)" table is final; don't revisit it. Wear OS is out of scope (issue #1).
-2. `docs/TECHNICAL_PLAN.md`: the implementation-ready plan, covering pinned versions, the module graph, schemas, algorithms with worked examples that are encoded as tests, and the **work breakdown in §15**. Each task lists the files it owns and its acceptance criteria.
-3. `docs/TESTING.md`: how to run every test layer, the SDK packages, CI, and the manual device matrix.
+The Java 25 changes keep the Android bytecode target at 17, update CI to JDK 25, and migrate Detekt from 1.23.8 to 2.0.0-alpha.6 because the old parser fails on Java 25. Roborazzi NATIVE can still return fully transparent frames. Screenshot cases were isolated into separate test classes and captures retried, but two full runs still failed with blank frames on this host; later full runs passed. A real image difference still fails. Investigate further if CI flakes; do not re-record a blank reference.
 
-## State at handoff
-- **Done (T0, Phase 0):** the Gradle build (AGP 9.5.1, Gradle 9.9.1, Kotlin 2.4.21, KSP 2.3.14, compileSdk/targetSdk 37, minSdk 28) with `build-logic` convention plugins; all 23 modules compile; Room schema v1 with exported `core/database/schemas/.../1.json` and DAO tests; DataStore; every `:core:data` interface (`Offline*Repository` bodies are `TODO("T4")`); goal, pace and stats signatures with `TODO("T1"/"T2"/"T3")` bodies; the app shell with navigation and placeholder screens; Hilt; detekt, ktlint and lint with no baselines and warnings as errors; Roborazzi with committed references; the Gradle Managed Device `pixel6Api34`; CI workflows `ci.yml`, `instrumented.yml` and `record-screenshots.yml`.
-- **Application id:** `casa.peterson.dhmo`, confirmed by the owner.
-- **Verified locally (no KVM):** `ktlintCheck detekt checkModuleGraph`, `testDebugUnitTest` plus the JVM module tests (80 tests, 0 failures), `verifyRoborazziDebug`, `lint`, `:app:assembleDebug :app:assembleRelease`.
-- **Never run:** any instrumented test. `AppLaunchTest` in `:app` and `MigrationTest` in `:core:database` compile only. The managed-device task exists but has not been executed.
-- **Known gaps:** onboarding has no navigation buttons yet (T8), so a fresh install stays on the welcome placeholder. `./gradlew :app:tasks --all` fails with a Compose Preview "unit tests disabled for this variant" error. It doesn't affect any gate command; look at it when convenient.
+History's paging query now sorts by hydration day and then instant, so travel and day-start transitions cannot split one day into multiple groups. The fake repository follows that ordering. Health Connect activity rows are ignored by the goal input builder when the exercise permission is unavailable.
 
-## Step 1: verify the KVM host and run the instrumented layer
+## Today work in progress
+
+The unfinished branch `task-t9-today`, commit `9069de2`, and its worktree `/tmp/dhmo-t9` preserve T9 work (tracked in [issue #7](https://github.com/capeterson/dihydrogen-monoxide/issues/7)). The branch is pushed to `origin` so it can be fetched on another machine. It is based on `ae3fc55` (before History, reminder settings and onboarding were integrated). It is not part of PR #4. Rebase or cherry-pick it onto the current PR branch only after reviewing it; it is explicitly WIP, not a completed task. Fetch it with `git fetch origin task-t9-today` on another machine.
+
+T9 has initial Today, edit-entry, container, battery-help and QuickLog code and preliminary tests. The latest focused run compiled but failed 2 of 5 tests: `TodayViewModelTest.quickAddDeleteAndUndo` timed out waiting for an emission, and `TodayScreenTest.quickAddAndSwipeInvokeTheirActions` could not find the expected `250 ml` node. No Today screenshot references have been recorded. Review functionality and accessibility, fix those failures, implement and test any missing acceptance criteria in §15.5 (including `QuickLogActivityTest`), record the five states in three variants, and run the module checks and app assembly before integration. The test logs from this host were `/tmp/dhmo-t9-tests.log`; do not assume `/tmp` survives.
+
+The stopped T8 agent's work was completed and integrated. Its temporary worktree `/tmp/dhmo-t8` is not needed for continuation. The stopped T9 agent's earlier work was incorporated into the WIP commit above.
+
+## Verification and environment
+
+The build and Robolectric tests run on Temurin 25, which Gradle downloads into `~/.gradle/jdks` if it is not installed (`gradle/gradle-daemon-jvm.properties`); any JDK 17+ on the `PATH` can start `./gradlew`. The SDK is at `/home/cpeterson/Android/Sdk`. The final full gate passed on the integrated branch (`BUILD SUCCESSFUL in 16s`; 1,402 actionable tasks, 32 executed, 1,370 up to date):
+
 ```bash
-ls -l /dev/kvm && nproc && free -g          # /dev/kvm must exist and be accessible to your user
-java -version                               # build runs on 17+; a JDK 21 must also be installed for Robolectric tests
-export ANDROID_HOME=${ANDROID_HOME:-$HOME/Android/Sdk}
-SDKM=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
-yes | $SDKM --licenses
-$SDKM "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" \
-      "emulator" "system-images;android-34;google_apis;x86_64" "system-images;android-34;aosp_atd;x86_64"
-echo "sdk.dir=$ANDROID_HOME" > local.properties
-
-./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
-# and/or on a booted AVD:
-$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n api34 -k "system-images;android-34;google_apis;x86_64" -d pixel_6
-$ANDROID_HOME/emulator/emulator -avd api34 -no-window -no-audio -no-snapshot -gpu swiftshader_indirect &
-adb wait-for-device && ./gradlew connectedDebugAndroidTest
+./gradlew ktlintCheck detekt checkModuleGraph lint testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test verifyRoborazziDebug assembleDebug
 ```
-If `/dev/kvm` is missing, stop and tell the user. Don't fall back to software emulation. Report the actual output of the instrumented runs, fix what fails (`AppLaunchTest`, `MigrationTest`), and push the fixes to PR #3 if it is still open, or to a new PR otherwise.
 
-## Step 2: continue the work breakdown (TECHNICAL_PLAN.md §15)
-Scope for the next PR, "Phases 1–3": **wave 1** (T1 goal calculator, T2 pace and reminder decision, T3 stats, T4 repositories and fakes, T5 backup format and CSV, T6 design system components, all parallel), then **wave 2** (T7 first; T10, T14 and T16 may start alongside it; then T8, T9, T11, T12, T13, T15), then **T17** (integration, end-to-end tests, accessibility pass). Phase 4 (Drive, T-DR1..3) and Phase 5 (Health Connect and weather, T-HC1..3, T-WX1..2, T-COR) are **separate later PRs**.
+On the final integrated branch, the app and database `connectedDebugAndroidTest` tasks passed sequentially on API 34 with `--max-workers=1` (`BUILD SUCCESSFUL in 1m 35s`). The app and database managed-device tasks also passed sequentially (`BUILD SUCCESSFUL in 3m 8s`, SwiftShader). SELinux remained Enforcing throughout; the user's updated policy allowed QEMU to boot. The aggregate `connectedDebugAndroidTest` invocation did not finish: host-wide OOM killed the emulator. There was no SELinux denial or QEMU crash in that run. T8's module tests, all 30 screenshot references, lint and app assembly passed on Java 25. T10 and T14 passed their module tests and screenshots on Java 21 before integration; an integrated Java 25 full gate passed after integration.
 
-How to run it:
-- Use parallel implementation subagents with **git worktree isolation**, one per task. Give each its task section from §15, the §1–§3 context, and the sections its task references. Each agent must stay inside the files it owns (§15.1), keep warnings-as-errors, and never skip or disable tests to get green.
-- Merge results yourself and resolve conflicts. The only expected shared edit is single appended lines in `gradle/libs.versions.toml`.
-- Before opening a PR, the full gate must pass locally: `./gradlew ktlintCheck detekt checkModuleGraph lint testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test verifyRoborazziDebug assembleDebug`, plus the instrumented tests now that KVM is available.
-- PR descriptions include actual test output (including failures and skips) and a checklist of what remains from the roadmap (PLAN.md §11). After opening a PR, watch it and fix CI failures.
+This host has KVM and an AVD named `dhmo-api34`. Previously QEMU segfaulted when SELinux was enforcing. The user installed a new policy; the API 34 emulator booted and the scoped app and database connected tests passed with SELinux enforcing. An aggregate connected run lost the emulator during a host-wide out-of-memory event; the kernel log showed OOM kills, with no new QEMU core or SELinux denial in that window. Do not change host-wide SELinux settings without the user's help. Run the app and database managed-device tasks sequentially; see TESTING.md §§5–6.
 
-## Efficiency rules learned the hard way
-- **Use one Gradle daemon.** Invoke `./gradlew` the same way every time. Don't change JVM args or `-D` flags between runs, and don't use `--no-daemon`. Several daemons on one machine waste memory and slow everything down. With parallel worktree agents, expect contention; limit concurrency to what the machine's CPU and RAM handle (each Gradle build wants about 3–4 GB).
-- **Iterate narrowly:** `./gradlew :core:domain:test --tests '*goal*'`, `:module:compileDebugKotlin`. Fix every error from a run before re-running. Run the full gate **once** at the end.
-- **Shared usage limit:** all subagents draw on the same 5-hour usage limit, and a large fan-out can hit it. A stopped agent can be resumed with a message after the reset instead of being restarted.
-- Maven Central sometimes returned 429 or false 404s in the cloud sandbox. If resolution fails for an artifact that exists, retry with `--refresh-dependencies` (Gradle caches a false "missing" for 24 hours).
+The original checkout has pre-existing user changes in `gradle.properties` and untracked `gradle/gradle-daemon-jvm.properties`. Preserve them; they were not included in our commits. Keep one Gradle daemon where possible, iterate with narrow tasks, and do not run a full gate while a resource-heavy emulator is up on a small host.
 
-## Rules
-- Commit messages end with the attribution lines your session gives you. No model identifiers in commits, PRs or code.
-- Don't change `docs/PLAN.md`'s confirmed decisions. If `TECHNICAL_PLAN.md` is wrong, fix it in the same PR and say so.
-- Open PRs only as part of this plan. Never merge them yourself.
+## Remaining decisions and checks
+
+- T15 must resolve the TREND text/parameter mismatch: `changeMl` is total change across the range, while the plan example says ml/day. The WEEKEND example's 22% rounds to `21` for dataset A.
+- Intake use cases throw `IllegalArgumentException`, `ImportNotEditableException`, and `EntryNotFoundException`; `IntakeRepository.get(id)` includes tombstones.
+- T16 maps `DayStat` to `CsvDay`, passes the user's zone to CSV export, and uses `BackupCrypto.isAcceptablePassphrase()` for NFKC-normalized passphrase validation.
+- Remaining work is split into issues: [T9 #7](https://github.com/capeterson/dihydrogen-monoxide/issues/7), [T11 #8](https://github.com/capeterson/dihydrogen-monoxide/issues/8), [T12 #9](https://github.com/capeterson/dihydrogen-monoxide/issues/9), [T13 #10](https://github.com/capeterson/dihydrogen-monoxide/issues/10), [T15 #11](https://github.com/capeterson/dihydrogen-monoxide/issues/11), [T16 #12](https://github.com/capeterson/dihydrogen-monoxide/issues/12), and [T17 #13](https://github.com/capeterson/dihydrogen-monoxide/issues/13). The PR description defines the delivered scope and records verification. Do not claim the aggregate connected task passed; its emulator was killed during a host-wide OOM.

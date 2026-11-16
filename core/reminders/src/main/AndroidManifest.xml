@@ -3,8 +3,10 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- Runtime, opt-in (calendar busy intervals). -->
-    <uses-permission android:name="android.permission.READ_CALENDAR" />
 
-    <!-- T13 adds the receivers of TECHNICAL_PLAN §8.10 here. No exact-alarm permission, ever. -->
+    <!--
+        T13 adds the rest of TECHNICAL_PLAN §8.10 here: the receivers, and READ_CALENDAR together with the calendar
+        opt-in that requests it. Until then no dangerous permission the app never requests is in the merged manifest.
+        No exact-alarm permission, ever.
+    -->
 </manifest>

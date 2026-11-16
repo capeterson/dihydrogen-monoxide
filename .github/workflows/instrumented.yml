@@ -39,7 +39,8 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          # Matches gradle/gradle-daemon-jvm.properties (Temurin 25), so Gradle uses it instead of downloading one.
+          java-version: 25
 
       - uses: gradle/actions/setup-gradle@v5
 
@@ -111,7 +112,8 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 17
+          # Matches gradle/gradle-daemon-jvm.properties (Temurin 25), so Gradle uses it instead of downloading one.
+          java-version: 25
 
       - uses: gradle/actions/setup-gradle@v5
 

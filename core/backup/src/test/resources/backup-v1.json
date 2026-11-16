@@ -1,0 +1,55 @@
+{
+  "format": "dhmo-backup",
+  "schemaVersion": 1,
+  "appVersion": "1.0.0",
+  "appVersionCode": 1,
+  "dbVersion": 1,
+  "policyVersion": 1,
+  "createdAt": "2026-11-15T09:30:00.123Z",
+  "deviceName": "Pixel 8",
+  "counts": {"intakeEntries": 1, "intakeTombstones": 1, "containers": 1, "profileSnapshots": 1, "dailyGoals": 1,
+             "dayOverrides": 1, "activityAdjustments": 1, "weatherDays": 1, "healthDaily": 1},
+  "entities": {
+    "intakeEntries": [
+      {"id": "5f0c1a52-8f2e-4b6e-9a57-0d7b8f3c2a11", "instant": "2026-11-15T07:05:00Z", "zoneOffsetSeconds": 3600,
+       "hydrationDay": "2026-11-15", "volumeMl": 250, "source": "MANUAL", "hcDataOrigin": "com.fitbit.FitbitMobile",
+       "hcAdopted": true, "note": "after run", "createdAt": "2026-11-15T07:05:02Z", "updatedAt": "2026-11-15T07:05:02Z"},
+      {"id": "6f0c1a52-8f2e-4b6e-9a57-0d7b8f3c2a12", "instant": "2026-11-15T08:00:00Z", "zoneOffsetSeconds": 0,
+       "hydrationDay": "2026-11-15", "volumeMl": 100, "source": "WIDGET",
+       "createdAt": "2026-11-15T08:00:01Z", "updatedAt": "2026-11-15T08:30:00Z", "deletedAt": "2026-11-15T08:30:00Z"}
+    ],
+    "containers": [
+      {"id": "00000000-0000-4000-8000-000000000001", "name": "Glass", "volumeMl": 250, "icon": "GLASS", "sortOrder": 0,
+       "updatedAt": "2026-11-01T10:00:00Z"}
+    ],
+    "profileSnapshots": [
+      {"id": "a0000000-0000-4000-8000-000000000001", "effectiveFrom": "2026-01-01", "birthDate": "1990-05-05",
+       "sex": "FEMALE", "weightKg": 62.5, "heightCm": 170.0, "activityLevel": "MODERATE", "climate": "TEMPERATE",
+       "pregnancyStatus": "NONE", "lactating": false, "highAltitude": false, "source": "MANUAL",
+       "createdAt": "2026-01-01T00:00:00Z"}
+    ],
+    "dailyGoals": [
+      {"date": "2026-11-14", "targetMl": 2300, "calculatedMl": 2300, "mode": "CALCULATED",
+       "breakdown": {"policyVersion": 1, "ageYears": 36,
+                     "components": [{"kind": "BASE_WEIGHT", "ml": 2300, "applied": true, "detail": {"kg": "62.5"}}],
+                     "rawMl": 2300, "clampedMl": 2300, "calculatedMl": 2300, "clamp": "NONE"},
+       "dayStartMinutes": 0, "policyVersion": 1, "updatedAt": "2026-11-14T00:00:00Z"}
+    ],
+    "dayOverrides": [
+      {"date": "2026-11-10", "targetMl": 3000, "reason": "hike", "updatedAt": "2026-11-10T06:00:00Z"}
+    ],
+    "activityAdjustments": [
+      {"source": "HEALTH_CONNECT", "sourceRecordId": "hc-1", "date": "2026-11-14", "minutes": 30,
+       "intensity": "MODERATE", "extraMl": 300, "exerciseType": 8, "updatedAt": "2026-11-14T10:00:00Z"}
+    ],
+    "weatherDays": [
+      {"date": "2026-11-14", "latE1": 525, "lonE1": 134, "maxTempC": 21.5, "maxApparentTempC": 23.0,
+       "meanRelHumidity": 55.0, "extraMl": 200, "fetchedAt": "2026-11-14T05:00:00Z"}
+    ],
+    "healthDaily": [
+      {"date": "2026-11-14", "steps": 9000, "activeKcal": 450.5, "updatedAt": "2026-11-14T22:00:00Z"}
+    ]
+  },
+  "settings": {"schemaVersion": 1, "units": "US_FL_OZ", "dayStartMinutes": 240,
+               "goal": {"globalOverride": {"enabled": true, "targetMl": 2500}}}
+}

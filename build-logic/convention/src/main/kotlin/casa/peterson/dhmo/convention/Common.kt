@@ -15,7 +15,11 @@ internal val Project.libs: VersionCatalog
 
 internal fun VersionCatalog.library(alias: String): Provider<MinimalExternalModuleDependency> = findLibrary(alias).get()
 
-internal const val JAVA_VERSION_INT = 17
+/**
+ * The JDK that runs Gradle and the unit tests (gradle/gradle-daemon-jvm.properties pins the daemon to it). Bytecode
+ * still targets 17: Android (minSdk 28) has no Java 21+ library APIs, and the JVM modules are consumed by Android ones.
+ */
+internal const val JDK_VERSION = 25
 internal const val COMPILE_SDK = 37
 internal const val MIN_SDK = 28
 internal const val TARGET_SDK = 37

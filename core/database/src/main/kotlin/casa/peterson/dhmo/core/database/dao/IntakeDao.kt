@@ -31,7 +31,7 @@ interface IntakeDao {
     @Query("SELECT * FROM intake_entry WHERE hydration_day BETWEEN :from AND :to AND deleted_at IS NULL ORDER BY instant ASC")
     suspend fun getRange(from: LocalDate, to: LocalDate): List<IntakeEntryEntity>
 
-    @Query("SELECT * FROM intake_entry WHERE deleted_at IS NULL ORDER BY instant DESC")
+    @Query("SELECT * FROM intake_entry WHERE deleted_at IS NULL ORDER BY hydration_day DESC, instant DESC, id DESC")
     fun pagingSource(): PagingSource<Int, IntakeEntryEntity> // History list
 
     @Query("SELECT COALESCE(SUM(volume_ml), 0) FROM intake_entry WHERE hydration_day = :day AND deleted_at IS NULL")

@@ -3,6 +3,7 @@ package casa.peterson.dhmo.sync.healthconnect.rationale
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import casa.peterson.dhmo.core.designsystem.component.ComingSoon
 import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
 
@@ -13,6 +14,7 @@ import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
 class PermissionsRationaleActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent { DhmoTheme { ComingSoon() } }
     }
 }

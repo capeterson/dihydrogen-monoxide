@@ -48,6 +48,19 @@ data class BackupCounts(
     val healthDaily: Int,
 )
 
+/** Row counts of [entities], as stored in [BackupDocument.counts]. */
+fun toCounts(entities: BackupEntities): BackupCounts = BackupCounts(
+    intakeEntries = entities.intakeEntries.count { it.deletedAt == null },
+    intakeTombstones = entities.intakeEntries.count { it.deletedAt != null },
+    containers = entities.containers.size,
+    profileSnapshots = entities.profileSnapshots.size,
+    dailyGoals = entities.dailyGoals.size,
+    dayOverrides = entities.dayOverrides.size,
+    activityAdjustments = entities.activityAdjustments.size,
+    weatherDays = entities.weatherDays.size,
+    healthDaily = entities.healthDaily.size,
+)
+
 @Serializable
 data class BackupEntities(
     val intakeEntries: List<IntakeEntryDto> = emptyList(),

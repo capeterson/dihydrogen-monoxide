@@ -38,7 +38,7 @@ These settle points PLAN.md left open or stated two ways. None contradicts a con
 | D6 | Modules added | `:core:data`, `:core:backup`, `:core:common`, `:core:network`, `:core:reminders`, `:core:weather`, `:core:testing`, `:feature:onboarding`. | §3.2 |
 | D7 | Backup format home | `:core:backup` (pure Kotlin), available from Phase 3 for JSON and CSV export, reused by Drive in Phase 4. | §11.1 |
 | D8 | Kotlin plugin setup | AGP 9 built-in Kotlin: Android modules do not apply `org.jetbrains.kotlin.android`; KSP only, no kapt. | §3.3 |
-| D9 | detekt | Stable 1.23.8 with the plain `detekt` task (no type resolution) and a rule against post-2.0 syntax; detekt 2.x is alpha-only. | §3.8 |
+| D9 | detekt | `2.0.0-alpha.6` with the plain `detekt` task (no type resolution). 1.23.8 was used until the move to JDK 25, which it cannot run on; take 2.0.0 stable when it ships. | §3.8 |
 | D10 | Health Connect artifacts | Stable `connect-client` 1.1.0 in the app; `connect-testing` 1.0.0-alpha03 for tests only, with its strict client dependency excluded. | §2.3 |
 | D11 | Navigation | Navigation Compose 2.10 with `@Serializable` routes; four top-level destinations (Today, History, Insights, Settings). | §13 |
 | D12 | Goal constants | Child table from EFSA × 0.8; "unspecified" sex uses the mean of the female and male values; activity minutes at 6 / 12 / 18 ml per minute by intensity, capped at 2,000 ml; child clamp 600–3,000 ml; halves round up in `roundTo50`; `calculatedMl` is nullable for manual-only users. | §7.2 |
@@ -77,7 +77,7 @@ In addition, a throwaway **smoke project** was built in the planning environment
 | Android Gradle plugin | `com.android.application` / `com.android.library` | **9.5.1** | lookup + built ✔ |
 | Kotlin | `org.jetbrains.kotlin:kotlin-gradle-plugin`, `org.jetbrains.kotlin.jvm`, `.plugin.compose`, `.plugin.serialization` | **2.4.21** | lookup + built ✔ |
 | KSP | `com.google.devtools.ksp` | **2.3.14** | lookup + built ✔ |
-| JDK | Temurin 17 in CI; 21 locally | 17 minimum | built on 21 ✔; 17 per AGP notes |
+| JDK | Temurin 25, CI and local (Gradle daemon JVM criteria) | 17 minimum | built on 25 ✔ |
 | compileSdk / targetSdk / minSdk | platform `android-37.0` | **37 / 37 / 28** | built ✔ |
 | Build tools | | **37.0.0** | built ✔ |
 | Compose BOM | `androidx.compose:compose-bom` | **2026.09.00** (Compose UI 1.12.1, Material 3 1.4.0) | lookup + built ✔ |
@@ -103,7 +103,7 @@ In addition, a throwaway **smoke project** was built in the planning environment
 | Splash screen | `androidx.core:core-splashscreen` | **1.2.0** | lookup |
 | Paging | `androidx.paging:paging-compose`, `paging-runtime` | **3.5.3** | lookup |
 | OkHttp | `com.squareup.okhttp3:okhttp`, `mockwebserver3` | **5.5.1** | lookup + built ✔ |
-| detekt | `io.gitlab.arturbosch.detekt` | **1.23.8** | lookup + built ✔ |
+| detekt | `dev.detekt` | **2.0.0-alpha.6** | built on JDK 25 ✔ |
 | ktlint Gradle plugin | `org.jlleitschuh.gradle.ktlint` | **14.2.0** | lookup + built ✔ |
 | ktlint engine | `com.pinterest.ktlint:ktlint-cli` (set through the plugin) | **1.8.0** | lookup + built ✔ |
 | Roborazzi | `io.github.takahirom.roborazzi:*`, plugin | **1.79.0** | lookup + built ✔ |
@@ -127,7 +127,7 @@ Not used, and why: protobuf (D1); kotlinx-datetime (`java.time` suffices at `min
 | Compose compiler | The `org.jetbrains.kotlin.plugin.compose` plugin is versioned with Kotlin (2.4.21) and worked with BOM 2026.09.00. |
 | Hilt ↔ AGP 9 | Hilt Gradle plugin 2.60.1 applied and aggregated correctly with AGP 9.5.1 and KSP. `hiltViewModel()` is imported from `androidx.hilt.lifecycle.viewmodel.compose` (available through `hilt-navigation-compose` 1.4.0); the old `androidx.hilt.navigation.compose` import is deprecated. |
 | Room | Room 2.8.5 with the `androidx.room` Gradle plugin exported the schema under KSP 2.3.14. |
-| detekt ↔ Kotlin | detekt 1.23.8 embeds Kotlin 2.0.21 and there is no stable 2.x (latest is `2.0.0-alpha.6`, built on Kotlin 2.4.10). The plain `detekt` task analysed Kotlin 2.4.21 sources in both module types and found the default source directories under AGP built-in Kotlin. Type-resolution tasks are not used. Constraint: avoid syntax newer than Kotlin 2.0 (§3.8). |
+| detekt ↔ Kotlin | detekt 2.0.0-alpha.6 embeds Kotlin 2.4.10 (1.23.8 embedded 2.0.21, whose JDK version check rejects JDK 25). The plain `detekt` task analysed Kotlin 2.4.21 sources in both module types and found the default source directories under AGP built-in Kotlin. Type-resolution tasks are not used. |
 | ktlint | Plugin 14.2.0 with engine 1.8.0 ran on Gradle 9.9.1 for both module types and for `.gradle.kts` files. |
 | Robolectric ↔ SDK | Robolectric 4.18 ran tests at SDK 37 (it downloaded its Android 17 image). No `@Config(sdk = …)` cap is needed; modules pin `sdk=37` in `robolectric.properties` for reproducible screenshots (§14.1). |
 | Roborazzi ↔ Robolectric | Roborazzi 1.79.0 with Robolectric 4.18 and `@GraphicsMode(NATIVE)` executed a Compose capture call. Only the call path was exercised: image recording and comparison (`recordRoborazziDebug` / `verifyRoborazziDebug`) were not run. |
@@ -156,7 +156,7 @@ Not used, and why: protobuf (D1); kotlinx-datetime (`java.time` suffices at `min
 | Base package / namespace | `casa.peterson.dhmo`; each module's namespace is `casa.peterson.dhmo.<path with dots>`, for example `casa.peterson.dhmo.core.database`, `casa.peterson.dhmo.feature.today`, `casa.peterson.dhmo.sync.drive` |
 | `minSdk` / `compileSdk` / `targetSdk` | 28 / 37 / 37 |
 | `buildToolsVersion` | `37.0.0` (set explicitly; AGP 9.5's default is 36.0.0) |
-| Java / Kotlin bytecode target | 17 (`compileOptions` source and target 17; Kotlin `jvmTarget` 17). **No Gradle toolchain is declared**, so the build runs on whatever JDK launches Gradle: 17 in CI, 21 locally. Both were confirmed sufficient (AGP 9.5 needs JDK 17 or newer). |
+| Java / Kotlin bytecode target | 17 (`compileOptions` source and target 17; Kotlin `jvmTarget` 17). The Gradle daemon is pinned to Temurin 25 by `gradle/gradle-daemon-jvm.properties` (downloaded through the foojay resolver when missing), and unit tests run on a JDK 25 toolchain (`JDK_VERSION` in `build-logic`). Bytecode stays at 17 because Android (minSdk 28) lacks Java 21+ library APIs. |
 | Version | `versionCode = 1`, `versionName = "0.1.0"` in `:app` |
 
 ### 3.2 Module graph
@@ -173,7 +173,7 @@ Three modules are added to PLAN §2's layout, plus four small support modules. A
 | `:core:database` | Android library | Room entities, DAOs, schema | `:core:model` |
 | `:core:datastore` | Android library | settings and device-state stores | `:core:model`, `:core:common` |
 | `:core:data` **new** | Android library | repositories, controller interfaces, use cases, Hilt bindings (§6) | `:core:model`, `:core:common`, `:core:domain`, `:core:backup`, `:core:database`, `:core:datastore` |
-| `:core:designsystem` | Android library (Compose) | theme, colours, typography, shared components (`ProgressRing`, `VolumeText`, `DhmoScaffold`, icons) | `:core:model` |
+| `:core:designsystem` | Android library (Compose) | theme, colours, typography, shared components (`ProgressRing`, `VolumeText`, `DhmoScaffold`, icons) | `:core:model`, `:core:domain` (for `VolumeFormatter`) |
 | `:core:network` **new** | Android library | shared `OkHttpClient` and `Json` | `:core:common` |
 | `:core:reminders` **new** | Android library | scheduler, receivers, notifications (§8.6) | `:core:data`, `:core:domain`, `:core:model`, `:core:common` |
 | `:core:weather` **new** | Android library | Open-Meteo provider, location refresher, weather worker (§12) | `:core:data`, `:core:network`, `:core:domain`, `:core:model`, `:core:common` |
@@ -198,7 +198,7 @@ Allowed edges, as a picture (an arrow means "depends on"):
   │            │           │   ├──► core:datastore ──► core:model, core:common
   │            │           │   ├──► core:domain ─────► core:model
   │            │           │   └──► core:backup ─────► core:model
-  │            └──► core:designsystem ──► core:model
+  │            └──► core:designsystem ──► core:model, core:domain
   ├──► core:reminders ──► core:data
   ├──► core:weather ────► core:data, core:network
   ├──► sync:healthconnect ──► core:data, core:database
@@ -223,7 +223,7 @@ Forbidden: feature → feature; feature → `:core:database`, `:core:datastore`,
 | `dhmo.android.roborazzi` | `AndroidRoborazziConventionPlugin` | applies `io.github.takahirom.roborazzi`; adds `roborazzi`, `roborazzi-compose`, `roborazzi-junit-rule`, `robolectric`, `compose-ui-test-junit4` as `testImplementation`; `roborazzi { outputDir.set(file("src/test/screenshots")) }`; sets the system property `robolectric.pixelCopyRenderMode=hardware` for tests |
 | `dhmo.android.test` (applied by the library and application plugins, not directly) | `AndroidTestConventionPlugin` | `testImplementation`: JUnit 4, Truth, Turbine, `kotlinx-coroutines-test`, Robolectric, `androidx-test-core`, `androidx-test-ext-junit`; `androidTestImplementation`: `androidx-test-runner`, `androidx-test-ext-junit`, Truth; `testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"`; unit tests get `maxHeapSize = "2g"` |
 | `dhmo.jvm.library` | `JvmLibraryConventionPlugin` | applies `org.jetbrains.kotlin.jvm`, `dhmo.quality`; Java source and target 17, Kotlin `jvmTarget` 17; `explicitApi()` is **not** enabled; `testImplementation`: JUnit 4, Truth, Turbine, `kotlinx-coroutines-test`; `tasks.test { useJUnit() }` |
-| `dhmo.quality` | `QualityConventionPlugin` | applies `io.gitlab.arturbosch.detekt` and `org.jlleitschuh.gradle.ktlint` and configures both (§3.8) |
+| `dhmo.quality` | `QualityConventionPlugin` | applies `dev.detekt` and `org.jlleitschuh.gradle.ktlint` and configures both (§3.8) |
 
 Kotlin compiler options applied everywhere: `allWarningsAsErrors = true` unless `-Pdhmo.warningsAsErrors=false`; `freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"`; for Compose modules also `-opt-in=androidx.compose.material3.ExperimentalMaterial3Api`.
 
@@ -255,7 +255,7 @@ androidx-test-espresso = "3.7.0"
 androidx-test-ext-junit = "1.3.0"
 androidx-test-runner = "1.7.0"
 androidx-work = "2.12.0"
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.6"
 googleid = "1.2.1"
 hilt = "2.60.1"
 javax-inject = "1"
@@ -368,7 +368,7 @@ compose-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-
 ksp-gradlePlugin = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version.ref = "ksp" }
 room-gradlePlugin = { module = "androidx.room:room-gradle-plugin", version.ref = "androidx-room" }
 hilt-gradlePlugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hilt" }
-detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+detekt-gradlePlugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
 roborazzi-gradlePlugin = { module = "io.github.takahirom.roborazzi:roborazzi-gradle-plugin", version.ref = "roborazzi" }
 
@@ -381,7 +381,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 room = { id = "androidx.room", version.ref = "androidx-room" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 # Convention plugins (no version: they come from the included build)
@@ -497,27 +497,28 @@ ksp.incremental=true
 
 ### 3.8 Static analysis
 
-**detekt 1.23.8** (config `config/detekt/detekt.yml`, `buildUponDefaultConfig = true`, `parallel = true`, `autoCorrect = false`):
+**detekt 2.0.0-alpha.6** (config `config/detekt/detekt.yml`, `buildUponDefaultConfig = true`, `parallel = true`, `autoCorrect = false`):
 
-- detekt 1.23.8 embeds the Kotlin 2.0.21 compiler. It parses and analyses this project's Kotlin 2.4.21 sources without type resolution, which was confirmed in a smoke build (§2.3). The convention plugin therefore uses **only the plain `detekt` task** (no `detektMain` / `detektDebug` type-resolution tasks) and sets the sources explicitly, because with AGP's built-in Kotlin the detekt plugin does not discover Android source sets on its own:
+- detekt 2.0.0-alpha.6 embeds the Kotlin 2.4.10 compiler and runs on JDK 25 (1.23.8, used before, does not). The convention plugin uses **only the plain `detekt` task** (no `detektMain` / `detektDebug` type-resolution tasks) and sets the sources explicitly, because with AGP's built-in Kotlin the detekt plugin does not discover Android source sets on its own:
 
   ```kotlin
   extensions.configure<DetektExtension> {
-      buildUponDefaultConfig = true
-      parallel = true
+      buildUponDefaultConfig.set(true)
+      parallel.set(true)
       config.setFrom(rootProject.files("config/detekt/detekt.yml"))
       source.setFrom(files("src/main/kotlin", "src/test/kotlin", "src/androidTest/kotlin", "src/debug/kotlin"))
   }
-  tasks.withType<Detekt>().configureEach { jvmTarget = "17"; reports { sarif.required.set(true); html.required.set(true) } }
-  // Keep detekt's own compiler: the Kotlin Gradle plugin must not upgrade it.
+  tasks.withType<Detekt>().configureEach { jvmTarget.set("17"); reports { sarif.required.set(true); html.required.set(true) } }
+  // Keep detekt's own compiler version: the Kotlin Gradle plugin must not upgrade it.
+  val detektKotlinVersion = getSupportedKotlinVersion() // dev.detekt.gradle.plugin
   configurations.matching { it.name == "detekt" }.configureEach {
-      resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlin") useVersion("2.0.21") }
+      resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlin") useVersion(detektKotlinVersion) }
   }
   ```
 
 - All Kotlin sources live in `src/<set>/kotlin` (never `src/<set>/java`), so the list above is complete.
-- **Language-feature rule:** do not use Kotlin syntax introduced after 2.0 that detekt 1.23.8 cannot parse (context parameters, guard conditions in `when`, non-local `break`/`continue`, multi-dollar interpolation, nested type aliases and newer). If such syntax is ever needed, the fallback is to move to detekt 2.x (currently `2.0.0-alpha.6`, plugin id `dev.detekt`, built against Kotlin 2.4.10); that is a deliberate decision for a later PR, not for T0.
-- Rule set: defaults, plus `style.MaxLineLength.maxLineLength = 140`, `complexity.LongParameterList` thresholds 8 (functions) and 10 (constructors) with `ignoreDefaultParameters = true`, `naming.FunctionNaming.ignoreAnnotated = ["Composable"]`, `style.MagicNumber` off for tests and for `GoalPolicyV1.kt`, `style.UnusedPrivateMember.ignoreAnnotated = ["Preview"]`, `complexity.LongMethod.ignoreAnnotated = ["Composable"]`, `complexity.TooManyFunctions` off for DAOs and `*Repository`. **No detekt baseline file**; a suppression needs `@Suppress` with a comment.
+- **Language-feature rule:** detekt's embedded compiler (2.4.10) must be able to parse the sources, so don't use syntax newer than Kotlin 2.4. The earlier limit to Kotlin 2.0 syntax ended with the move off detekt 1.23.8.
+- Rule set: defaults, plus `style.MaxLineLength.maxLineLength = 140`, `complexity.LongParameterList` `allowedFunctionParameters = 7`, `allowedConstructorParameters = 9` (detekt 1's thresholds 8 and 10) with `ignoreDefaultParameters = true`, `naming.FunctionNaming.ignoreAnnotated = ["Composable"]`, `style.MagicNumber` off for tests and for `GoalPolicyV1.kt`, `style.UnusedPrivateFunction.ignoreAnnotated = ["Preview"]`, `complexity.LongMethod.ignoreAnnotated = ["Composable"]`, `complexity.TooManyFunctions` off for DAOs and `*Repository`. **No detekt baseline file**; a suppression needs `@Suppress` with a comment.
 
 **ktlint** through `org.jlleitschuh.gradle.ktlint` 14.2.0, with `ktlint { version.set("1.8.0"); android.set(true); outputToConsole.set(true) }`. Rules come from `.editorconfig` at the repository root:
 
@@ -1914,7 +1915,7 @@ Derivations for the less obvious rows: R01 `q = 200/2000 = 0.10`, `xStar = 0.066
 | `BuildReminderStateUseCase` | Reads settings, device state, today's `DailyGoal` and `DailyTotal`, last drink and (if opted in) calendar busy intervals, and returns `ReminderState`. |
 | `ReminderAlarmReceiver` | Receives the alarm. Calls `nextReminder`, posts `fireNow` if any, stores the runtime state, schedules `nextAlarmAt`. |
 | `ReminderActionReceiver` | Notification actions: log container 1, log container 2, snooze. |
-| `SystemEventReceiver` | `BOOT_COMPLETED`, `LOCKED_BOOT_COMPLETED` is not used (no direct-boot support), `TIME_SET`, `TIMEZONE_CHANGED`, `MY_PACKAGE_REPLACED` → `reschedule()`. |
+| `SystemEventReceiver` | `BOOT_COMPLETED`, `LOCKED_BOOT_COMPLETED` is not used (no direct-boot support), `TIME_SET`, `TIMEZONE_CHANGED`, `MY_PACKAGE_REPLACED` → `reschedule()`. It is exported (system broadcasts need that), so any app can send it an explicit intent: `onReceive` checks `intent.action` against these four and ignores anything else. |
 | `ReminderNotifier` | Builds and posts notifications; owns the channels. |
 | `CalendarBusyReader` | `CalendarContract.Instances` query for events with `AVAILABILITY_BUSY`, not all-day, overlapping today's window. Returns an empty list without the `READ_CALENDAR` permission. |
 | `ReminderEntryListener` | An `EntryChangeListener` (§6.4) that calls `reschedule(ENTRY_CHANGED)`. |
@@ -1974,7 +1975,7 @@ In `ReminderAlarmReceiver`: `lateBy = now − scheduledAtMs`. If `lateBy > 30 mi
 ```xml
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-<uses-permission android:name="android.permission.READ_CALENDAR" />   <!-- runtime, opt-in -->
+<uses-permission android:name="android.permission.READ_CALENDAR" />   <!-- runtime, opt-in; added by T13 together with the opt-in, not before -->
 
 <receiver android:name=".ReminderAlarmReceiver" android:exported="false" />
 <receiver android:name=".ReminderActionReceiver" android:exported="false" />
@@ -3093,7 +3094,7 @@ fun NavGraphBuilder.settingsScreens(
 )
 ```
 
-Deep links: `dhmo://today`, `dhmo://settings/backup` (the "Reconnect Google Drive" notification), `dhmo://history/day/{epochDay}`. App shortcuts and the tile's long press open `dhmo://today`.
+Deep links: `dhmo://today`, `dhmo://settings/backup` (the "Reconnect Google Drive" notification), `dhmo://history/day/{epochDay}`. App shortcuts and the tile's long press open `dhmo://today`. The intent filter is not `BROWSABLE`: only the app's own notifications, shortcuts and tile open these links. Route arguments that arrive through a deep link are untrusted and validated before use (`HistoryDayRoute.date` is null for an `epochDay` outside `LocalDate`'s range, and the screen then closes).
 
 ### 13.4 Integration slots
 
@@ -3118,6 +3119,9 @@ T0 builds `SettingsIntegrations()` with the defaults in `DhmoNavHost`. Phase 4 c
 - `DhmoNavHost(startDestination = if (onboarded) TodayRoute else OnboardingGraph)`.
 - **Top-level destinations** (bottom bar on compact width, navigation rail on medium and expanded, through `NavigationSuiteScaffold` from `material3-adaptive-navigation-suite`): **Today** (`TodayRoute`), **History** (`HistoryRoute`), **Insights** (`InsightsRoute()`), **Settings** (`SettingsRoute`). Profile/Goal and Reminders are reached from the goal chip and the pace line on Today, and from the first two rows of Settings.
 - The bar is hidden inside `OnboardingGraph` and on full-screen editors. Top-level navigation uses `popUpTo(graph.findStartDestination().id) { saveState = true }; launchSingleTop = true; restoreState = true`.
+- **Deep links.** `MainActivity` is `singleTop`, so links arrive either with the launch intent or through `onNewIntent`. `MainActivity` removes the link from the launch intent (otherwise `NavHost` follows it before onboarding state is known) and `DhmoApp` follows it once the start state is `Main`; later links reach `DhmoApp` through `addOnNewIntentListener` and call `navController.handleDeepLink`. Links are ignored while inside `OnboardingGraph`.
+- **Insets.** The app is edge-to-edge (`enableEdgeToEdge()`, `isNavigationBarContrastEnforced = false`, `adjustResize`). `NavigationSuiteScaffold` consumes the insets of its bar or rail but gives none to its content, so every screen's root is `DhmoScreen` (`:core:designsystem`, a `Scaffold` with `contentWindowInsets = WindowInsets.safeDrawing`, IME included). Its inner padding is applied once: as `contentPadding` on lazy lists, otherwise as `padding(innerPadding).consumeWindowInsets(innerPadding)`; no extra `imePadding()`. Any other activity (`PermissionsRationaleActivity`, `QuickLogActivity`) also calls `enableEdgeToEdge()`.
+- **Runtime permissions** (`POST_NOTIFICATIONS`, `READ_CALENDAR`, `ACCESS_COARSE_LOCATION`) use one flow: if granted, continue; else if `shouldShowRequestPermissionRationale` is true, show the rationale and request only from its Continue button; else request. When the result is a denial and `shouldShowRequestPermissionRationale` is now false (permanently denied), don't ask again: show a button to the system settings (`Settings.ACTION_APP_NOTIFICATION_SETTINGS` for notifications, `ACTION_APPLICATION_DETAILS_SETTINGS` otherwise) and keep the feature off. Grant state is always read with `checkSelfPermission` at the point of use, never cached, and permission-protected calls catch `SecurityException`.
 
 ### 13.6 Screen list
 
@@ -3276,7 +3280,7 @@ Run with `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddev
 
 ### 14.2 CI workflows
 
-`.github/workflows/ci.yml` — on `pull_request` and on `push` to `main`; `concurrency` cancels superseded runs; Ubuntu runner; JDK 17 Temurin; Gradle set up with the official Gradle action (build cache, wrapper validation).
+`.github/workflows/ci.yml` — on `pull_request` and on `push` to `main`; `concurrency` cancels superseded runs; Ubuntu runner; JDK 25 Temurin; Gradle set up with the official Gradle action (build cache, wrapper validation).
 
 | Job | Command | Notes |
 |---|---|---|
@@ -3335,7 +3339,7 @@ Deliverables:
 6. **`:core:datastore` complete:** §5.4 with tests.
 7. **`:core:data`:** every interface of §6.2 and §6.4, `RepositoryModule`, `CommonModule`, `DomainModule`; one `Offline*Repository` class per interface, in its own file, with `TODO("T4")` bodies (`OfflineBackupRepository`: `TODO("T16")`); `SettingsRepository` and `DeviceStateRepository` implemented (thin wrappers).
 8. **Controllers:** no-op implementations and Hilt modules in `:core:reminders`, `:widget`, `:sync:healthconnect`, `:sync:drive`, `:core:weather`; `:core:network` module with `OkHttpClient` and `Json`.
-9. **`:core:designsystem`:** `DhmoTheme` (Material 3, dynamic colour on API 31+, light and dark fallback schemes, typography), `PlaceholderScreen`, `ComingSoon`, icons.
+9. **`:core:designsystem`:** `DhmoTheme` (Material 3, dynamic colour on API 31+, light and dark fallback schemes, typography), `PlaceholderScreen`, `ComingSoon`, `DhmoScreen` (§13.5 Insets), icons.
 10. **`:core:testing`:** `MainDispatcherRule`, `MutableClock`, `FixedZoneProvider`, `captureScreenVariants`.
 11. **Feature modules:** the routes and entry functions of §13.2–13.3, fully wired; **one file per screen** (`XxxScreen.kt`) whose composable shows `PlaceholderScreen`; `SettingsIntegrations` and `OnboardingIntegrations`; resource files pre-split: `strings_onboarding.xml`, `strings_today.xml`, `strings_history.xml`, `strings_insights.xml`, `strings_profile.xml`, `strings_reminders.xml`, and in `:feature:settings` `strings_settings.xml`, `strings_export.xml`, `strings_backup.xml`, `strings_healthconnect.xml`, `strings_weather.xml`.
 12. **`:app`:** `DhmoApplication` (`@HiltAndroidApp`, WorkManager `Configuration.Provider`, notification channels call), `MainActivity`, `MainViewModel`, `DhmoApp`, `DhmoNavHost` calling every feature entry function, bottom bar / rail, deep links, manifest, `data_extraction_rules.xml`, R8 rules, launcher icon.

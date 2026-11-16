@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_PARAMETER")
-
 package casa.peterson.dhmo.feature.reminders.navigation
 
 import androidx.navigation.NavController
@@ -9,6 +7,8 @@ import casa.peterson.dhmo.feature.reminders.PaceCurveScreen
 import casa.peterson.dhmo.feature.reminders.RemindersScreen
 
 fun NavGraphBuilder.remindersScreens(navController: NavController) {
-    composable<RemindersRoute> { RemindersScreen() }
-    composable<PaceCurveRoute> { PaceCurveScreen() }
+    composable<RemindersRoute> {
+        RemindersScreen(onBack = { navController.popBackStack() }, onOpenCurve = { navController.navigate(PaceCurveRoute) })
+    }
+    composable<PaceCurveRoute> { PaceCurveScreen(onBack = { navController.popBackStack() }) }
 }
