@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_PARAMETER")
-
 package casa.peterson.dhmo.feature.insights.navigation
 
 import androidx.navigation.NavController
@@ -11,7 +9,10 @@ import casa.peterson.dhmo.feature.insights.correlation.CorrelationScreen
 import java.time.LocalDate
 
 fun NavGraphBuilder.insightsScreens(navController: NavController, onOpenDay: (LocalDate) -> Unit) {
-    composable<InsightsRoute> { InsightsScreen() }
-    composable<CustomRangeRoute> { CustomRangeScreen() }
-    composable<CorrelationRoute> { CorrelationScreen() }
+    val openCorrelation: (String) -> Unit = { driver -> navController.navigate(CorrelationRoute(driver)) }
+    composable<InsightsRoute> { InsightsScreen(onOpenDay = onOpenDay, onOpenCorrelation = openCorrelation) }
+    composable<CustomRangeRoute> {
+        CustomRangeScreen(onBack = { navController.popBackStack() }, onOpenDay = onOpenDay, onOpenCorrelation = openCorrelation)
+    }
+    composable<CorrelationRoute> { CorrelationScreen(onBack = { navController.popBackStack() }) }
 }

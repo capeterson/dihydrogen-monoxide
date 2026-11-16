@@ -1,11 +1,10 @@
 package casa.peterson.dhmo.feature.insights
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
-import casa.peterson.dhmo.core.designsystem.component.PlaceholderScreen
-import casa.peterson.dhmo.feature.insights.R
+import java.time.LocalDate
 
+/** A custom range opened directly (`CustomRangeRoute`): the Insights screen with a back button, seeded from the route. */
 @Composable
-internal fun CustomRangeScreen() {
-    PlaceholderScreen(title = stringResource(R.string.feature_insights_custom_range_title))
+internal fun CustomRangeScreen(onBack: () -> Unit, onOpenDay: (LocalDate) -> Unit, onOpenCorrelation: (String) -> Unit) {
+    InsightsScreen(onOpenDay = onOpenDay, onOpenCorrelation = onOpenCorrelation, onBack = onBack)
 }
