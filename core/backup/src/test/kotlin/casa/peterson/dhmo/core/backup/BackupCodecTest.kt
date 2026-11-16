@@ -3,6 +3,8 @@ package casa.peterson.dhmo.core.backup
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import com.google.common.truth.Truth.assertThat
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -11,6 +13,35 @@ class BackupCodecTest {
     private val sparse = emptyDocument()
 
     private fun errorOf(block: () -> Unit): BackupError = assertThrows(BackupException::class.java) { block() }.error
+
+    @Test
+    fun `compressed input cannot expand past the document limit`() {
+        val out = ByteArrayOutputStream()
+        GZIPOutputStream(out).use { gzip ->
+            val chunk = ByteArray(1024 * 1024) { ' '.code.toByte() }
+            repeat(33) { gzip.write(chunk) }
+        }
+        val compressed = out.toByteArray()
+        val error = assertThrows(BackupException::class.java) { BackupCodec.decode(compressed) }
+        assertThat(error.error).isEqualTo(BackupError.CORRUPT)
+        assertThat(error.message).contains("size limit")
+        val salt = BackupCrypto.newSalt()
+        val key = BackupCrypto.deriveKey("correct horse".toCharArray(), salt, 1_000)
+        val encrypted = BackupCrypto.encrypt(compressed, key, salt, 1_000)
+        val encryptedError = assertThrows(BackupException::class.java) {
+            BackupCodec.decode(encrypted, "correct horse".toCharArray())
+        }
+        assertThat(encryptedError.message).contains("size limit")
+    }
+
+    @Test
+    fun `oversized plain documents are rejected before parsing`() {
+        val bytes = ByteArray(33 * 1024 * 1024) { ' '.code.toByte() }
+        bytes[0] = '{'.code.toByte()
+        val error = assertThrows(BackupException::class.java) { BackupCodec.decode(bytes) }
+        assertThat(error.error).isEqualTo(BackupError.CORRUPT)
+        assertThat(error.message).contains("size limit")
+    }
 
     @Test
     fun `plain json round trips with every field set`() {

@@ -64,7 +64,14 @@ internal fun volumeFieldText(ml: Int, unit: VolumeUnit, locale: Locale): String 
 internal fun parseVolumeField(text: String, unit: VolumeUnit): Int? {
     val value = text.trim().replace(',', '.').toDoubleOrNull()
     val usable = value != null && value.isFinite() && value >= 0.0
-    return if (usable) VolumeFormatter.toMl(checkNotNull(value), unit) else null
+    if (!usable) return null
+    return try {
+        VolumeFormatter.toMl(checkNotNull(value), unit)
+    } catch (_: ArithmeticException) {
+        null
+    } catch (_: NumberFormatException) {
+        null
+    }
 }
 
 /**

@@ -32,6 +32,9 @@ object BackupCodec {
     private const val GZIP_MAGIC_1 = 0x8B
     private const val BYTE_MASK = 0xFF
 
+    /** Limit both the supplied container and expanded JSON to 32 MiB before parsing untrusted data. */
+    const val MAX_DECODE_BYTES = 32 * 1024 * 1024
+
     fun encodeJson(doc: BackupDocument, pretty: Boolean = false): ByteArray =
         (if (pretty) prettyJson else json).encodeToString(BackupDocument.serializer(), doc).toByteArray(Charsets.UTF_8)
 
@@ -60,6 +63,7 @@ object BackupCodec {
     }
 
     fun decode(bytes: ByteArray, passphrase: CharArray? = null): BackupDocument {
+        requireSize(bytes.size)
         val jsonBytes = when (detect(bytes)) {
             BackupContainer.ENCRYPTED -> {
                 if (passphrase == null) throw BackupException(BackupError.PASSPHRASE_REQUIRED)
@@ -78,9 +82,23 @@ object BackupCodec {
     private fun ByteArray.startsWith(prefix: ByteArray): Boolean = size >= prefix.size && copyOfRange(0, prefix.size).contentEquals(prefix)
 
     private fun gunzip(bytes: ByteArray): ByteArray = try {
-        GZIPInputStream(ByteArrayInputStream(bytes)).use { it.readBytes() }
+        GZIPInputStream(ByteArrayInputStream(bytes)).use { input ->
+            val out = ByteArrayOutputStream()
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var count = input.read(buffer)
+            while (count != -1) {
+                requireSize(out.size() + count)
+                out.write(buffer, 0, count)
+                count = input.read(buffer)
+            }
+            out.toByteArray()
+        }
     } catch (e: IOException) {
         throw BackupException(BackupError.CORRUPT, "bad gzip data", e)
+    }
+
+    private fun requireSize(size: Int) {
+        if (size > MAX_DECODE_BYTES) throw BackupException(BackupError.CORRUPT, "backup exceeds size limit")
     }
 
     private fun parse(bytes: ByteArray): BackupDocument {

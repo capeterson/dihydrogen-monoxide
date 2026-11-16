@@ -46,6 +46,16 @@ class VolumeInputSheetTest {
     private val field get() = composeRule.onNode(hasSetTextAction())
 
     @Test
+    fun overflowingInputDisablesConfirmation() {
+        show(VolumeUnit.L)
+        field.performTextClearance()
+        field.performTextInput("999999999999999999999999999999")
+        composeRule.onNodeWithText("Add").assertIsNotEnabled()
+        assertThat(parseVolumeField("1e308", VolumeUnit.L)).isNull()
+        assertThat(parseVolumeField("2147483648", VolumeUnit.ML)).isNull()
+    }
+
+    @Test
     fun startsWithTheInitialAmountInMillilitres() {
         show(VolumeUnit.ML)
         field.assertTextEquals("Amount in ml", "250", includeEditableText = true)
