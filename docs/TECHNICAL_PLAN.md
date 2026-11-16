@@ -1894,7 +1894,7 @@ Derivations for the less obvious rows: R01 `q = 200/2000 = 0.10`, `xStar = 0.066
 | `BuildReminderStateUseCase` | Reads settings, device state, today's `DailyGoal` and `DailyTotal`, last drink and (if opted in) calendar busy intervals, and returns `ReminderState`. |
 | `ReminderAlarmReceiver` | Receives the alarm. Calls `nextReminder`, posts `fireNow` if any, stores the runtime state, schedules `nextAlarmAt`. |
 | `ReminderActionReceiver` | Notification actions: log container 1, log container 2, snooze. |
-| `SystemEventReceiver` | `BOOT_COMPLETED`, `LOCKED_BOOT_COMPLETED` is not used (no direct-boot support), `TIME_SET`, `TIMEZONE_CHANGED`, `MY_PACKAGE_REPLACED` → `reschedule()`. |
+| `SystemEventReceiver` | `BOOT_COMPLETED`, `LOCKED_BOOT_COMPLETED` is not used (no direct-boot support), `TIME_SET`, `TIMEZONE_CHANGED`, `MY_PACKAGE_REPLACED` → `reschedule()`. It is exported (system broadcasts need that), so any app can send it an explicit intent: `onReceive` checks `intent.action` against these four and ignores anything else. |
 | `ReminderNotifier` | Builds and posts notifications; owns the channels. |
 | `CalendarBusyReader` | `CalendarContract.Instances` query for events with `AVAILABILITY_BUSY`, not all-day, overlapping today's window. Returns an empty list without the `READ_CALENDAR` permission. |
 | `ReminderEntryListener` | An `EntryChangeListener` (§6.4) that calls `reschedule(ENTRY_CHANGED)`. |
@@ -1954,7 +1954,7 @@ In `ReminderAlarmReceiver`: `lateBy = now − scheduledAtMs`. If `lateBy > 30 mi
 ```xml
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-<uses-permission android:name="android.permission.READ_CALENDAR" />   <!-- runtime, opt-in -->
+<uses-permission android:name="android.permission.READ_CALENDAR" />   <!-- runtime, opt-in; added by T13 together with the opt-in, not before -->
 
 <receiver android:name=".ReminderAlarmReceiver" android:exported="false" />
 <receiver android:name=".ReminderActionReceiver" android:exported="false" />
@@ -3073,7 +3073,7 @@ fun NavGraphBuilder.settingsScreens(
 )
 ```
 
-Deep links: `dhmo://today`, `dhmo://settings/backup` (the "Reconnect Google Drive" notification), `dhmo://history/day/{epochDay}`. App shortcuts and the tile's long press open `dhmo://today`.
+Deep links: `dhmo://today`, `dhmo://settings/backup` (the "Reconnect Google Drive" notification), `dhmo://history/day/{epochDay}`. App shortcuts and the tile's long press open `dhmo://today`. The intent filter is not `BROWSABLE`: only the app's own notifications, shortcuts and tile open these links. Route arguments that arrive through a deep link are untrusted and validated before use (`HistoryDayRoute.date` is null for an `epochDay` outside `LocalDate`'s range, and the screen then closes).
 
 ### 13.4 Integration slots
 
@@ -3098,6 +3098,9 @@ T0 builds `SettingsIntegrations()` with the defaults in `DhmoNavHost`. Phase 4 c
 - `DhmoNavHost(startDestination = if (onboarded) TodayRoute else OnboardingGraph)`.
 - **Top-level destinations** (bottom bar on compact width, navigation rail on medium and expanded, through `NavigationSuiteScaffold` from `material3-adaptive-navigation-suite`): **Today** (`TodayRoute`), **History** (`HistoryRoute`), **Insights** (`InsightsRoute()`), **Settings** (`SettingsRoute`). Profile/Goal and Reminders are reached from the goal chip and the pace line on Today, and from the first two rows of Settings.
 - The bar is hidden inside `OnboardingGraph` and on full-screen editors. Top-level navigation uses `popUpTo(graph.findStartDestination().id) { saveState = true }; launchSingleTop = true; restoreState = true`.
+- **Deep links.** `MainActivity` is `singleTop`, so links arrive either with the launch intent or through `onNewIntent`. `MainActivity` removes the link from the launch intent (otherwise `NavHost` follows it before onboarding state is known) and `DhmoApp` follows it once the start state is `Main`; later links reach `DhmoApp` through `addOnNewIntentListener` and call `navController.handleDeepLink`. Links are ignored while inside `OnboardingGraph`.
+- **Insets.** The app is edge-to-edge (`enableEdgeToEdge()`, `isNavigationBarContrastEnforced = false`, `adjustResize`). `NavigationSuiteScaffold` consumes the insets of its bar or rail but gives none to its content, so every screen's root is `DhmoScreen` (`:core:designsystem`, a `Scaffold` with `contentWindowInsets = WindowInsets.safeDrawing`, IME included). Its inner padding is applied once: as `contentPadding` on lazy lists, otherwise as `padding(innerPadding).consumeWindowInsets(innerPadding)`; no extra `imePadding()`. Any other activity (`PermissionsRationaleActivity`, `QuickLogActivity`) also calls `enableEdgeToEdge()`.
+- **Runtime permissions** (`POST_NOTIFICATIONS`, `READ_CALENDAR`, `ACCESS_COARSE_LOCATION`) use one flow: if granted, continue; else if `shouldShowRequestPermissionRationale` is true, show the rationale and request only from its Continue button; else request. When the result is a denial and `shouldShowRequestPermissionRationale` is now false (permanently denied), don't ask again: show a button to the system settings (`Settings.ACTION_APP_NOTIFICATION_SETTINGS` for notifications, `ACTION_APPLICATION_DETAILS_SETTINGS` otherwise) and keep the feature off. Grant state is always read with `checkSelfPermission` at the point of use, never cached, and permission-protected calls catch `SecurityException`.
 
 ### 13.6 Screen list
 
@@ -3315,7 +3318,7 @@ Deliverables:
 6. **`:core:datastore` complete:** §5.4 with tests.
 7. **`:core:data`:** every interface of §6.2 and §6.4, `RepositoryModule`, `CommonModule`, `DomainModule`; one `Offline*Repository` class per interface, in its own file, with `TODO("T4")` bodies (`OfflineBackupRepository`: `TODO("T16")`); `SettingsRepository` and `DeviceStateRepository` implemented (thin wrappers).
 8. **Controllers:** no-op implementations and Hilt modules in `:core:reminders`, `:widget`, `:sync:healthconnect`, `:sync:drive`, `:core:weather`; `:core:network` module with `OkHttpClient` and `Json`.
-9. **`:core:designsystem`:** `DhmoTheme` (Material 3, dynamic colour on API 31+, light and dark fallback schemes, typography), `PlaceholderScreen`, `ComingSoon`, icons.
+9. **`:core:designsystem`:** `DhmoTheme` (Material 3, dynamic colour on API 31+, light and dark fallback schemes, typography), `PlaceholderScreen`, `ComingSoon`, `DhmoScreen` (§13.5 Insets), icons.
 10. **`:core:testing`:** `MainDispatcherRule`, `MutableClock`, `FixedZoneProvider`, `captureScreenVariants`.
 11. **Feature modules:** the routes and entry functions of §13.2–13.3, fully wired; **one file per screen** (`XxxScreen.kt`) whose composable shows `PlaceholderScreen`; `SettingsIntegrations` and `OnboardingIntegrations`; resource files pre-split: `strings_onboarding.xml`, `strings_today.xml`, `strings_history.xml`, `strings_insights.xml`, `strings_profile.xml`, `strings_reminders.xml`, and in `:feature:settings` `strings_settings.xml`, `strings_export.xml`, `strings_backup.xml`, `strings_healthconnect.xml`, `strings_weather.xml`.
 12. **`:app`:** `DhmoApplication` (`@HiltAndroidApp`, WorkManager `Configuration.Provider`, notification channels call), `MainActivity`, `MainViewModel`, `DhmoApp`, `DhmoNavHost` calling every feature entry function, bottom bar / rail, deep links, manifest, `data_extraction_rules.xml`, R8 rules, launcher icon.

@@ -22,11 +22,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- dhmo://today, dhmo://settings/backup, dhmo://history/day/{epochDay} -->
+            <!--
+                dhmo://today, dhmo://settings/backup, dhmo://history/day/{epochDay}. Opened only by the app's own
+                notifications, shortcuts and tile, so not BROWSABLE: web pages cannot launch these screens.
+            -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="dhmo" />
                 <data android:host="today" />
                 <data android:host="settings" />
