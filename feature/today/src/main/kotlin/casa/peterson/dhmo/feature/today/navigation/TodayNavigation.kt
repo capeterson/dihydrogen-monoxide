@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_PARAMETER")
-
 package casa.peterson.dhmo.feature.today.navigation
 
 import androidx.navigation.NavController
@@ -19,8 +17,17 @@ fun NavGraphBuilder.todayScreens(
     onOpenReminders: () -> Unit,
     onOpenHistoryDay: (LocalDate) -> Unit,
 ) {
-    composable<TodayRoute>(deepLinks = listOf(navDeepLink<TodayRoute>(basePath = "dhmo://today"))) { TodayScreen() }
-    composable<EditEntryRoute> { EditEntryScreen() }
-    composable<ContainersRoute> { ContainersScreen() }
-    composable<BatteryHelpRoute> { BatteryHelpScreen() }
+    composable<TodayRoute>(deepLinks = listOf(navDeepLink<TodayRoute>(basePath = "dhmo://today"))) {
+        TodayScreen(
+            onOpenGoal = onOpenGoal,
+            onOpenReminders = onOpenReminders,
+            onOpenHistoryDay = onOpenHistoryDay,
+            onEdit = { navController.navigate(EditEntryRoute(it.toString())) },
+            onContainers = { navController.navigate(ContainersRoute) },
+            onBatteryHelp = { navController.navigate(BatteryHelpRoute) },
+        )
+    }
+    composable<EditEntryRoute> { EditEntryScreen(onDismiss = { navController.popBackStack() }) }
+    composable<ContainersRoute> { ContainersScreen(onBack = { navController.popBackStack() }) }
+    composable<BatteryHelpRoute> { BatteryHelpScreen(onBack = { navController.popBackStack() }) }
 }
