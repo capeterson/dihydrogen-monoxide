@@ -277,4 +277,22 @@ class OfflineIntakeRepositoryTest {
 
         assertThat(failure { repo.adopt(repo.add(100, Source.MANUAL).id) }).isInstanceOf(IllegalArgumentException::class.java)
     }
+
+    @Test
+    fun `a drink from the watch is stored once with its own id, time and offset`() = runTest {
+        settings.update { it.copy(healthConnect = HealthConnectSettings(writeHydration = true)) }
+        val repo = repository(recorder)
+        val id = UUID.randomUUID()
+        val at = Instant.parse("2026-06-09T21:30:00Z") // 23:30 in Berlin on June 9
+
+        assertThat(repo.addFromWatch(id, 330, at, java.time.ZoneOffset.ofHours(2))).isTrue()
+        assertThat(repo.addFromWatch(id, 330, at, java.time.ZoneOffset.ofHours(2))).isFalse()
+
+        val row = env.db.intakeDao().getById(id)!!
+        assertThat(row.source).isEqualTo(Source.WEAR)
+        assertThat(row.instant).isEqualTo(at)
+        assertThat(row.hydrationDay).isEqualTo(LocalDate.of(2026, 6, 9))
+        assertThat(env.db.hcSyncDao().allOps().map { it.entryId }).containsExactly(id)
+        assertThat(received).containsExactly(EntryChange(setOf(LocalDate.of(2026, 6, 9)), ChangeOrigin.LOCAL))
+    }
 }

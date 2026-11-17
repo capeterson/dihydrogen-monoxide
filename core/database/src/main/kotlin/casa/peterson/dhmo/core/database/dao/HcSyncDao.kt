@@ -45,4 +45,13 @@ interface HcSyncDao {
 
     @Query("DELETE FROM sync_state WHERE `key` = :key")
     suspend fun deleteState(key: String)
+
+    @Query("DELETE FROM sync_state")
+    suspend fun clearState() // restore (replace) only
+
+    @Query("SELECT * FROM sync_state")
+    suspend fun allStates(): List<SyncStateEntity>
+
+    @Query("SELECT * FROM hc_pending_op ORDER BY id ASC")
+    suspend fun allOps(): List<HcPendingOpEntity>
 }

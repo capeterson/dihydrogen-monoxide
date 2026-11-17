@@ -36,6 +36,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -222,8 +226,19 @@ private fun TodayEntry(entry: IntakeEntry, unit: VolumeUnit, onDelete: (UUID) ->
             }
         }
     }
+    // Swiping is not discoverable with TalkBack or switch access, so the same actions are offered as custom actions.
+    val editLabel = stringResource(R.string.feature_today_edit)
+    val deleteLabel = stringResource(R.string.feature_today_delete)
+    val actions = if (entry.isEditable) {
+        listOf(
+            CustomAccessibilityAction(editLabel) { onEdit(entry.id).let { true } },
+            CustomAccessibilityAction(deleteLabel) { onDelete(entry.id).let { true } },
+        )
+    } else {
+        emptyList()
+    }
     SwipeToDismissBox(
-        modifier = Modifier.testTag("today_entry_${entry.id}"),
+        modifier = Modifier.testTag("today_entry_${entry.id}").semantics { customActions = actions },
         state = dismiss,
         enableDismissFromStartToEnd = false,
         enableDismissFromEndToStart = entry.isEditable,
@@ -231,7 +246,9 @@ private fun TodayEntry(entry: IntakeEntry, unit: VolumeUnit, onDelete: (UUID) ->
     ) {
         Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
             Row(
-                Modifier.fillMaxWidth().clickable(enabled = entry.isEditable) { onEdit(entry.id) }.padding(16.dp),
+                Modifier.fillMaxWidth()
+                    .clickable(enabled = entry.isEditable, onClickLabel = editLabel, role = Role.Button) { onEdit(entry.id) }
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 VolumeText(entry.volumeMl, unit)

@@ -104,6 +104,30 @@ constructor(
         return entity.toModel()
     }
 
+    override suspend fun addFromWatch(id: UUID, volumeMl: Int, at: Instant, offset: ZoneOffset): Boolean {
+        requireValid(volumeMl, null)
+        val current = settings.current()
+        val now = clock.instant()
+        val entity = IntakeEntryEntity(
+            id = id,
+            instant = at,
+            zoneOffsetSeconds = offset.totalSeconds,
+            hydrationDay = hydrationDay(at, offset, dayStartOf(current.dayStartMinutes)),
+            volumeMl = volumeMl,
+            source = Source.WEAR,
+            createdAt = now,
+            updatedAt = now,
+        )
+        val inserted = transactions.run {
+            if (intakeDao.getById(id) != null) return@run false
+            intakeDao.upsert(entity)
+            enqueueIfWriting(current.healthConnect.writeHydration, entity, HcOp.UPSERT, now)
+            true
+        }
+        if (inserted) notifyListeners(setOf(entity.hydrationDay), ChangeOrigin.LOCAL)
+        return inserted
+    }
+
     override suspend fun update(id: UUID, volumeMl: Int, at: Instant, note: String?): IntakeEntry {
         requireValid(volumeMl, note)
         val current = settings.current()

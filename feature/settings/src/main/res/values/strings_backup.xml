@@ -1,3 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_settings_backup_file_section">Restore from a file</string>
+    <string name="feature_settings_backup_file_restore">Choose a backup file</string>
+    <string name="feature_settings_backup_file_restore_summary">A JSON export or a downloaded backup (.json, .json.gz or .enc). A safety copy of your current data is saved first.</string>
+    <string name="feature_settings_backup_undo">Undo last restore</string>
+    <string name="feature_settings_backup_undo_summary">Put back the data you had before the last restore</string>
+    <string name="feature_settings_backup_undo_confirm_title">Undo the last restore?</string>
+    <string name="feature_settings_backup_undo_confirm_text">Your data goes back to how it was just before the last restore. Anything logged since then is removed.</string>
+    <string name="feature_settings_backup_undo_confirm">Undo restore</string>
+    <string name="feature_settings_backup_working">Working…</string>
+    <string name="feature_settings_backup_drive_later">Automatic Google Drive backups arrive in a later version.</string>
+    <string name="feature_settings_backup_passphrase_title">Encrypted backup</string>
+    <string name="feature_settings_backup_passphrase_text">Enter the passphrase that was used when this backup was made.</string>
+    <string name="feature_settings_backup_passphrase_label">Passphrase</string>
+    <string name="feature_settings_backup_passphrase_wrong">That passphrase does not open this backup.</string>
+    <string name="feature_settings_backup_passphrase_short">Passphrases have at least 8 characters.</string>
+    <string name="feature_settings_backup_passphrase_show">Show passphrase</string>
+    <string name="feature_settings_backup_passphrase_hide">Hide passphrase</string>
+    <string name="feature_settings_backup_unlock">Unlock</string>
+    <string name="feature_settings_backup_confirm_title">Restore this backup?</string>
+    <string name="feature_settings_backup_confirm_details">Made %1$s on %2$s (app %3$s).</string>
+    <plurals name="feature_settings_backup_confirm_entries">
+        <item quantity="one">It contains %d drink.</item>
+        <item quantity="other">It contains %d drinks.</item>
+    </plurals>
+    <string name="feature_settings_backup_confirm_modes">Replace swaps all data and settings on this phone for the backup. Merge adds what is missing and keeps the newer copy of anything edited on both, and keeps this phone\'s settings.</string>
+    <string name="feature_settings_backup_replace">Replace</string>
+    <string name="feature_settings_backup_merge">Merge</string>
+    <string name="feature_settings_backup_cancel">Cancel</string>
+    <string name="feature_settings_backup_msg_restored">Backup restored</string>
+    <string name="feature_settings_backup_msg_merged">Backup merged</string>
+    <string name="feature_settings_backup_msg_undone">Last restore undone</string>
+    <string name="feature_settings_backup_msg_nothing">There is no restore to undo</string>
+    <string name="feature_settings_backup_msg_not_backup">That file is not a Dihydrogen Monoxide backup</string>
+    <string name="feature_settings_backup_msg_corrupt">That backup file is damaged and cannot be restored</string>
+    <string name="feature_settings_backup_msg_newer">Update the app to restore this backup</string>
+    <string name="feature_settings_backup_msg_read_failed">The file could not be read</string>
+    <string name="feature_settings_backup_msg_failed">Restore failed. Your data has not changed.</string>
 </resources>

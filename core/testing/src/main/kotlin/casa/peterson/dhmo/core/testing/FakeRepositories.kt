@@ -216,6 +216,15 @@ class FakeBackupRepository(var document: BackupDocument? = null) : BackupReposit
         restores += doc to mode
     }
 
+    var undoCount = 0
+
+    override suspend fun undoLastRestore(): Boolean {
+        if (snapshotFile == null) return false
+        undoCount++
+        snapshotFile = null
+        return true
+    }
+
     override suspend fun writeSafetySnapshot(): File = checkNotNull(snapshotFile) { "Set snapshotFile first" }
 
     override suspend fun latestSafetySnapshot(): File? = snapshotFile

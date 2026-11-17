@@ -1,3 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_settings_export_spreadsheet_section">Spreadsheet (CSV)</string>
+    <string name="feature_settings_export_entries">Every drink</string>
+    <string name="feature_settings_export_entries_summary">One row per logged drink, volumes in millilitres</string>
+    <string name="feature_settings_export_daily">Daily totals</string>
+    <string name="feature_settings_export_daily_summary">One row per day up to yesterday, with the goal and whether it was met</string>
+    <string name="feature_settings_export_full_section">Full data (JSON)</string>
+    <string name="feature_settings_export_json">All data</string>
+    <string name="feature_settings_export_json_summary">Entries, containers, profile, goals and settings. Restore it from Backup and restore.</string>
+    <string name="feature_settings_export_running">Exporting…</string>
+    <string name="feature_settings_export_saved_entries">Drinks exported</string>
+    <string name="feature_settings_export_saved_daily">Daily totals exported</string>
+    <string name="feature_settings_export_saved_json">Data exported</string>
+    <string name="feature_settings_export_failed">Export failed. Try another location.</string>
 </resources>

@@ -33,7 +33,7 @@ jobs:
         run: ./gradlew lint --continue
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test --continue
+        run: ./gradlew testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test --continue
 
       - name: Screenshot tests (Roborazzi, JVM)
         run: ./gradlew verifyRoborazziDebug
