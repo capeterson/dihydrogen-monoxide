@@ -30,7 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -63,10 +63,10 @@ internal fun BackupSettingsScreen(
     // Any document: providers label .json.gz and .enc files inconsistently, and the codec detects the format itself.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument(), viewModel::onFilePicked)
     val snackbar = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val resources = LocalResources.current
     LaunchedEffect(state.message) {
         val message = state.message ?: return@LaunchedEffect
-        snackbar.showSnackbar(context.getString(message.textRes()))
+        snackbar.showSnackbar(resources.getString(message.textRes()))
         viewModel.messageShown()
     }
     BackupFileContent(
