@@ -1,5 +1,6 @@
 package casa.peterson.dhmo.core.data.di
 
+import casa.peterson.dhmo.core.data.backup.OfflineBackupRepository
 import casa.peterson.dhmo.core.data.repository.ActivityRepository
 import casa.peterson.dhmo.core.data.repository.BackupRepository
 import casa.peterson.dhmo.core.data.repository.ContainerRepository
@@ -8,7 +9,6 @@ import casa.peterson.dhmo.core.data.repository.EntryChangeListener
 import casa.peterson.dhmo.core.data.repository.GoalRepository
 import casa.peterson.dhmo.core.data.repository.IntakeRepository
 import casa.peterson.dhmo.core.data.repository.OfflineActivityRepository
-import casa.peterson.dhmo.core.data.repository.OfflineBackupRepository
 import casa.peterson.dhmo.core.data.repository.OfflineContainerRepository
 import casa.peterson.dhmo.core.data.repository.OfflineDeviceStateRepository
 import casa.peterson.dhmo.core.data.repository.OfflineGoalRepository
