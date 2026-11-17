@@ -88,7 +88,9 @@ A Gradle Managed Device (GMD) named `pixel6Api34` (Pixel 6, API 34, `aosp-atd` i
 
 `swiftshader_indirect` gives software rendering, which works on headless machines and CI; leave it off locally if you have a GPU. Reports: `<module>/build/outputs/androidTest-results/managedDevice/` and `<module>/build/reports/androidTests/managedDevice/`.
 
-Instrumented sources exist in `:app` (end-to-end flows, Hilt test runner) and `:core:database` (Room `MigrationTestHelper` tests against the exported schemas in `core/database/schemas/`).
+Instrumented sources exist in `:app` and `:core:database` (Room `MigrationTestHelper` tests against the exported schemas in `core/database/schemas/`).
+
+The `:app` tests drive the real application, not `HiltTestApplication`, so start-up (WorkManager's Hilt factory, notification channels) is the same as in production. `FreshInstallRule` clears the database and both settings stores through the debug-only `TestHooksEntryPoint` (`app/src/debug`) before the activity starts, so tests do not depend on order. `PhaseOneToThreeFlowsTest` covers the flows of TECHNICAL_PLAN §14.1 in one walk: onboarding along the "set my own goal" path, first log, edit, delete through the TalkBack action with Undo, a day override, switching Insights ranges, and the export document. The Storage Access Framework picker is system UI, so the export check reads the document from `BackupRepository` instead of saving a file.
 
 ## 6. Instrumented tests on an emulator or device
 

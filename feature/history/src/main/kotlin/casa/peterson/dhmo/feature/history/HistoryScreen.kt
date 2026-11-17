@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -116,7 +117,7 @@ internal fun HistoryDayHeader(item: HistoryItem.DayHeader, units: VolumeUnit, on
     val locale = LocalConfiguration.current.locales[0]
     val date = item.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale))
     val openLabel = stringResource(R.string.feature_history_day_open, date)
-    val clickable = if (onClick == null) Modifier else Modifier.clickable(onClick = onClick).semantics { contentDescription = openLabel }
+    val clickable = if (onClick == null) Modifier else Modifier.clickable(onClickLabel = openLabel, role = Role.Button, onClick = onClick)
     Column(Modifier.fillMaxWidth().then(clickable).padding(horizontal = 16.dp, vertical = 12.dp)) {
         Text(date, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
