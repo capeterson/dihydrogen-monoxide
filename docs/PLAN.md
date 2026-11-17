@@ -10,7 +10,7 @@
 | What is tracked | **Water only.** No beverage types and no hydration factors. |
 | Goal basis | **Drinking water only, not water from food.** |
 | Weather adjustment | **In v1, opt-in.** Uses a location permission or a manually chosen city (§4.4). |
-| Wear OS | Nice to have, after v1. Tracked in [#1](https://github.com/capeterson/dihydrogen-monoxide/issues/1). |
+| Wear OS | Nice to have, after v1. A first companion (tile and complication, `:wear`) was added for [#1](https://github.com/capeterson/dihydrogen-monoxide/issues/1); a stand-alone watch reminder engine and a full watch app remain out of scope. |
 | Multiple devices | **Backup and restore is enough.** No live sync. |
 | Name | "Dihydrogen Monoxide" is the public name. |
 

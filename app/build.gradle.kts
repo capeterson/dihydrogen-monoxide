@@ -36,6 +36,7 @@ dependencies {
     implementation(projects.feature.settings)
     implementation(projects.sync.healthconnect)
     implementation(projects.sync.drive)
+    implementation(projects.sync.wear)
     implementation(projects.widget)
 
     implementation(libs.androidx.core.ktx)

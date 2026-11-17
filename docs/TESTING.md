@@ -40,7 +40,7 @@ Robolectric downloads its own Android framework jars (`android-all-instrumented`
 The pure Kotlin modules (`:core:common`, `:core:model`, `:core:domain`, `:core:backup`) hold the goal calculator, pace and reminder decisions, statistics and the backup codec. No Android SDK is involved.
 
 ```bash
-./gradlew :core:common:test :core:model:test :core:domain:test :core:backup:test
+./gradlew :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test
 
 # One area or one class
 ./gradlew :core:domain:test --tests '*goal*'
@@ -124,7 +124,7 @@ This is what must pass before a pull request is opened:
 
 ```bash
 ./gradlew ktlintCheck detekt checkModuleGraph lint \
-  testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test \
+  testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test \
   verifyRoborazziDebug assembleDebug
 ```
 
@@ -229,7 +229,20 @@ Missed-alarm detection (TECHNICAL_PLAN.md §8.9) should flag a fire time much la
 | W-M3 | Manual city | City search works without any permission |
 | W-M4 | Airplane mode at day start | Goal falls back to the manual climate with "Forecast unavailable" shown |
 
-### 10.6 Accessibility and display
+### 10.6 Wear OS companion (issue #1)
+
+Needs a phone and a Wear OS 3+ watch (or a paired Wear OS emulator) running builds signed with the same key. JVM tests cover the protocol, the phone-side handler and state, the watch logger and the tile model and layout; these scenarios cover what only a real Data Layer connection shows.
+
+| # | Scenario | Expected |
+|---|---|---|
+| WR-M1 | Add the "Water today" tile; tap a quick-add chip with the phone connected | The ring and total move at once; the phone's Today screen shows the drink (source WEAR) within about 5 s; Health Connect gets it when writing is on |
+| WR-M2 | Phone in airplane mode or out of range; log two drinks on the watch; reconnect | Both drinks appear on the phone once, with the times they were logged on the watch, and no duplicates |
+| WR-M3 | Add a complication (ranged value, then short text); log a drink on the phone | The complication updates within one update cycle; tapping it logs the default container |
+| WR-M4 | Round and square watch faces or emulators | Tile text and chips are not clipped |
+| WR-M5 | TalkBack on the watch | The ring announces the percentage and total; each chip reads its amount |
+| WR-M6 | Reminder notification on the phone while the watch is connected | The bridged notification shows the log actions, and tapping one from the watch logs the drink |
+
+### 10.7 Accessibility and display
 
 | # | Scenario | Expected |
 |---|---|---|

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_app_name">Dihydrogen Monoxide</string>
+    <string name="wear_tile_label">Water today</string>
+    <string name="wear_tile_description">Today\'s progress and quick-add buttons</string>
+    <string name="wear_complication_label">Water progress</string>
+    <string name="wear_progress_of_goal">%1$s of %2$s</string>
+    <string name="wear_progress_no_goal">%1$s today</string>
+    <string name="wear_progress_description">Water today: %2$s, %1$d%% of the goal</string>
+    <string name="wear_add_button">+%1$s</string>
+    <string name="wear_waiting_for_phone">Open the phone app once to connect</string>
+</resources>

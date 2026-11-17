@@ -12,6 +12,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -92,6 +93,24 @@ class FakeIntakeRepository(
         )
         put(entry)
         return entry
+    }
+
+    override suspend fun addFromWatch(id: UUID, volumeMl: Int, at: Instant, offset: ZoneOffset): Boolean {
+        if (rows.value.containsKey(id)) return false
+        val now = clock.instant()
+        put(
+            IntakeEntry(
+                id = id,
+                instant = at,
+                zoneOffset = offset,
+                hydrationDay = hydrationDay(at, offset, dayStart),
+                volumeMl = volumeMl,
+                source = Source.WEAR,
+                createdAt = now,
+                updatedAt = now,
+            ),
+        )
+        return true
     }
 
     override suspend fun update(id: UUID, volumeMl: Int, at: Instant, note: String?): IntakeEntry {

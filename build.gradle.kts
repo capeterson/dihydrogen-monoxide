@@ -29,11 +29,12 @@ val allowedProjectDependencies: Map<String, Set<String>> =
                 ":core:common", ":core:model", ":core:domain", ":core:backup", ":core:database", ":core:datastore",
                 ":core:data", ":core:designsystem", ":core:network", ":core:reminders", ":core:weather",
                 ":feature:onboarding", ":feature:today", ":feature:history", ":feature:insights", ":feature:profile",
-                ":feature:reminders", ":feature:settings", ":sync:healthconnect", ":sync:drive", ":widget",
+                ":feature:reminders", ":feature:settings", ":sync:healthconnect", ":sync:drive", ":sync:wear", ":widget",
             ),
         ":core:common" to emptySet(),
         ":core:model" to emptySet(),
         ":core:domain" to setOf(":core:model"),
+        ":core:wear" to setOf(":core:model"),
         ":core:backup" to setOf(":core:model"),
         ":core:database" to setOf(":core:model"),
         ":core:datastore" to setOf(":core:model", ":core:common"),
@@ -55,6 +56,9 @@ val allowedProjectDependencies: Map<String, Set<String>> =
             setOf(":core:data", ":core:database", ":core:domain", ":core:model", ":core:common", ":core:designsystem"),
         ":sync:drive" to
             setOf(":core:data", ":core:backup", ":core:network", ":core:model", ":core:common", ":core:designsystem"),
+        ":sync:wear" to setOf(":core:data", ":core:wear", ":core:domain", ":core:model", ":core:common"),
+        // The watch app: it talks to the phone only through the Data Layer protocol of :core:wear.
+        ":wear" to setOf(":core:wear", ":core:domain", ":core:model"),
         ":widget" to setOf(":core:data", ":core:domain", ":core:model", ":core:common", ":core:designsystem"),
     )
 

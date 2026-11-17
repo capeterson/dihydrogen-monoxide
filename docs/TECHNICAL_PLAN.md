@@ -3285,7 +3285,7 @@ Run with `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddev
 | Job | Command | Notes |
 |---|---|---|
 | `static` | `./gradlew ktlintCheck detekt checkModuleGraph` | uploads SARIF |
-| `unit` | `./gradlew testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test` | uploads test reports on failure |
+| `unit` | `./gradlew testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test` | uploads test reports on failure |
 | `screenshots` | `./gradlew verifyRoborazziDebug` | uploads `**/build/outputs/roborazzi` on failure |
 | `lint` | `./gradlew :app:lintRelease` | `checkDependencies = true` in `:app` covers all modules |
 | `build` | `./gradlew :app:assembleDebug :app:assembleRelease` | release is unsigned; proves R8 and the release manifest |

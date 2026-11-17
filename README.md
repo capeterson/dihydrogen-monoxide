@@ -17,7 +17,9 @@ The product plan is [`docs/PLAN.md`](docs/PLAN.md); the engineering plan is [`do
 | Export | Settings → Export saves every drink or the daily totals as CSV (RFC 4180, millilitres, spreadsheet-safe), or all data as JSON. |
 | Restore | Settings → Backup and restore opens a JSON export or a downloaded backup (`.json`, `.json.gz`, or passphrase-encrypted `.enc`). **Replace** swaps all data and settings for the backup; **Merge** adds what is missing and keeps the newer copy of anything edited on both sides, keeping this phone's settings. A safety copy is saved before every restore (the newest three are kept), and **Undo last restore** puts it back. Health Connect switches are turned off after a replace, because permissions belong to each device. |
 
-Not yet built: Google Drive backups (Phase 4), Health Connect sync and weather (Phase 5), the home-screen widget (Phase 6), and the Wear OS companion (after v1, issue [#1](https://github.com/capeterson/dihydrogen-monoxide/issues/1)).
+| Wear OS | The `:wear` app adds a **tile** (progress ring against today's goal, with quick-add chips for your first two containers) and a **complication** (ranged value or short text; a tap logs your default container). The phone stays the source of truth: the watch sends each drink with its own id and time over the Wearable Data Layer, queues it when the phone is out of reach, and the phone stores it once. The phone publishes today's total, goal, units and containers back, so the tile and complication work offline. Install the phone and watch builds from the same signing key; the watch app needs the phone app. |
+
+Not yet built: Google Drive backups (Phase 4), Health Connect sync and weather (Phase 5), and the home-screen widget (Phase 6).
 
 ## Building
 
@@ -26,6 +28,7 @@ Requirements: the Android SDK (set `sdk.dir` in `local.properties` or `ANDROID_H
 ```bash
 ./gradlew :app:assembleDebug
 ./gradlew :app:installDebug      # with a device or emulator connected
+./gradlew :wear:installDebug     # with a Wear OS watch or emulator paired to that phone
 ```
 
 ## Testing
@@ -34,7 +37,7 @@ Requirements: the Android SDK (set `sdk.dir` in `local.properties` or `ANDROID_H
 
 ```bash
 ./gradlew ktlintCheck detekt checkModuleGraph lint \
-  testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test \
+  testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test \
   verifyRoborazziDebug assembleDebug
 ```
 
@@ -42,4 +45,4 @@ End-to-end flows run on an emulator with `./gradlew :app:connectedDebugAndroidTe
 
 ## Project layout
 
-`app` (shell and navigation), `feature/*` (one module per screen group), `core/*` (model, domain rules, database, settings, data layer, backup format, reminders, design system), `sync/*` (Health Connect and Drive, later phases) and `widget`. Allowed dependencies between modules are enforced by `./gradlew checkModuleGraph`.
+`app` (shell and navigation), `wear` (the watch app), `feature/*` (one module per screen group), `core/*` (model, domain rules, database, settings, data layer, backup format, the watch protocol, reminders, design system), `sync/*` (the watch link, and Health Connect and Drive in later phases) and `widget`. Allowed dependencies between modules are enforced by `./gradlew checkModuleGraph`.

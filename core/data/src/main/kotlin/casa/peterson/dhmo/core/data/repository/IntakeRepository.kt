@@ -8,6 +8,7 @@ import casa.peterson.dhmo.core.model.Source
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 
@@ -31,6 +32,12 @@ interface IntakeRepository {
     suspend fun get(id: UUID): IntakeEntry?
 
     suspend fun add(volumeMl: Int, source: Source, at: Instant? = null, note: String? = null): IntakeEntry
+
+    /**
+     * Logs a drink made on the watch (Wear OS, issue #1) with the id, instant and UTC offset the watch recorded, so a
+     * request that arrives twice (message and queued data item) is stored once. Returns false for a known id.
+     */
+    suspend fun addFromWatch(id: UUID, volumeMl: Int, at: Instant, offset: ZoneOffset): Boolean
 
     suspend fun update(id: UUID, volumeMl: Int, at: Instant, note: String?): IntakeEntry
 
