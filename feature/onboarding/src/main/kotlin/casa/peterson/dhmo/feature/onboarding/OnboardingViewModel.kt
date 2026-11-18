@@ -184,7 +184,8 @@ internal class OnboardingViewModel @Inject constructor(
         return hydrationDay(now, zone.current().rules.getOffset(now), dayStart)
     }
 
-    fun validProfile(): Boolean = (profile() != null).also { if (!it) change { s -> s.copy(error = true) } }
+    /** Writes the state directly: [change] clears the error flag, which would hide the message at once. */
+    fun validProfile(): Boolean = (profile() != null).also { if (!it) mutableState.value = state.value.copy(error = true) }
     fun validManualGoal(): Boolean = (state.value.manualGoal.toIntOrNull() in 250..10000).also {
         if (!it) {
             mutableState.value =

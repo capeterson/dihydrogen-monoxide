@@ -2,6 +2,7 @@ package casa.peterson.dhmo.feature.settings.weather
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import casa.peterson.dhmo.core.common.ApplicationScope
 import casa.peterson.dhmo.core.data.repository.GeoPlace
 import casa.peterson.dhmo.core.data.repository.SettingsRepository
 import casa.peterson.dhmo.core.data.repository.WeatherController
@@ -13,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.roundToInt
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +39,7 @@ internal class CitySearchViewModel @Inject constructor(
     private val provider: WeatherProvider,
     private val settings: SettingsRepository,
     private val controller: WeatherController,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
@@ -62,8 +65,9 @@ internal class CitySearchViewModel @Inject constructor(
                 lonE1 = (place.longitude * 10).roundToInt(),
             )
             settings.update { it.copy(weather = it.weather.copy(mode = WeatherMode.MANUAL_CITY, manualCity = city)) }
-            controller.onSettingsChanged()
             onDone()
+            // The first forecast for the new city must not hold the screen open, and must survive leaving it.
+            appScope.launch { controller.onSettingsChanged() }
         }
     }
 

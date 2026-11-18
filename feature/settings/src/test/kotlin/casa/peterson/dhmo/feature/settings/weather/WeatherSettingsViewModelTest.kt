@@ -82,7 +82,7 @@ class WeatherSettingsViewModelTest {
 
     @Test
     fun `choosing a city stores only rounded coordinates and switches to city mode`() = runTest {
-        val search = CitySearchViewModel(FakeWeatherProvider(), settings, controller)
+        val search = CitySearchViewModel(FakeWeatherProvider(), settings, controller, kotlinx.coroutines.CoroutineScope(main.dispatcher))
         var done = false
         search.choose(GeoPlace("Berlin", "State of Berlin", "Germany", "DE", 52.52437, 13.41053)) { done = true }
         runCurrent()
@@ -96,7 +96,7 @@ class WeatherSettingsViewModelTest {
     @Test
     fun `search is debounced and ignores queries under two characters`() = runTest {
         val provider = FakeWeatherProvider(places = WeatherResult.Success(listOf(GeoPlace("Berlin", null, "Germany", "DE", 52.5, 13.4))))
-        val search = CitySearchViewModel(provider, settings, controller)
+        val search = CitySearchViewModel(provider, settings, controller, kotlinx.coroutines.CoroutineScope(main.dispatcher))
         search.onQueryChange("B")
         advanceTimeBy(500)
         runCurrent()

@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import casa.peterson.dhmo.core.common.ApplicationScope
 import casa.peterson.dhmo.core.data.repository.DeviceLocationSource
 import casa.peterson.dhmo.core.data.repository.SettingsRepository
 import casa.peterson.dhmo.core.data.repository.WeatherController
@@ -29,6 +30,7 @@ import casa.peterson.dhmo.core.designsystem.component.DhmoScreen
 import casa.peterson.dhmo.core.model.settings.WeatherMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -36,6 +38,7 @@ internal class WeatherRationaleViewModel @Inject constructor(
     private val settings: SettingsRepository,
     private val controller: WeatherController,
     private val location: DeviceLocationSource,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : ViewModel() {
     val deviceSupported: Boolean = location.isSupported()
 
@@ -44,8 +47,9 @@ internal class WeatherRationaleViewModel @Inject constructor(
     fun useDeviceLocation(onDone: () -> Unit) {
         viewModelScope.launch {
             settings.update { it.copy(weather = it.weather.copy(mode = WeatherMode.DEVICE_LOCATION)) }
-            controller.onSettingsChanged()
             onDone()
+            // A location fix and a forecast can take a long time (or fail); setup must not wait for them.
+            appScope.launch { controller.onSettingsChanged() }
         }
     }
 }
