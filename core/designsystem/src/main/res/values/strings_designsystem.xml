@@ -7,6 +7,7 @@
     <string name="core_designsystem_goal_chip_label">Goal %1$s</string>
     <string name="core_designsystem_goal_chip_description">Daily goal, %1$s</string>
     <string name="core_designsystem_quick_add_description">Add %1$s</string>
+    <string name="core_designsystem_quick_add_named_description">Add %1$s, %2$s</string>
     <string name="core_designsystem_back">Back</string>
     <string name="core_designsystem_volume_sheet_field_label">Amount in %1$s</string>
     <string name="core_designsystem_volume_sheet_error">Enter an amount from %1$s to %2$s</string>

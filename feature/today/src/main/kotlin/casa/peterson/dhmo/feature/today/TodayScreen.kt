@@ -2,16 +2,17 @@ package casa.peterson.dhmo.feature.today
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -111,10 +112,13 @@ internal fun TodayScreen(
 }
 
 private val PortraitHeroWidth = 240.dp
+private const val LARGE_FONT_SCALE = 1.3f
+private val FlushTextButtonPadding = PaddingValues(vertical = 8.dp)
 
 /** Landscape screens are short, so the arch shrinks to leave room for the figure and quick-add below it. */
 private val LandscapeHeroWidth = 140.dp
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun TodayContent(
     state: TodayUiState.Ready,
@@ -183,22 +187,31 @@ internal fun TodayContent(
             Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.feature_today_quick_add), style = MaterialTheme.typography.titleMedium)
-                    Row(
-                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    // Equal-width coasters, three to a row (two at large font sizes), wrapping instead of scrolling sideways.
+                    FlowRow(
+                        Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        maxItemsInEachRow = if (LocalConfiguration.current.fontScale > LARGE_FONT_SCALE) 2 else 3,
                     ) {
                         state.containers.forEach { container ->
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(container.name)
-                                QuickAddButton(container.volumeMl, state.units, onClick = {
-                                    onQuickAdd(container)
-                                }, modifier = Modifier.testTag("quick_add_${container.id}"))
-                            }
+                            QuickAddButton(
+                                container.volumeMl,
+                                state.units,
+                                onClick = { onQuickAdd(container) },
+                                modifier = Modifier.weight(1f).testTag("quick_add_${container.id}"),
+                                label = container.name,
+                            )
                         }
                     }
+                    // No side padding, so the text lines up with the title and the coasters above.
                     Column {
-                        TextButton(onClick = { custom = true }) { Text(stringResource(R.string.feature_today_add_custom)) }
-                        TextButton(onClick = onContainers) { Text(stringResource(R.string.feature_today_manage_containers)) }
+                        TextButton(onClick = { custom = true }, contentPadding = FlushTextButtonPadding) {
+                            Text(stringResource(R.string.feature_today_add_custom))
+                        }
+                        TextButton(onClick = onContainers, contentPadding = FlushTextButtonPadding) {
+                            Text(stringResource(R.string.feature_today_manage_containers))
+                        }
                     }
                 }
             }
