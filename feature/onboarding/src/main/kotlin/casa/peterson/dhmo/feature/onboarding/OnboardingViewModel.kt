@@ -9,6 +9,7 @@ import casa.peterson.dhmo.core.data.repository.DeviceStateRepository
 import casa.peterson.dhmo.core.data.repository.ProfileRepository
 import casa.peterson.dhmo.core.data.repository.SettingsRepository
 import casa.peterson.dhmo.core.data.usecase.onboarding.CompleteOnboardingUseCase
+import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.goal.GoalCalculator
 import casa.peterson.dhmo.core.domain.time.hydrationDay
 import casa.peterson.dhmo.core.model.ActivityInput
@@ -20,7 +21,6 @@ import casa.peterson.dhmo.core.model.GoalInput
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.Profile
 import casa.peterson.dhmo.core.model.Sex
-import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock

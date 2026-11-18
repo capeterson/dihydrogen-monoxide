@@ -119,10 +119,9 @@ internal fun OnboardingPageContent(
             OnboardingPage.PREVIEW -> {
                 val locale = LocalConfiguration.current.locales[0]
                 val target = if (state.choice == GoalChoice.MANUAL) state.manualGoalMl() else preview?.calculatedMl
-                if (target !=
-                    null
-                ) {
-                    Text(stringResource(R.string.feature_onboarding_goal_value, VolumeFormatter.format(target, state.units, locale)), style = MaterialTheme.typography.headlineSmall)
+                if (target != null) {
+                    val goalText = VolumeFormatter.format(target, state.units, locale)
+                    Text(stringResource(R.string.feature_onboarding_goal_value, goalText), style = MaterialTheme.typography.headlineSmall)
                 }
                 if (state.choice == GoalChoice.CALCULATED) {
                     preview?.components?.filter { it.applied }?.forEach { component ->
