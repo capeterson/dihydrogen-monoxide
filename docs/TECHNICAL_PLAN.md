@@ -3260,7 +3260,7 @@ data class OnboardingUiState(
 fun captureScreenVariants(name: String, content: @Composable () -> Unit)
 ```
 
-It wraps the content in `DhmoTheme(darkTheme = …, dynamicColor = false)` and, for the large-font variant, in `CompositionLocalProvider(LocalDensity provides Density(density, fontScale = 2f))`, and calls Roborazzi's `captureRoboImage`. Screens are captured through their stateless `…Content(uiState, callbacks)` composables with fixed fake state, never through view models, and with a fixed clock. Commands: `./gradlew recordRoborazziDebug` writes references; `./gradlew verifyRoborazziDebug` compares (CI); `./gradlew compareRoborazziDebug` writes diff images to `build/outputs/roborazzi`. Without the record or verify task, `captureRoboImage` does nothing, so plain `testDebugUnitTest` stays fast. References are recorded on Linux (the CI image); a developer on another OS re-records through the `record-screenshots` workflow dispatch rather than committing local images.
+It wraps the content in `DhmoTheme(darkTheme = …, dynamicColor = false)` and, for the large-font variant, in `CompositionLocalProvider(LocalDensity provides Density(density, fontScale = 2f))`, and calls Roborazzi's `captureRoboImage`. Screens are captured through their stateless `…Content(uiState, callbacks)` composables with fixed fake state, never through view models, and with a fixed clock. Commands: `./gradlew recordRoborazziDebug` writes references; `./gradlew verifyRoborazziDebug` compares (CI); `./gradlew compareRoborazziDebug` writes diff images to `build/outputs/roborazzi`. Without the record or verify task, `captureRoboImage` does nothing, so plain `testDebugUnitTest` stays fast. References are recorded on Linux (the CI image).
 
 **Gradle Managed Device.** Declared by the Android convention plugins:
 
@@ -3292,8 +3292,6 @@ Run with `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddev
 | `schema` | `./gradlew :core:database:kspDebugKotlin && git diff --exit-code core/database/schemas` | |
 
 `.github/workflows/instrumented.yml` — on `workflow_dispatch`, nightly `schedule`, and pull requests labelled `run-instrumented`. Enables KVM on the runner (the udev rule for `/dev/kvm`), accepts SDK licences, then `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect`, and uploads `**/build/reports/androidTests`. Timeout 45 minutes.
-
-`.github/workflows/record-screenshots.yml` — `workflow_dispatch` only: `./gradlew recordRoborazziDebug`, then commits the changed PNGs to the branch it was dispatched on.
 
 Action versions (`actions/checkout`, `actions/setup-java`, `gradle/actions/setup-gradle`, `actions/upload-artifact`) could not be looked up from the planning environment. T0 pins each to its current major version and records them here.
 
