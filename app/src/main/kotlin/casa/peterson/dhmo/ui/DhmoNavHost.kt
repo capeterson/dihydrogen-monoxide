@@ -14,6 +14,7 @@ import casa.peterson.dhmo.feature.profile.navigation.profileScreens
 import casa.peterson.dhmo.feature.reminders.navigation.RemindersRoute
 import casa.peterson.dhmo.feature.reminders.navigation.remindersScreens
 import casa.peterson.dhmo.feature.settings.navigation.SettingsIntegrations
+import casa.peterson.dhmo.sync.healthconnect.ui.HealthConnectSettingsScreen
 import casa.peterson.dhmo.feature.settings.navigation.settingsScreens
 import casa.peterson.dhmo.feature.today.navigation.EditEntryRoute
 import casa.peterson.dhmo.feature.today.navigation.TodayRoute
@@ -53,7 +54,9 @@ fun DhmoNavHost(navController: NavHostController, onboarded: Boolean, modifier: 
             navController = navController,
             onOpenProfile = openGoal,
             onOpenReminders = openReminders,
-            integrations = SettingsIntegrations(),
+            integrations = SettingsIntegrations(
+                healthConnectContent = { onBack -> HealthConnectSettingsScreen(onBack) },
+            ),
         )
     }
 }

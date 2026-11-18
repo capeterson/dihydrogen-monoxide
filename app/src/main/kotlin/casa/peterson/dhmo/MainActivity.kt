@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import casa.peterson.dhmo.core.data.repository.HealthConnectController
 import casa.peterson.dhmo.core.data.repository.WeatherController
 import casa.peterson.dhmo.core.weather.LocationRefresher
 import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
@@ -28,6 +29,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var weatherController: WeatherController
 
     @Inject lateinit var locationRefresher: LocationRefresher
+
+    @Inject lateinit var healthConnect: HealthConnectController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
@@ -68,6 +71,7 @@ class MainActivity : ComponentActivity() {
             // Location first, so a stale forecast is refetched for where the phone is now.
             locationRefresher.refreshIfForeground()
             weatherController.refreshIfStale()
+            healthConnect.requestSync(immediate = true)
         }
     }
 
