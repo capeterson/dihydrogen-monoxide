@@ -10,6 +10,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import casa.peterson.dhmo.core.data.repository.DeviceStateRepository
 import casa.peterson.dhmo.sync.drive.BuildConfig
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
@@ -64,8 +65,10 @@ class GoogleAuthManager @Inject internal constructor(
             } else {
                 null
             }
+        } catch (_: NoCredentialException) {
+            null // no Google account on this phone
         } catch (_: GetCredentialException) {
-            null
+            null // dismissed, cancelled or failed
         }
     }
 

@@ -8,7 +8,6 @@
     <string name="feature_settings_weather_mode_device_unsupported">Needs Google Play services, which this phone does not have.</string>
     <string name="feature_settings_weather_mode_city">A city I choose</string>
     <string name="feature_settings_weather_mode_city_summary">No location permission needed.</string>
-    <string name="feature_settings_weather_choose_city">Choose a city</string>
     <string name="feature_settings_weather_change_city">Change city: %1$s</string>
     <string name="feature_settings_weather_permission_denied">Location permission was not granted, so weather stays off. You can choose a city instead.</string>
     <string name="feature_settings_weather_status_ok">Forecast updated</string>
@@ -19,5 +18,4 @@
     <string name="feature_settings_city_search_hint">Type at least 2 letters</string>
     <string name="feature_settings_city_search_none">No matching places</string>
     <string name="feature_settings_city_search_error">Search failed. Check your connection and try again.</string>
-    <string name="feature_settings_city_search_clear">Clear search</string>
 </resources>

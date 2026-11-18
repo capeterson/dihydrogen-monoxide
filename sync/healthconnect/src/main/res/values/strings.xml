@@ -27,7 +27,6 @@
         <item quantity="one">%d change waiting to be saved</item>
         <item quantity="other">%d changes waiting to be saved</item>
     </plurals>
-    <string name="sync_healthconnect_status_last_sync">Last synced %1$s</string>
     <string name="sync_healthconnect_status_never">Not synced yet</string>
     <string name="sync_healthconnect_status_syncing">Syncing…</string>
     <string name="sync_healthconnect_status_error">Sync failed. It will try again automatically.</string>

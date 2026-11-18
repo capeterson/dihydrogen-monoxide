@@ -2,7 +2,6 @@
 <resources>
     <string name="feature_insights_insights_title">Insights</string>
     <string name="feature_insights_custom_range_title">Custom range</string>
-    <string name="feature_insights_correlation_title">Correlation</string>
     <string name="feature_insights_correlation_title_temperature">Water and temperature</string>
     <string name="feature_insights_correlation_title_activity">Water and activity</string>
     <string name="feature_insights_correlation_not_enough">Not enough data yet. It takes at least 14 days that have both a drink log and this information; you have %1$d so far.</string>
