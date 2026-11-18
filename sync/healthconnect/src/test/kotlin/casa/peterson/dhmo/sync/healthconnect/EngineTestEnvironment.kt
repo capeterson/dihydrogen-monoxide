@@ -40,7 +40,7 @@ internal class EngineTestEnvironment(hc: HealthConnectSettings = HealthConnectSe
         db,
         settings,
         GoalPolicyV1,
-        mockk(relaxed = true),
+        { mockk(relaxed = true) },
         { emptySet() },
         FixedZoneProvider(java.time.ZoneId.of("UTC")),
         clock,

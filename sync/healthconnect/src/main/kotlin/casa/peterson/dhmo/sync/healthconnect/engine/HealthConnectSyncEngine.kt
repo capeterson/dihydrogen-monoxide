@@ -69,7 +69,8 @@ class HealthConnectSyncEngine @Inject internal constructor(
     private val database: DhmoDatabase,
     private val settings: SettingsRepository,
     private val policy: GoalPolicy,
-    private val snapshot: SnapshotDailyGoalUseCase,
+    /** A [Provider]: building the goal reads the Health Connect controller, which owns this engine. */
+    private val snapshot: Provider<SnapshotDailyGoalUseCase>,
     private val listeners: Provider<Set<@JvmSuppressWildcards EntryChangeListener>>,
     private val zones: ZoneProvider,
     private val clock: Clock,
@@ -460,7 +461,7 @@ class HealthConnectSyncEngine @Inject internal constructor(
 
     /** Goal, reminders and widget follow imported data, so changed days are re-snapshotted and announced. */
     suspend fun announce(days: Set<LocalDate>) {
-        days.forEach { runCatching { snapshot(it) } }
+        days.forEach { runCatching { snapshot.get()(it) } }
         val change = EntryChange(days, ChangeOrigin.HEALTH_CONNECT)
         listeners.get().forEach { runCatching { it.onEntriesChanged(change) } }
     }
