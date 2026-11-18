@@ -6,12 +6,15 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import casa.peterson.dhmo.core.data.time.DayTicker
 import casa.peterson.dhmo.core.domain.stats.TrendDirection
+import casa.peterson.dhmo.core.testing.FakeActivityRepository
 import casa.peterson.dhmo.core.testing.FakeGoalRepository
 import casa.peterson.dhmo.core.testing.FakeIntakeRepository
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
+import casa.peterson.dhmo.core.testing.FakeWeatherRepository
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MainDispatcherRule
 import casa.peterson.dhmo.core.testing.MutableClock
+import casa.peterson.dhmo.feature.insights.domain.LoadCorrelationPairsUseCase
 import casa.peterson.dhmo.feature.insights.domain.LoadStatsRangeUseCase
 import casa.peterson.dhmo.feature.insights.domain.ObserveInsightsUseCase
 import com.google.common.truth.Truth.assertThat
@@ -48,7 +51,13 @@ class InsightsViewModelTest {
         settings,
         intake,
         loadStats,
-        ObserveInsightsUseCase(ticker, settings, loadStats, intake),
+        ObserveInsightsUseCase(
+            ticker,
+            settings,
+            loadStats,
+            intake,
+            LoadCorrelationPairsUseCase(intake, FakeWeatherRepository(), FakeActivityRepository(clock)),
+        ),
         zone,
         UnconfinedTestDispatcher(main.dispatcher.scheduler),
     )

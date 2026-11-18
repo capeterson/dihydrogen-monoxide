@@ -33,7 +33,7 @@ class BreakdownLabelTest {
         ),
         Case(
             GoalComponent(
-                ComponentKind.BASE_SEX_FLOOR,
+                ComponentKind.BASE_GENDER_FLOOR,
                 1600,
                 true,
                 mapOf("weightKg" to "48", "factor" to "33", "weightBaseMl" to "1584", "floorMl" to "1600"),

@@ -1,1 +1,4 @@
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Coarse only: a city-sized location is all a forecast needs. No fine or background location, ever. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+</manifest>

@@ -30,4 +30,17 @@
         <item quantity="one">%1$d day missed</item>
         <item quantity="other">%1$d days missed</item>
     </plurals>
+    <string name="core_designsystem_birth_date">Birth date</string>
+    <string name="core_designsystem_birth_date_choose">Choose birth date</string>
+    <string name="core_designsystem_date_ok">OK</string>
+    <string name="core_designsystem_date_cancel">Cancel</string>
+    <string name="core_designsystem_units">Units</string>
+    <string name="core_designsystem_units_metric">Metric (kg, cm)</string>
+    <string name="core_designsystem_units_imperial">Imperial (lb, ft)</string>
+    <string name="core_designsystem_weight_kg">Weight (kg)</string>
+    <string name="core_designsystem_weight_lb">Weight (lb)</string>
+    <string name="core_designsystem_height_cm">Height (cm)</string>
+    <string name="core_designsystem_height_feet">Height (ft)</string>
+    <string name="core_designsystem_height_optional">Height is optional.</string>
+    <string name="core_designsystem_height_inches">Inches</string>
 </resources>

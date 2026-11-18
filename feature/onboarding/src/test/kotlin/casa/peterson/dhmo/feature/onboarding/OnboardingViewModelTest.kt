@@ -8,12 +8,15 @@ import casa.peterson.dhmo.core.data.time.DayTicker
 import casa.peterson.dhmo.core.data.usecase.goal.BuildGoalInputUseCase
 import casa.peterson.dhmo.core.data.usecase.goal.SnapshotDailyGoalUseCase
 import casa.peterson.dhmo.core.data.usecase.onboarding.CompleteOnboardingUseCase
+import casa.peterson.dhmo.core.domain.body.BodyInputs
 import casa.peterson.dhmo.core.domain.goal.GoalCalculator
 import casa.peterson.dhmo.core.domain.goal.GoalPolicyV1
 import casa.peterson.dhmo.core.model.ActivityInput
 import casa.peterson.dhmo.core.model.ClimateInput
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.GoalInput
 import casa.peterson.dhmo.core.model.settings.AdjustmentToggles
+import casa.peterson.dhmo.core.model.settings.BodyUnits
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import casa.peterson.dhmo.core.testing.FakeActivityRepository
 import casa.peterson.dhmo.core.testing.FakeContainerRepository
@@ -84,9 +87,50 @@ class OnboardingViewModelTest {
     }
 
     @Test
+    fun imperialEntriesAreStoredAsKilogramsAndCentimetres() = runTest {
+        val vm = viewModel()
+        vm.change {
+            it.copy(birthDate = "1990-05-17", body = BodyInputs(BodyUnits.IMPERIAL, "143.3", heightFeet = "5", heightInches = "6"))
+        }
+        val profile = checkNotNull(vm.profile())
+        assertThat(profile.weightKg).isWithin(0.05).of(65.0)
+        assertThat(profile.heightCm).isWithin(0.05).of(167.64)
+        vm.finish {}
+        assertThat(settings.current().bodyUnits).isEqualTo(BodyUnits.IMPERIAL)
+    }
+
+    @Test
+    fun switchingUnitsConvertsWhatWasTyped() = runTest {
+        val vm = viewModel()
+        vm.change { it.copy(body = BodyInputs(weight = "70", heightCm = "175")) }
+        vm.change { it.copy(body = it.body.switchTo(BodyUnits.IMPERIAL)) }
+        assertThat(vm.state.value.body.weight).isEqualTo("154.3")
+        assertThat(vm.state.value.body.heightFeet).isEqualTo("5")
+        vm.change { it.copy(body = it.body.switchTo(BodyUnits.METRIC)) }
+        assertThat(vm.state.value.body.weight).isEqualTo("70")
+        assertThat(vm.state.value.body.heightCm).isEqualTo("175")
+    }
+
+    @Test
+    fun nonBinaryIsAcceptedAsAGender() = runTest {
+        val vm = viewModel()
+        vm.change { it.copy(birthDate = "1990-05-17", body = BodyInputs(weight = "65"), gender = Gender.NON_BINARY) }
+        assertThat(checkNotNull(vm.profile()).gender).isEqualTo(Gender.NON_BINARY)
+    }
+
+    @Test
+    fun invalidProfileShowsAnErrorUntilTheNextEdit() = runTest {
+        val vm = viewModel()
+        assertThat(vm.validProfile()).isFalse()
+        assertThat(vm.state.value.error).isTrue()
+        vm.change { it.copy(birthDate = "1990-05-17") }
+        assertThat(vm.state.value.error).isFalse()
+    }
+
+    @Test
     fun calculatedPreviewMatchesCalculatorAndSavesProfile() = runTest {
         val vm = viewModel()
-        vm.change { it.copy(birthDate = "1990-05-17", weight = "65", height = "168") }
+        vm.change { it.copy(birthDate = "1990-05-17", body = BodyInputs(weight = "65", heightCm = "168")) }
         val profile = checkNotNull(vm.profile())
         val expected = calculator.calculate(
             GoalInput(

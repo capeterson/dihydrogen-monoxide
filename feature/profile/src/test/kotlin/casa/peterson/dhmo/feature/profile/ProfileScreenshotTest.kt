@@ -1,6 +1,7 @@
 package casa.peterson.dhmo.feature.profile
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import casa.peterson.dhmo.core.domain.body.BodyInputs
 import casa.peterson.dhmo.core.model.ActivityAdjustment
 import casa.peterson.dhmo.core.model.ActivitySource
 import casa.peterson.dhmo.core.model.ClampFlag
@@ -118,7 +119,12 @@ class ProfileGoalNoProfileScreenshotTest {
 class EditProfileScreenshotTest {
     @Test fun captureScreen() = captureScreenVariants("EditProfile") {
         EditProfileContent(
-            EditProfileUiState(loading = false, birthDate = "1990-05-17", weight = "65", height = "168", invalid = true),
+            EditProfileUiState(
+                loading = false,
+                birthDate = "1990-05-17",
+                body = BodyInputs(weight = "65", heightCm = "168"),
+                invalid = true,
+            ),
             onChange = {},
             onSave = {},
         )

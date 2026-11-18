@@ -4,7 +4,7 @@ A free Android app that logs how much water you drink, works out a daily goal fr
 
 The product plan is [`docs/PLAN.md`](docs/PLAN.md); the engineering plan is [`docs/TECHNICAL_PLAN.md`](docs/TECHNICAL_PLAN.md).
 
-## What works today (Phases 1–3)
+## What works today
 
 | Area | Behaviour |
 |---|---|
@@ -19,7 +19,13 @@ The product plan is [`docs/PLAN.md`](docs/PLAN.md); the engineering plan is [`do
 
 | Wear OS | The `:wear` app adds a **tile** (progress ring against today's goal, with quick-add chips for your first two containers) and a **complication** (ranged value or short text; a tap logs your default container). The phone stays the source of truth: the watch sends each drink with its own id and time over the Wearable Data Layer, queues it when the phone is out of reach, and the phone stores it once. The phone publishes today's total, goal, units and containers back, so the tile and complication work offline. Install the phone and watch builds from the same signing key; the watch app needs the phone app. |
 
-Not yet built: Google Drive backups (Phase 4), Health Connect sync and weather (Phase 5), and the home-screen widget (Phase 6).
+| Weather | Settings → Weather: off, approximate device location (coarse, read only while the app is open, rounded to 0.1°) or a chosen city. On hot days the forecast adds to the goal; if the forecast is unavailable the goal falls back to the profile's climate setting and says so. Data by Open-Meteo.com. |
+| Health Connect | Settings → Health Connect: each switch asks for its own permission. Saves your water to Health Connect, counts water from chosen other apps, follows weight, adds water for workouts, reads steps and active calories for correlations, optional background sync. |
+| Google Drive backup | Settings → Backup: sign in, back up daily or weekly (Wi-Fi only by default), optionally encrypted with a passphrase, keep the newest daily/weekly/monthly copies, restore (replace or merge) from a list, or restore on a new phone during setup. Needs a Google OAuth client; see [`docs/RELEASE.md`](docs/RELEASE.md). |
+| Widget | A home-screen widget with today's progress and a one-tap button for the default container. |
+| Correlations | Insights links to scatter plots of intake against the day's temperature and against active minutes, with a plain-language description. |
+
+Not built: PDF report, Quick Settings tile and app shortcuts (Phase 6), and Play Store declarations (Phase 7).
 
 ## Building
 

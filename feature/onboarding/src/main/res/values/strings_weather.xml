@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_onboarding_weather_title">Adjust for hot days?</string>
+    <string name="feature_onboarding_weather_body">On a hot day you need a bit more water. If you allow it, the app checks today\'s forecast and adds a little to your goal.</string>
+    <string name="feature_onboarding_weather_privacy">Only your approximate location, rounded to about 11 km, is sent to Open-Meteo. No account, no identifier, and the location is read only while the app is open. You can change this any time in Settings.</string>
+    <string name="feature_onboarding_weather_use_location">Use approximate location</string>
+    <string name="feature_onboarding_weather_skip">Not now</string>
+    <string name="feature_onboarding_weather_city_later">I\'ll pick a city in Settings instead</string>
+</resources>

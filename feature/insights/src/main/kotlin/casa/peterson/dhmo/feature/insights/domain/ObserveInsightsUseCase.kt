@@ -18,14 +18,15 @@ import kotlinx.coroutines.flow.flatMapLatest
 /**
  * Assembles [InsightInput] (days ending yesterday, the last 14 days' entries) and calls `buildInsights` (§9.13).
  *
- * The correlation inputs stay empty until T-COR (Phase 5) adds weather and activity series, so the two correlation
- * insights cannot fire yet.
+ * The two correlation inputs come from [LoadCorrelationPairsUseCase] and stay empty until weather or activity data
+ * exists, so those insights only appear once there are 14 or more matching days.
  */
 class ObserveInsightsUseCase @Inject constructor(
     private val ticker: DayTicker,
     private val settings: SettingsRepository,
     private val loadStats: LoadStatsRangeUseCase,
     private val intake: IntakeRepository,
+    private val correlationPairs: LoadCorrelationPairsUseCase,
 ) {
     @OptIn(ExperimentalCoroutinesApi::class)
     operator fun invoke(): Flow<List<Insight>> = combine(ticker.today(), settings.settings) { today, current -> today to current }
@@ -41,8 +42,8 @@ class ObserveInsightsUseCase @Inject constructor(
                         today = today,
                         days = days,
                         entries = entries.map(IntakeEntry::toTimedIntake),
-                        temperature = emptyList(),
-                        activeMinutes = emptyList(),
+                        temperature = correlationPairs(CorrelationDriver.TEMPERATURE, today),
+                        activeMinutes = correlationPairs(CorrelationDriver.ACTIVE_MINUTES, today),
                         dayStartMinutes = current.dayStartMinutes,
                         includeNoLogDays = current.stats.includeNoLogDays,
                         weeklyFreeze = current.stats.weeklyStreakFreeze,

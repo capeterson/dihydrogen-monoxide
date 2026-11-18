@@ -1,0 +1,21 @@
+name: Gradle setup
+description: JDK, Gradle caching and a worker count that matches the runner's CPUs.
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        # Matches gradle/gradle-daemon-jvm.properties (Temurin 25), so Gradle uses it instead of downloading one.
+        java-version: 25
+
+    - uses: gradle/actions/setup-gradle@v5
+
+    - name: Match Gradle workers to the runner's CPUs
+      # gradle.properties pins workers.max for small dev machines; the user-home file wins over it.
+      shell: bash
+      run: |
+        mkdir -p ~/.gradle
+        echo "org.gradle.workers.max=$(nproc)" >> ~/.gradle/gradle.properties
+        echo "Gradle workers: $(nproc)"

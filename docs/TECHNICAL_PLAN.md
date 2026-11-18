@@ -41,7 +41,7 @@ These settle points PLAN.md left open or stated two ways. None contradicts a con
 | D9 | detekt | `2.0.0-alpha.6` with the plain `detekt` task (no type resolution). 1.23.8 was used until the move to JDK 25, which it cannot run on; take 2.0.0 stable when it ships. | §3.8 |
 | D10 | Health Connect artifacts | Stable `connect-client` 1.1.0 in the app; `connect-testing` 1.0.0-alpha03 for tests only, with its strict client dependency excluded. | §2.3 |
 | D11 | Navigation | Navigation Compose 2.10 with `@Serializable` routes; four top-level destinations (Today, History, Insights, Settings). | §13 |
-| D12 | Goal constants | Child table from EFSA × 0.8; "unspecified" sex uses the mean of the female and male values; activity minutes at 6 / 12 / 18 ml per minute by intensity, capped at 2,000 ml; child clamp 600–3,000 ml; halves round up in `roundTo50`; `calculatedMl` is nullable for manual-only users. | §7.2 |
+| D12 | Goal constants | Child table from EFSA × 0.8; "unspecified" and "non-binary" gender use the mean of the female and male values; activity minutes at 6 / 12 / 18 ml per minute by intensity, capped at 2,000 ml; child clamp 600–3,000 ml; halves round up in `roundTo50`; `calculatedMl` is nullable for manual-only users. | §7.2 |
 | D13 | Activity rule | Measured or planned minutes replace the level-based default for that day; they are never added together. | §7.2 |
 | D14 | Pace curve | Default: 15% by the first 10% of the wake window, linear to 100% at 90%, then flat. Tolerance is a percentage of the goal (default 10%). | §8.2 |
 | D15 | Reminder rules | The interval floor is anchored to the last drink as PLAN §5.1 says (a drink resets it). Refinement: an ignored reminder also waits one interval before the next, so the effective floor is the later of the last drink and the last reminder; without this a behind user who doesn't drink would be re-notified at every alarm; end-of-day summary at sleep − 30 min; nudges stop at the summary time when it is enabled; escalation is a nudge variant sent at most once a day. | §8.4 |
@@ -556,7 +556,7 @@ Commands: `./gradlew detekt ktlintCheck lint` (aggregate; `lint` runs per module
 
 ## 4. Room schema v1 (`:core:database`)
 
-Database class `DhmoDatabase`, file name `dhmo.db`, `version = 1`, `exportSchema = true`. The Room Gradle plugin writes the schema to `core/database/schemas/casa.peterson.dhmo.core.database.DhmoDatabase/1.json`, and that file is committed.
+Database class `DhmoDatabase`, file name `dhmo.db`, `version = 2`, `exportSchema = true`. Version 2 renamed `profile_snapshot.sex` to `gender` (an auto-migration with a post-migrate step that rewrites `BASE_SEX_FLOOR` to `BASE_GENDER_FLOOR` in the stored `daily_goal.breakdown_json`); backups made before the rename call the field `sex`, and the decoder reads both. The Room Gradle plugin writes the schema to `core/database/schemas/casa.peterson.dhmo.core.database.DhmoDatabase/1.json`, and that file is committed.
 
 ### 4.1 Storage conventions and type converters
 
@@ -666,7 +666,7 @@ Index: `(sort_order)`. Seeded on first run by a `RoomDatabase.Callback` (through
 | `id` | `TEXT` NN, **PK** | UUID |
 | `effective_from` | `INTEGER` NN | epoch day |
 | `birth_date` | `INTEGER` NN | epoch day |
-| `sex` | `TEXT` NN | `FEMALE`, `MALE`, `UNSPECIFIED` |
+| `gender` | `TEXT` NN | `FEMALE`, `MALE`, `NON_BINARY`, `UNSPECIFIED` |
 | `weight_kg` | `REAL` NN | 2.0–400.0 |
 | `height_cm` | `REAL` NULL | not used by policy v1 |
 | `activity_level` | `TEXT` NN | `SEDENTARY`, `LIGHT`, `MODERATE`, `VERY_ACTIVE` |
@@ -1515,7 +1515,7 @@ With v1 constants the low clamp cannot trigger through the calculator (the small
 
 ```kotlin
 // :core:model
-enum class Sex { FEMALE, MALE, UNSPECIFIED }
+enum class Gender { FEMALE, MALE, NON_BINARY, UNSPECIFIED }
 enum class ActivityLevel { SEDENTARY, LIGHT, MODERATE, VERY_ACTIVE }
 enum class Climate { TEMPERATE, WARM, HOT_HUMID }
 enum class PregnancyStatus { NONE, PREGNANT }
@@ -1524,7 +1524,7 @@ enum class GoalMode { CALCULATED, GLOBAL_OVERRIDE, DAY_OVERRIDE }
 enum class ClampFlag { NONE, LOW, HIGH }
 
 data class Profile(
-    val birthDate: LocalDate, val sex: Sex, val weightKg: Double, val heightCm: Double?,
+    val birthDate: LocalDate, val gender: Gender, val weightKg: Double, val heightCm: Double?,
     val activityLevel: ActivityLevel, val climate: Climate,
     val pregnancyStatus: PregnancyStatus, val lactating: Boolean, val highAltitude: Boolean,
 )
@@ -1548,7 +1548,7 @@ data class GoalInput(
 )
 
 @Serializable enum class ComponentKind {
-    BASE_CHILD_TABLE, BASE_WEIGHT, BASE_SEX_FLOOR,
+    BASE_CHILD_TABLE, BASE_WEIGHT, BASE_GENDER_FLOOR,
     PREGNANCY, LACTATION, ACTIVITY_LEVEL, ACTIVITY_MINUTES,
     CLIMATE_MANUAL, CLIMATE_FORECAST, ALTITUDE,
 }
@@ -1600,7 +1600,7 @@ object GoalResolver {
 Component rules:
 
 - A component is **listed** whenever it is relevant to the profile (pregnancy only when pregnant, lactation only when lactating, altitude only when `highAltitude`; base, activity and climate always). It is **applied** when its toggle is on. `AdjustmentToggles.pregnancyLactation` covers both `PREGNANCY` and `LACTATION`; `climate` covers both climate kinds. The base component has no toggle.
-- When the weight-based value is below the sex floor, the base component is `BASE_SEX_FLOOR` with `ml = floor`; otherwise `BASE_WEIGHT`.
+- When the weight-based value is below the gender floor, the base component is `BASE_GENDER_FLOOR` with `ml = floor`; otherwise `BASE_WEIGHT`.
 
 `detail` keys (all values are strings; numbers use `Locale.ROOT`):
 
@@ -1608,7 +1608,7 @@ Component rules:
 |---|---|---|
 | `BASE_CHILD_TABLE` | `ageBand` (`"0"`, `"1"`, `"2-3"`, `"4-8"`, `"9-13"`) | "Base 1,520 ml (age 9–13)" |
 | `BASE_WEIGHT` | `weightKg`, `factor` | "Base 2,310 ml (33 ml × 70 kg)" |
-| `BASE_SEX_FLOOR` | `weightKg`, `factor`, `weightBaseMl`, `floorMl` | "Base 1,600 ml (minimum recommended intake; weight-based value was 1,584 ml)" |
+| `BASE_GENDER_FLOOR` | `weightKg`, `factor`, `weightBaseMl`, `floorMl` | "Base 1,600 ml (minimum recommended intake; weight-based value was 1,584 ml)" |
 | `PREGNANCY`, `LACTATION` | none | "+300 ml pregnancy", "+700 ml breastfeeding" |
 | `ACTIVITY_LEVEL` | `level` | "+500 ml moderately active" |
 | `ACTIVITY_MINUTES` | `minutes` (total), `capped` (`"true"`/`"false"`) | "+360 ml exercise (30 min)" |
@@ -1635,7 +1635,7 @@ Unless stated, toggles are all on, activity is `Level(SEDENTARY)`, climate is `M
 
 `GoalCalculatorTest` must encode every row verbatim.
 
-| # | Age | Sex | kg | Other inputs | Base | Adjustments | Raw | Clamped | **Goal** |
+| # | Age | Gender | kg | Other inputs | Base | Adjustments | Raw | Clamped | **Goal** |
 |---|---|---|---|---|---|---|---|---|---|
 | G01 | 13 | F | 45 | | child table 1,520 | | 1,520 | 1,520 | **1,500** |
 | G02 | 13 | M | 45 | | child table 1,680 | | 1,680 | 1,680 | **1,700** |
@@ -2630,7 +2630,7 @@ data class BackupEntities(
     val updatedAt: Instant, val deletedAt: Instant? = null,
 )
 @Serializable data class ProfileSnapshotDto(
-    val id: String, val effectiveFrom: LocalDate, val birthDate: LocalDate, val sex: String, val weightKg: Double,
+    val id: String, val effectiveFrom: LocalDate, val birthDate: LocalDate, val gender: String, val weightKg: Double,
     val heightCm: Double? = null, val activityLevel: String, val climate: String, val pregnancyStatus: String,
     val lactating: Boolean, val highAltitude: Boolean, val source: String, val createdAt: Instant,
 )
@@ -3260,7 +3260,7 @@ data class OnboardingUiState(
 fun captureScreenVariants(name: String, content: @Composable () -> Unit)
 ```
 
-It wraps the content in `DhmoTheme(darkTheme = …, dynamicColor = false)` and, for the large-font variant, in `CompositionLocalProvider(LocalDensity provides Density(density, fontScale = 2f))`, and calls Roborazzi's `captureRoboImage`. Screens are captured through their stateless `…Content(uiState, callbacks)` composables with fixed fake state, never through view models, and with a fixed clock. Commands: `./gradlew recordRoborazziDebug` writes references; `./gradlew verifyRoborazziDebug` compares (CI); `./gradlew compareRoborazziDebug` writes diff images to `build/outputs/roborazzi`. Without the record or verify task, `captureRoboImage` does nothing, so plain `testDebugUnitTest` stays fast. References are recorded on Linux (the CI image); a developer on another OS re-records through the `record-screenshots` workflow dispatch rather than committing local images.
+It wraps the content in `DhmoTheme(darkTheme = …, dynamicColor = false)` and, for the large-font variant, in `CompositionLocalProvider(LocalDensity provides Density(density, fontScale = 2f))`, and calls Roborazzi's `captureRoboImage`. Screens are captured through their stateless `…Content(uiState, callbacks)` composables with fixed fake state, never through view models, and with a fixed clock. Commands: `./gradlew recordRoborazziDebug` writes references; `./gradlew verifyRoborazziDebug` compares (CI); `./gradlew compareRoborazziDebug` writes diff images to `build/outputs/roborazzi`. Without the record or verify task, `captureRoboImage` does nothing, so plain `testDebugUnitTest` stays fast. References are recorded on Linux (the CI image).
 
 **Gradle Managed Device.** Declared by the Android convention plugins:
 
@@ -3292,8 +3292,6 @@ Run with `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddev
 | `schema` | `./gradlew :core:database:kspDebugKotlin && git diff --exit-code core/database/schemas` | |
 
 `.github/workflows/instrumented.yml` — on `workflow_dispatch`, nightly `schedule`, and pull requests labelled `run-instrumented`. Enables KVM on the runner (the udev rule for `/dev/kvm`), accepts SDK licences, then `./gradlew pixel6Api34DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect`, and uploads `**/build/reports/androidTests`. Timeout 45 minutes.
-
-`.github/workflows/record-screenshots.yml` — `workflow_dispatch` only: `./gradlew recordRoborazziDebug`, then commits the changed PNGs to the branch it was dispatched on.
 
 Action versions (`actions/checkout`, `actions/setup-java`, `gradle/actions/setup-gradle`, `actions/upload-artifact`) could not be looked up from the planning environment. T0 pins each to its current major version and records them here.
 

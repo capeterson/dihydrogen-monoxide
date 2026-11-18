@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 data class Profile(
     val birthDate: LocalDate,
-    val sex: Sex,
+    val gender: Gender,
     val weightKg: Double,
     val heightCm: Double?,
     val activityLevel: ActivityLevel,
@@ -43,7 +43,7 @@ data class GoalInput(
 enum class ComponentKind {
     BASE_CHILD_TABLE,
     BASE_WEIGHT,
-    BASE_SEX_FLOOR,
+    BASE_GENDER_FLOOR,
     PREGNANCY,
     LACTATION,
     ACTIVITY_LEVEL,

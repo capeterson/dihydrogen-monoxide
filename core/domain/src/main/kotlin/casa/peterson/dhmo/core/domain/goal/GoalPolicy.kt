@@ -4,8 +4,8 @@ package casa.peterson.dhmo.core.domain.goal
 
 import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.Intensity
-import casa.peterson.dhmo.core.model.Sex
 
 /** The constants of one version of the goal formula (TECHNICAL_PLAN §7.2). */
 interface GoalPolicy {
@@ -17,15 +17,15 @@ interface GoalPolicy {
     /** Completed age from which the weight-based formula applies; below it the child table applies. */
     val adultAgeYears: Int
 
-    /** Drinks-only child base value for the age (0..13) and sex. */
-    fun childBaseMl(ageYears: Int, sex: Sex): Int
+    /** Drinks-only child base value for the age (0..13) and gender. */
+    fun childBaseMl(ageYears: Int, gender: Gender): Int
 
     /** Label of the child age band for the age, as used in `detail["ageBand"]`. */
     fun childAgeBand(ageYears: Int): String
 
     fun perKgFactor(ageYears: Int): Int
 
-    fun sexFloorMl(sex: Sex): Int
+    fun genderFloorMl(gender: Gender): Int
 
     val pregnancyMl: Int
     val lactationMl: Int
@@ -53,7 +53,7 @@ object GoalPolicyV1 : GoalPolicy {
     override val fallbackTargetMl: Int = 2000
     override val adultAgeYears: Int = 14
 
-    override fun childBaseMl(ageYears: Int, sex: Sex): Int = when (ageYears) {
+    override fun childBaseMl(ageYears: Int, gender: Gender): Int = when (ageYears) {
         0 -> 720
 
         1 -> 920
@@ -62,10 +62,13 @@ object GoalPolicyV1 : GoalPolicy {
 
         in 4..8 -> 1280
 
-        else -> when (sex) {
-            Sex.FEMALE -> 1520
-            Sex.MALE -> 1680
-            Sex.UNSPECIFIED -> 1600
+        else -> when (gender) {
+            Gender.FEMALE -> 1520
+
+            Gender.MALE -> 1680
+
+            // The reference tables only distinguish female and male, so everyone else gets the average of the two.
+            Gender.NON_BINARY, Gender.UNSPECIFIED -> 1600
         }
     }
 
@@ -84,10 +87,10 @@ object GoalPolicyV1 : GoalPolicy {
         else -> 28
     }
 
-    override fun sexFloorMl(sex: Sex): Int = when (sex) {
-        Sex.FEMALE -> 1600
-        Sex.MALE -> 2000
-        Sex.UNSPECIFIED -> 1800
+    override fun genderFloorMl(gender: Gender): Int = when (gender) {
+        Gender.FEMALE -> 1600
+        Gender.MALE -> 2000
+        Gender.NON_BINARY, Gender.UNSPECIFIED -> 1800
     }
 
     override val pregnancyMl: Int = 300

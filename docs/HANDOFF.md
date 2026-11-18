@@ -1,14 +1,30 @@
-# Handoff: after Phases 1–3 and the Wear OS companion
+# Handoff: all planned features implemented
 
-Read `docs/PLAN.md`, `docs/TECHNICAL_PLAN.md` §15 and `docs/TESTING.md` first. The confirmed product decisions in PLAN.md are final.
+Read `docs/PLAN.md`, `docs/TECHNICAL_PLAN.md` §15, `docs/RELEASE.md` and `docs/TESTING.md` first. The confirmed product decisions in PLAN.md are final.
 
 ## Current state
 
-Phases 0–3 are implemented (T0–T17): onboarding, Today, profile and goal, settings, reminders, History, Insights, CSV/JSON export and restore from a file, with end-to-end tests. `grep -R 'TODO("T' --include=*.kt .` finds nothing. A first Wear OS companion (issue #1) adds a tile and a complication in `:wear`, the shared protocol in `:core:wear`, and the phone side in `:sync:wear`.
+Everything in the product plan up to Phase 5 is implemented, plus the home-screen widget and correlations:
+Today, profile and goal, reminders, History, Insights, export and restore, the Wear OS companion, weather
+(`:core:weather`), Health Connect (`:sync:healthconnect`), Google Drive backup (`:sync:drive`) and the Glance widget
+(`:widget`). `grep -R 'NoOp' --include=*.kt .` finds only test fakes. Not built: PDF report, Quick Settings tile and app
+shortcuts (Phase 6) and the Play declarations (Phase 7).
 
-Next: Phase 4 (Drive backup, §15.7) and Phase 5 (Health Connect and weather, §15.8), each on its own branch and pull request from `main`. Drive can reuse `BackupRepository.exportDocument()`, `restore()` and the safety snapshots from T16; the Backup screen keeps the "Restore from a file" section and gains the Drive slot of `SettingsIntegrations`.
+Needs you, not code: a Google Cloud OAuth setup for Drive (`dhmo.googleWebClientId`, see `docs/RELEASE.md`), the release
+keystore in 1Password (`scripts/release/setup-keystore.sh`), a hosted privacy policy, and real-device runs of
+`docs/testing/health-connect-manual.md` and `docs/TESTING.md` §10.
 
 ## Things worth knowing
+
+- **Drive without credentials.** With `dhmo.googleWebClientId` blank the Drive section reads "Not configured in this build" and
+  the onboarding restore offer is not shown. Sign-in and consent cannot be exercised on an emulator without a Google
+  account and a client registered for the signing key; the REST client, runner, controller and key wrapping are covered by
+  JVM tests (`sync/drive/src/test`).
+- **Health Connect tests** run the real engine against an in-memory Room database and `FakeHealthConnectClient`
+  (`EngineTestEnvironment`). `FakeHealthConnectClient.updateRecords` throws a `NullPointerException`; to simulate a source
+  app editing a record, insert it again with the same `clientRecordId` and a higher version.
+- **mockk and Play Services types.** `GoogleAuthManager` cannot be mocked on this JDK (`class redefinition failed`), so the
+  controller depends on the `DriveAuth`, `DriveScheduler` and `DriveRunState` seams and tests use plain fakes.
 
 - **Restore.** `OfflineBackupRepository.restore` writes a gzip safety snapshot to `files/safety/` (newest three kept), then applies the document in one transaction. `undoLastRestore()` replaces with the newest snapshot without settings sanitising and deletes it, so repeated undos walk back through the three. Merge queues Health Connect `UPSERT`/`DELETE` ops only for rows that changed and only when writing is on.
 - **Screenshots of busy states.** An indeterminate `CircularProgressIndicator` never lets Compose go idle, so a Roborazzi capture of it hangs the test JVM for hours instead of failing. Capture only idle states.

@@ -25,11 +25,11 @@ import casa.peterson.dhmo.core.model.ChangeOrigin
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.ContainerIcon
 import casa.peterson.dhmo.core.model.EntryChange
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.Intensity
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.ProfileSource
-import casa.peterson.dhmo.core.model.Sex
 import casa.peterson.dhmo.core.model.Source
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import casa.peterson.dhmo.core.model.settings.BackupSettings
@@ -132,11 +132,11 @@ class OfflineBackupRepositoryTest {
         db.profileDao().insertAll(
             listOf(
                 ProfileSnapshotEntity(
-                    uuid(20), day.minusDays(30), LocalDate.of(1990, 5, 1), Sex.FEMALE, 61.5, 168.0, ActivityLevel.MODERATE,
+                    uuid(20), day.minusDays(30), LocalDate.of(1990, 5, 1), Gender.FEMALE, 61.5, 168.0, ActivityLevel.MODERATE,
                     Climate.TEMPERATE, PregnancyStatus.NONE, lactating = false, highAltitude = false, ProfileSource.MANUAL, t0,
                 ),
                 ProfileSnapshotEntity(
-                    uuid(21), day, LocalDate.of(1990, 5, 1), Sex.FEMALE, 60.0, null, ActivityLevel.VERY_ACTIVE,
+                    uuid(21), day, LocalDate.of(1990, 5, 1), Gender.FEMALE, 60.0, null, ActivityLevel.VERY_ACTIVE,
                     Climate.HOT_HUMID, PregnancyStatus.PREGNANT, lactating = true, highAltitude = true, ProfileSource.HEALTH_CONNECT, t0,
                 ),
             ),

@@ -75,7 +75,7 @@ Each screen's main states are captured in light, dark and large-font (font scale
 
 Plain `testDebugUnitTest` does not compare or record images: without one of the Roborazzi tasks, `captureRoboImage` is a no-op.
 
-References are recorded on Linux, because font rendering differs between operating systems. On macOS or Windows, don't commit locally recorded images. Run the `record-screenshots` workflow (Actions → *Record screenshots* → *Run workflow* on your branch), which records on Linux and commits the PNGs to the branch.
+Record references on Linux, because font rendering differs between operating systems; images recorded on macOS or Windows will fail `verifyRoborazziDebug` in CI. Run `./gradlew recordRoborazziDebug` and commit the changed PNGs with your change.
 
 ## 5. Gradle Managed Devices
 
@@ -141,9 +141,8 @@ The defaults in `gradle.properties` are sized for an 8 GB machine that also runs
 
 | Workflow | Trigger | What it runs |
 |---|---|---|
-| `.github/workflows/ci.yml` | every push and pull request | JDK 25 (Temurin) and `gradle/actions/setup-gradle` caching; ktlint, detekt, the module-graph check, Android lint, JVM and Robolectric unit tests, Roborazzi verification, `assembleDebug`. Test reports, Roborazzi diffs and lint HTML are uploaded as artifacts when a step fails. |
-| `.github/workflows/instrumented.yml` | pull requests to `main`, and manual dispatch | KVM is enabled on the `ubuntu-latest` runner with a udev rule. The AVD (API 34, `google_apis`, `x86_64`) is cached. `reactivecircus/android-emulator-runner` boots it and runs `connectedDebugAndroidTest`. A second job runs the GMD task `pixel6Api34DebugAndroidTest`. Android test reports are uploaded on failure. |
-| `.github/workflows/record-screenshots.yml` | manual dispatch | Re-records Roborazzi references on Linux and commits them to the branch. |
+| `.github/workflows/ci.yml` | pushes to `main` and pull requests | A `compile` job builds the app, unit-test and androidTest sources and shares Gradle's build cache; then `static-and-lint` (ktlint, detekt, module-graph check, Android lint), `unit-tests` (JVM and Robolectric) and `screenshot-tests` (Roborazzi verification) run in parallel. Gradle workers match the runner's CPU count. Test reports, Roborazzi diffs and lint HTML are uploaded as artifacts when a job fails. |
+| `.github/workflows/instrumented.yml` | pull requests to `main`, and manual dispatch | KVM is enabled on the `ubuntu-latest` runner with a udev rule, then the Gradle Managed Device task `pixel6Api34DebugAndroidTest` (Pixel 6, API 34, `aosp-atd`) runs. Android test reports are uploaded on failure. |
 
 To download a failing run's reports: open the run in the Actions tab and look under *Artifacts*.
 
