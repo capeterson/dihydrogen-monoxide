@@ -9,11 +9,11 @@ import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.ActivitySource
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.ContainerIcon
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.Intensity
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.ProfileSource
-import casa.peterson.dhmo.core.model.Sex
 import casa.peterson.dhmo.core.model.Source
 import java.time.Instant
 import java.time.LocalDate
@@ -62,7 +62,7 @@ data class ProfileSnapshotEntity(
     @PrimaryKey @ColumnInfo(name = "id") val id: UUID,
     @ColumnInfo(name = "effective_from") val effectiveFrom: LocalDate,
     @ColumnInfo(name = "birth_date") val birthDate: LocalDate,
-    @ColumnInfo(name = "sex") val sex: Sex,
+    @ColumnInfo(name = "gender") val gender: Gender,
     @ColumnInfo(name = "weight_kg") val weightKg: Double,
     @ColumnInfo(name = "height_cm") val heightCm: Double? = null,
     @ColumnInfo(name = "activity_level") val activityLevel: ActivityLevel,

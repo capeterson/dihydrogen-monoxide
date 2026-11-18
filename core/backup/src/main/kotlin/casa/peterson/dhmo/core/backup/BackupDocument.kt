@@ -8,8 +8,10 @@ import casa.peterson.dhmo.core.model.serialization.LocalDateIsoSerializer
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import java.time.Instant
 import java.time.LocalDate
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.json.JsonNames
 
 /**
  * The JSON document of TECHNICAL_PLAN §11.2: the JSON export and the Drive backup.
@@ -101,12 +103,14 @@ data class ContainerDto(
     val deletedAt: Instant? = null,
 )
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class ProfileSnapshotDto(
     val id: String,
     val effectiveFrom: LocalDate,
     val birthDate: LocalDate,
-    val sex: String,
+    /** Backups made before the rename call this field `sex`; both are read. */
+    @JsonNames("sex") val gender: String,
     val weightKg: Double,
     val heightCm: Double? = null,
     val activityLevel: String,

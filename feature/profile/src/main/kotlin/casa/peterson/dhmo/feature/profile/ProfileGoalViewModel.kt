@@ -20,6 +20,7 @@ import casa.peterson.dhmo.core.model.Profile
 import casa.peterson.dhmo.core.model.ResolvedGoal
 import casa.peterson.dhmo.core.model.WeatherDay
 import casa.peterson.dhmo.core.model.settings.AdjustmentToggles
+import casa.peterson.dhmo.core.model.settings.BodyUnits
 import casa.peterson.dhmo.core.model.settings.GlobalOverride
 import casa.peterson.dhmo.core.model.settings.PinnedInputs
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
@@ -59,6 +60,7 @@ sealed interface ProfileGoalUiState {
         /** Today's planned sessions (`MANUAL_PLANNED` rows). */
         val planned: List<ActivityAdjustment>,
         val units: VolumeUnit,
+        val bodyUnits: BodyUnits = BodyUnits.METRIC,
     ) : ProfileGoalUiState
 }
 
@@ -105,6 +107,7 @@ class ProfileGoalViewModel @Inject constructor(
                         },
                         planned = sessions.filter { it.source == ActivitySource.MANUAL_PLANNED },
                         units = current.units,
+                        bodyUnits = current.bodyUnits,
                     )
                 }
             }

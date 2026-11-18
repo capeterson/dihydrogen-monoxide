@@ -320,7 +320,7 @@ class HealthConnectSyncEngine @Inject internal constructor(
                 id = UUID.randomUUID(),
                 effectiveFrom = from,
                 birthDate = latest.birthDate,
-                sex = latest.sex,
+                gender = latest.gender,
                 weightKg = kg,
                 heightCm = latest.heightCm,
                 activityLevel = latest.activityLevel,

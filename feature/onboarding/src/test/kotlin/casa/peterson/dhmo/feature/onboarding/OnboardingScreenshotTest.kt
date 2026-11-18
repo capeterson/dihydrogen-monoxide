@@ -1,6 +1,7 @@
 package casa.peterson.dhmo.feature.onboarding
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import casa.peterson.dhmo.core.domain.body.BodyInputs
 import casa.peterson.dhmo.core.domain.goal.GoalCalculator
 import casa.peterson.dhmo.core.model.ActivityInput
 import casa.peterson.dhmo.core.model.ClimateInput
@@ -17,7 +18,7 @@ private fun capture(page: OnboardingPage) {
     captureScreenVariants("Onboarding_${page.name}") {
         OnboardingPageContent(
             page = page,
-            state = OnboardingState(loading = false, birthDate = "1990-05-17", weight = "65"),
+            state = OnboardingState(loading = false, birthDate = "1990-05-17", body = BodyInputs(weight = "65")),
             preview = GoalCalculator().calculate(
                 GoalInput(
                     LocalDate.of(2026, 6, 10),

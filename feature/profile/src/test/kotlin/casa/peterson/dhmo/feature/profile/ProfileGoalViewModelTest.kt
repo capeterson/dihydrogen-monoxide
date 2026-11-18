@@ -8,11 +8,11 @@ import casa.peterson.dhmo.core.model.ActivitySource
 import casa.peterson.dhmo.core.model.ClampFlag
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.ComponentKind
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.Intensity
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.Profile
-import casa.peterson.dhmo.core.model.Sex
 import casa.peterson.dhmo.core.model.settings.AdjustmentToggles
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import casa.peterson.dhmo.core.model.settings.GlobalOverride
@@ -35,7 +35,7 @@ class ProfileGoalViewModelTest {
     /** G06: male, 31, 70 kg, sedentary, temperate → 2,310 ml raw, 2,300 ml goal (TECHNICAL_PLAN §7.5). */
     private val g06 = Profile(
         birthDate = LocalDate.of(1995, 1, 1),
-        sex = Sex.MALE,
+        gender = Gender.MALE,
         weightKg = 70.0,
         heightCm = null,
         activityLevel = ActivityLevel.SEDENTARY,

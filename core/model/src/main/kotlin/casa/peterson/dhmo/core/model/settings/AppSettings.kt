@@ -8,6 +8,8 @@ import kotlinx.serialization.Serializable
 data class AppSettings(
     val schemaVersion: Int = 1,
     val units: VolumeUnit = VolumeUnit.ML, // first run: US_FL_OZ when Locale is en-US
+    /** How body weight and height are typed and shown. Storage is always kilograms and centimetres. */
+    val bodyUnits: BodyUnits = BodyUnits.METRIC,
     val dayStartMinutes: Int = 0, // 0..1439
     val theme: ThemeSettings = ThemeSettings(),
     val goal: GoalSettings = GoalSettings(),
@@ -19,6 +21,8 @@ data class AppSettings(
 )
 
 @Serializable enum class VolumeUnit { ML, L, US_FL_OZ, IMP_FL_OZ }
+
+@Serializable enum class BodyUnits { METRIC, IMPERIAL }
 
 @Serializable
 data class ThemeSettings(

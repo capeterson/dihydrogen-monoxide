@@ -64,5 +64,5 @@ internal class ProfileTestEnv(profile: Profile? = TestData.adultProfile, setting
 
     fun adjustmentsViewModel() = AdjustmentsViewModel(settings, ticker, snapshot)
 
-    fun editProfileViewModel() = EditProfileViewModel(profiles, ticker, SaveProfileUseCase(profiles, ticker, snapshot))
+    fun editProfileViewModel() = EditProfileViewModel(profiles, ticker, SaveProfileUseCase(profiles, ticker, snapshot), settings)
 }

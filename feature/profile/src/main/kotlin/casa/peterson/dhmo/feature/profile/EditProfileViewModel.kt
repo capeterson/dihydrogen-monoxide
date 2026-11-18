@@ -3,15 +3,17 @@ package casa.peterson.dhmo.feature.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import casa.peterson.dhmo.core.data.repository.ProfileRepository
+import casa.peterson.dhmo.core.data.repository.SettingsRepository
 import casa.peterson.dhmo.core.data.time.DayTicker
 import casa.peterson.dhmo.core.data.usecase.goal.SaveProfileUseCase
+import casa.peterson.dhmo.core.domain.body.BodyInputs
+import casa.peterson.dhmo.core.domain.body.BodyMeasures
 import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.Profile
-import casa.peterson.dhmo.core.model.Sex
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import javax.inject.Inject
@@ -31,10 +33,10 @@ private const val MAX_AGE_YEARS = 130L
 
 internal data class EditProfileUiState(
     val loading: Boolean = true,
+    /** ISO date, `1990-05-10`, or empty. */
     val birthDate: String = "",
-    val weight: String = "",
-    val height: String = "",
-    val sex: Sex = Sex.UNSPECIFIED,
+    val body: BodyInputs = BodyInputs(),
+    val gender: Gender = Gender.UNSPECIFIED,
     val activity: ActivityLevel = ActivityLevel.SEDENTARY,
     val climate: Climate = Climate.TEMPERATE,
     val pregnant: Boolean = false,
@@ -50,6 +52,7 @@ internal class EditProfileViewModel @Inject constructor(
     private val profiles: ProfileRepository,
     private val ticker: DayTicker,
     private val saveProfile: SaveProfileUseCase,
+    private val settings: SettingsRepository,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(EditProfileUiState())
     val state: StateFlow<EditProfileUiState> = mutableState.asStateFlow()
@@ -61,15 +64,19 @@ internal class EditProfileViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val profile = profiles.observeCurrent().first()
+            val units = settings.current().bodyUnits
             mutableState.value = if (profile == null) {
-                EditProfileUiState(loading = false)
+                EditProfileUiState(loading = false, body = BodyInputs(units = units))
             } else {
                 EditProfileUiState(
                     loading = false,
                     birthDate = profile.birthDate.toString(),
-                    weight = plain(profile.weightKg),
-                    height = profile.heightCm?.let(::plain).orEmpty(),
-                    sex = profile.sex,
+                    // Stored as kilograms and centimetres; shown in the units the person chose.
+                    body = BodyInputs(
+                        weight = BodyMeasures.plain(profile.weightKg),
+                        heightCm = profile.heightCm?.let(BodyMeasures::plain).orEmpty(),
+                    ).switchTo(units),
+                    gender = profile.gender,
                     activity = profile.activityLevel,
                     climate = profile.climate,
                     pregnant = profile.pregnancyStatus == PregnancyStatus.PREGNANT,
@@ -80,7 +87,13 @@ internal class EditProfileViewModel @Inject constructor(
         }
     }
 
-    fun change(transform: (EditProfileUiState) -> EditProfileUiState) = mutableState.update { transform(it).copy(invalid = false) }
+    fun change(transform: (EditProfileUiState) -> EditProfileUiState) {
+        val before = mutableState.value.body.units
+        mutableState.update { transform(it).copy(invalid = false) }
+        val after = mutableState.value.body.units
+        // The choice is remembered straight away, so other screens show the same units.
+        if (after != before) viewModelScope.launch { settings.update { it.copy(bodyUnits = after) } }
+    }
 
     fun onSave() {
         val state = mutableState.value
@@ -103,15 +116,15 @@ internal class EditProfileViewModel @Inject constructor(
         } catch (_: DateTimeParseException) {
             null
         }?.takeIf { !it.isAfter(today) && !it.isBefore(today.minusYears(MAX_AGE_YEARS)) }
-        val weight = number(state.weight)?.takeIf { it in WEIGHT_RANGE_KG }
-        val height = number(state.height)?.takeIf { it in HEIGHT_RANGE_CM }
-        val heightValid = state.height.isBlank() || height != null
+        val weight = state.body.weightKg()?.takeIf { it in WEIGHT_RANGE_KG }
+        val height = state.body.heightCmValue()?.takeIf { it in HEIGHT_RANGE_CM }
+        val heightValid = state.body.heightBlank || height != null
         if (birthDate == null || weight == null || !heightValid) return null
         return Profile(
             birthDate = birthDate,
-            sex = state.sex,
+            gender = state.gender,
             weightKg = weight,
-            heightCm = height,
+            heightCm = if (state.body.heightBlank) null else height,
             activityLevel = state.activity,
             climate = state.climate,
             pregnancyStatus = if (state.pregnant) PregnancyStatus.PREGNANT else PregnancyStatus.NONE,
@@ -119,8 +132,4 @@ internal class EditProfileViewModel @Inject constructor(
             highAltitude = state.highAltitude,
         )
     }
-
-    private fun number(text: String): Double? = text.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
-
-    private fun plain(value: Double): String = BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
 }

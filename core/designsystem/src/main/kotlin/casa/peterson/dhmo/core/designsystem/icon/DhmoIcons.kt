@@ -27,5 +27,7 @@ object DhmoIcons {
 
     @DrawableRes val Remove: Int = R.drawable.core_designsystem_ic_remove
 
+    @DrawableRes val Calendar: Int = R.drawable.core_designsystem_ic_calendar
+
     @DrawableRes val Notifications: Int = R.drawable.core_designsystem_ic_notifications
 }

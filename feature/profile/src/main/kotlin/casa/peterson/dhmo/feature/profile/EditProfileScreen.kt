@@ -19,12 +19,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import casa.peterson.dhmo.core.designsystem.component.BirthDateField
+import casa.peterson.dhmo.core.designsystem.component.BodyMeasurementFields
 import casa.peterson.dhmo.core.designsystem.component.DhmoScreen
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.SwitchRow
 import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
-import casa.peterson.dhmo.core.model.Sex
+import casa.peterson.dhmo.core.model.Gender
 
 @Composable
 internal fun EditProfileScreen(onBack: () -> Unit, viewModel: EditProfileViewModel = hiltViewModel()) {
@@ -55,34 +57,18 @@ internal fun EditProfileContent(
             Text(stringResource(R.string.feature_profile_loading))
             return@Column
         }
-        FormTextField(
-            stringResource(R.string.feature_profile_birth_date),
-            state.birthDate,
-            { value -> onChange { it.copy(birthDate = value) } },
-            keyboardType = KeyboardType.Text,
-            isError = state.invalid,
-        )
-        FormTextField(
-            stringResource(R.string.feature_profile_weight),
-            state.weight,
-            { value -> onChange { it.copy(weight = value) } },
-            isError = state.invalid,
-        )
-        FormTextField(
-            stringResource(R.string.feature_profile_height),
-            state.height,
-            { value -> onChange { it.copy(height = value) } },
-            isError = state.invalid,
-        )
+        BirthDateField(state.birthDate, { value -> onChange { it.copy(birthDate = value) } }, isError = state.invalid)
+        BodyMeasurementFields(state.body, { body -> onChange { it.copy(body = body) } }, isError = state.invalid)
         RadioGroup(
-            stringResource(R.string.feature_profile_sex),
+            stringResource(R.string.feature_profile_gender),
             listOf(
-                Sex.FEMALE to stringResource(R.string.feature_profile_sex_female),
-                Sex.MALE to stringResource(R.string.feature_profile_sex_male),
-                Sex.UNSPECIFIED to stringResource(R.string.feature_profile_sex_unspecified),
+                Gender.FEMALE to stringResource(R.string.feature_profile_gender_female),
+                Gender.MALE to stringResource(R.string.feature_profile_gender_male),
+                Gender.NON_BINARY to stringResource(R.string.feature_profile_gender_non_binary),
+                Gender.UNSPECIFIED to stringResource(R.string.feature_profile_gender_unspecified),
             ),
-            state.sex,
-        ) { value -> onChange { it.copy(sex = value) } }
+            state.gender,
+        ) { value -> onChange { it.copy(gender = value) } }
         RadioGroup(
             stringResource(R.string.feature_profile_activity),
             listOf(

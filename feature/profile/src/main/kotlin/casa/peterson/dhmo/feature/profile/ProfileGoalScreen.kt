@@ -42,11 +42,13 @@ import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.component.SettingsRow
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
+import casa.peterson.dhmo.core.domain.body.BodyMeasures
 import casa.peterson.dhmo.core.model.ActivityAdjustment
 import casa.peterson.dhmo.core.model.ClampFlag
 import casa.peterson.dhmo.core.model.GoalBreakdown
 import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.Intensity
+import casa.peterson.dhmo.core.model.settings.BodyUnits
 import java.text.NumberFormat
 import java.time.LocalDate
 
@@ -280,7 +282,7 @@ private fun GoalRows(state: ProfileGoalUiState.Ready, labels: BreakdownLabels, a
             summary = if (profile == null || age == null) {
                 stringResource(R.string.feature_profile_row_profile_missing)
             } else {
-                stringResource(R.string.feature_profile_row_profile_summary, age, weightText(profile.weightKg))
+                stringResource(R.string.feature_profile_row_profile_summary, age, weightText(profile.weightKg, state.bodyUnits))
             },
             leadingIcon = DhmoIcons.Edit,
             onClick = actions.onEditProfile,
@@ -308,8 +310,12 @@ private fun GoalRows(state: ProfileGoalUiState.Ready, labels: BreakdownLabels, a
 }
 
 @Composable
-private fun weightText(kg: Double): String {
+private fun weightText(kg: Double, units: BodyUnits): String {
     val format = NumberFormat.getNumberInstance(LocalConfiguration.current.locales[0])
     format.maximumFractionDigits = 1
-    return format.format(kg)
+    return if (units == BodyUnits.IMPERIAL) {
+        stringResource(R.string.feature_profile_weight_lb_value, format.format(BodyMeasures.kgToLb(kg)))
+    } else {
+        stringResource(R.string.feature_profile_weight_kg_value, format.format(kg))
+    }
 }

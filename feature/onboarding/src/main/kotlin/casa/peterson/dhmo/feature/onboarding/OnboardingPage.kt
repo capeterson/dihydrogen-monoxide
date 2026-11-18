@@ -27,12 +27,14 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import casa.peterson.dhmo.core.designsystem.component.BirthDateField
+import casa.peterson.dhmo.core.designsystem.component.BodyMeasurementFields
 import casa.peterson.dhmo.core.designsystem.component.TimePickerRow
 import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.ComponentKind
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.GoalBreakdown
-import casa.peterson.dhmo.core.model.Sex
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 
 internal enum class OnboardingPage { WELCOME, DISCLAIMER, UNITS, GOAL_MODE, PROFILE, MANUAL, PREVIEW, NOTIFICATION, REMINDERS, DONE }
@@ -181,16 +183,16 @@ internal fun OnboardingPageContent(
 
 @Composable
 private fun ProfileFields(state: OnboardingState, change: ((OnboardingState) -> OnboardingState) -> Unit) {
-    NumberField(R.string.feature_onboarding_birth_date, state.birthDate, false) { value -> change { it.copy(birthDate = value) } }
-    NumberField(R.string.feature_onboarding_weight, state.weight) { value -> change { it.copy(weight = value) } }
-    NumberField(R.string.feature_onboarding_height, state.height) { value -> change { it.copy(height = value) } }
-    Text(stringResource(R.string.feature_onboarding_sex), style = MaterialTheme.typography.titleMedium)
+    BirthDateField(state.birthDate, { value -> change { it.copy(birthDate = value) } }, isError = state.error && state.birthDate.isBlank())
+    BodyMeasurementFields(state.body, { body -> change { it.copy(body = body) } })
+    Text(stringResource(R.string.feature_onboarding_gender), style = MaterialTheme.typography.titleMedium)
     listOf(
-        Sex.FEMALE to R.string.feature_onboarding_sex_female,
-        Sex.MALE to R.string.feature_onboarding_sex_male,
-        Sex.UNSPECIFIED to R.string.feature_onboarding_sex_unspecified,
+        Gender.FEMALE to R.string.feature_onboarding_gender_female,
+        Gender.MALE to R.string.feature_onboarding_gender_male,
+        Gender.NON_BINARY to R.string.feature_onboarding_gender_non_binary,
+        Gender.UNSPECIFIED to R.string.feature_onboarding_gender_unspecified,
     )
-        .forEach { (value, label) -> Choice(label, state.sex == value) { change { it.copy(sex = value) } } }
+        .forEach { (value, label) -> Choice(label, state.gender == value) { change { it.copy(gender = value) } } }
     Text(stringResource(R.string.feature_onboarding_activity), style = MaterialTheme.typography.titleMedium)
     listOf(
         ActivityLevel.SEDENTARY to R.string.feature_onboarding_sedentary,
@@ -253,7 +255,7 @@ private fun MinuteField(@StringRes label: Int, minutes: Int, onValueChange: (Int
 
 @StringRes
 private fun componentLabel(kind: ComponentKind): Int = when (kind) {
-    ComponentKind.BASE_CHILD_TABLE, ComponentKind.BASE_WEIGHT, ComponentKind.BASE_SEX_FLOOR -> R.string.feature_onboarding_component_base
+    ComponentKind.BASE_CHILD_TABLE, ComponentKind.BASE_WEIGHT, ComponentKind.BASE_GENDER_FLOOR -> R.string.feature_onboarding_component_base
     ComponentKind.PREGNANCY -> R.string.feature_onboarding_component_pregnancy
     ComponentKind.LACTATION -> R.string.feature_onboarding_component_lactation
     ComponentKind.ACTIVITY_LEVEL, ComponentKind.ACTIVITY_MINUTES -> R.string.feature_onboarding_component_activity
