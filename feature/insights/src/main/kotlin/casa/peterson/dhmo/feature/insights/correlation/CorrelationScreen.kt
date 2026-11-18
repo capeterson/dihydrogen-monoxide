@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -73,7 +75,7 @@ internal fun CorrelationContent(state: CorrelationUiState, onBack: () -> Unit) {
                 val result = state.result
                 Text(description(state), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    stringResource(R.string.feature_insights_correlation_basis, result.n),
+                    pluralStringResource(R.plurals.feature_insights_correlation_basis, result.n, result.n),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 ScatterPlot(state)
@@ -116,14 +118,14 @@ private fun description(state: CorrelationUiState): String {
 
 @Composable
 private fun ScatterPlot(state: CorrelationUiState) {
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     val xs = state.pairs.map { it.first }
     val ys = state.pairs.map { it.second }
     val minX = xs.min()
     val maxX = xs.max()
     val minY = ys.min()
     val maxY = ys.max()
-    val summary = stringResource(R.string.feature_insights_correlation_plot_description, state.pairs.size)
+    val summary = pluralStringResource(R.plurals.feature_insights_correlation_plot_description, state.pairs.size, state.pairs.size)
     val dot = MaterialTheme.colorScheme.primary
     val axis = MaterialTheme.colorScheme.outline
     val xLabel = stringResource(

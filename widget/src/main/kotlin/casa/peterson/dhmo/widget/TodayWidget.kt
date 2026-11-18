@@ -83,6 +83,8 @@ internal suspend fun loadModel(context: Context): WidgetModel {
     )
 }
 
+private const val PERCENT = 100
+
 /** Today's progress with a one-tap button for the default container. Compact (2x1) and large (4x2) layouts. */
 class TodayWidget : GlanceAppWidget() {
     override val sizeMode: SizeMode = SizeMode.Responsive(setOf(COMPACT, LARGE))
@@ -103,7 +105,6 @@ class TodayWidget : GlanceAppWidget() {
 
         /** `:widget` cannot see `:app`, so the launcher activity is named. */
         private const val MAIN_ACTIVITY = "casa.peterson.dhmo.MainActivity"
-        private const val PERCENT = 100
     }
 }
 

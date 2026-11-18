@@ -8,9 +8,15 @@
     <string name="feature_insights_correlation_not_enough">Not enough data yet. It takes at least 14 days that have both a drink log and this information; you have %1$d so far.</string>
     <string name="feature_insights_correlation_none_temperature">No clear link between the day\'s temperature and how much you drank.</string>
     <string name="feature_insights_correlation_none_activity">No clear link between how active you were and how much you drank.</string>
-    <string name="feature_insights_correlation_basis">Based on %1$d days.</string>
+    <plurals name="feature_insights_correlation_basis">
+        <item quantity="one">Based on %d day.</item>
+        <item quantity="other">Based on %d days.</item>
+    </plurals>
     <string name="feature_insights_correlation_disclaimer">This shows a pattern in your own days. It does not show that one thing causes the other.</string>
-    <string name="feature_insights_correlation_plot_description">Scatter plot of %1$d days, each dot is one day.</string>
+    <plurals name="feature_insights_correlation_plot_description">
+        <item quantity="one">Scatter plot of %d day. Each dot is one day.</item>
+        <item quantity="other">Scatter plot of %d days. Each dot is one day.</item>
+    </plurals>
     <string name="feature_insights_correlation_x_temperature">Feels-like high</string>
     <string name="feature_insights_correlation_x_activity">Active minutes</string>
     <string name="feature_insights_correlation_y_axis">Water per day, up to %1$s</string>

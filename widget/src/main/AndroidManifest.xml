@@ -9,7 +9,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/today_widget_info" />
+                android:resource="@xml/widget_today_info" />
         </receiver>
     </application>
 </manifest>

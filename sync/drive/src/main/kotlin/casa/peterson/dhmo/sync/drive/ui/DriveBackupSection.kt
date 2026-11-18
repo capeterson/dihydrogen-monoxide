@@ -75,24 +75,29 @@ internal fun DriveBackupContent(
     onOpenRestore: () -> Unit,
 ) {
     var askPassphrase by rememberSaveable { mutableStateOf(false) }
-    SectionCard(title = stringResource(R.string.drive_section_title)) {
+    SectionCard(title = stringResource(R.string.sync_drive_section_title)) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             when (val drive = state.drive) {
                 DriveBackupState.NotConfigured -> Text(
-                    stringResource(R.string.drive_not_configured),
+                    stringResource(R.string.sync_drive_not_configured),
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
                 DriveBackupState.SignedOut -> {
-                    Text(stringResource(R.string.drive_intro), style = MaterialTheme.typography.bodyMedium)
-                    if (state.connectFailed) Text(stringResource(R.string.drive_connect_failed), color = MaterialTheme.colorScheme.error)
-                    Button(onClick = onConnect) { Text(stringResource(R.string.drive_connect)) }
+                    Text(stringResource(R.string.sync_drive_intro), style = MaterialTheme.typography.bodyMedium)
+                    if (state.connectFailed) {
+                        Text(
+                            stringResource(R.string.sync_drive_connect_failed),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    Button(onClick = onConnect) { Text(stringResource(R.string.sync_drive_connect)) }
                 }
 
                 DriveBackupState.NeedsReconnect -> {
-                    Text(stringResource(R.string.drive_needs_reconnect), color = MaterialTheme.colorScheme.error)
-                    Button(onClick = onConnect) { Text(stringResource(R.string.drive_reconnect_action)) }
-                    TextButton(onClick = onDisconnect) { Text(stringResource(R.string.drive_disconnect)) }
+                    Text(stringResource(R.string.sync_drive_needs_reconnect), color = MaterialTheme.colorScheme.error)
+                    Button(onClick = onConnect) { Text(stringResource(R.string.sync_drive_reconnect_action)) }
+                    TextButton(onClick = onDisconnect) { Text(stringResource(R.string.sync_drive_disconnect)) }
                 }
 
                 else -> Connected(state, drive, onDisconnect, onAutomatic, onFrequency, onUnmetered, {
@@ -122,36 +127,36 @@ private fun Connected(
     onBackUpNow: () -> Unit,
     onOpenRestore: () -> Unit,
 ) {
-    state.email?.let { Text(stringResource(R.string.drive_connected_as, it), style = MaterialTheme.typography.bodyMedium) }
-    SwitchRow(stringResource(R.string.drive_auto), checked = state.settings.driveEnabled, onCheckedChange = onAutomatic)
+    state.email?.let { Text(stringResource(R.string.sync_drive_connected_as, it), style = MaterialTheme.typography.bodyMedium) }
+    SwitchRow(stringResource(R.string.sync_drive_auto), checked = state.settings.driveEnabled, onCheckedChange = onAutomatic)
     if (state.settings.driveEnabled) {
         Column(Modifier.fillMaxWidth()) {
-            FrequencyChoice(R.string.drive_frequency_daily, state.settings.frequency == BackupFrequency.DAILY) {
+            FrequencyChoice(R.string.sync_drive_frequency_daily, state.settings.frequency == BackupFrequency.DAILY) {
                 onFrequency(BackupFrequency.DAILY)
             }
-            FrequencyChoice(R.string.drive_frequency_weekly, state.settings.frequency == BackupFrequency.WEEKLY) {
+            FrequencyChoice(R.string.sync_drive_frequency_weekly, state.settings.frequency == BackupFrequency.WEEKLY) {
                 onFrequency(BackupFrequency.WEEKLY)
             }
         }
         SwitchRow(
-            stringResource(R.string.drive_unmetered),
+            stringResource(R.string.sync_drive_unmetered),
             checked = state.settings.unmeteredOnly,
             onCheckedChange = onUnmetered,
-            summary = stringResource(R.string.drive_unmetered_summary),
+            summary = stringResource(R.string.sync_drive_unmetered_summary),
         )
     }
     SwitchRow(
-        stringResource(R.string.drive_encrypt),
+        stringResource(R.string.sync_drive_encrypt),
         checked = state.settings.encryptionEnabled,
         onCheckedChange = { if (it) onEncryptOn() else onEncryptOff() },
-        summary = stringResource(R.string.drive_encrypt_summary),
+        summary = stringResource(R.string.sync_drive_encrypt_summary),
     )
     Text(statusText(drive), style = MaterialTheme.typography.bodyMedium)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(onClick = onBackUpNow, enabled = drive !is DriveBackupState.Running) { Text(stringResource(R.string.drive_backup_now)) }
-        OutlinedButton(onClick = onOpenRestore) { Text(stringResource(R.string.drive_restore)) }
+        Button(onClick = onBackUpNow, enabled = drive !is DriveBackupState.Running) { Text(stringResource(R.string.sync_drive_backup_now)) }
+        OutlinedButton(onClick = onOpenRestore) { Text(stringResource(R.string.sync_drive_restore)) }
     }
-    TextButton(onClick = onDisconnect) { Text(stringResource(R.string.drive_disconnect)) }
+    TextButton(onClick = onDisconnect) { Text(stringResource(R.string.sync_drive_disconnect)) }
 }
 
 @Composable
@@ -167,18 +172,18 @@ private fun FrequencyChoice(label: Int, selected: Boolean, onSelect: () -> Unit)
 
 @Composable
 private fun statusText(drive: DriveBackupState): String = when (drive) {
-    DriveBackupState.Running -> stringResource(R.string.drive_running)
+    DriveBackupState.Running -> stringResource(R.string.sync_drive_running)
 
     is DriveBackupState.Error -> stringResource(
         when (drive.error) {
-            BackupError.QUOTA -> R.string.drive_error_quota
-            BackupError.NETWORK -> R.string.drive_error_network
-            else -> R.string.drive_error_other
+            BackupError.QUOTA -> R.string.sync_drive_error_quota
+            BackupError.NETWORK -> R.string.sync_drive_error_network
+            else -> R.string.sync_drive_error_other
         },
     )
 
-    is DriveBackupState.Ready -> drive.lastSuccessAt?.let { stringResource(R.string.drive_last_backup, formatTime(it)) }
-        ?: stringResource(R.string.drive_never_backed_up)
+    is DriveBackupState.Ready -> drive.lastSuccessAt?.let { stringResource(R.string.sync_drive_last_backup, formatTime(it)) }
+        ?: stringResource(R.string.sync_drive_never_backed_up)
 
     else -> ""
 }
@@ -195,27 +200,27 @@ private fun PassphraseSetupDialog(onDismiss: () -> Unit, onConfirm: (CharArray) 
     val mismatch = second.isNotEmpty() && first != second
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.drive_encrypt_title)) },
+        title = { Text(stringResource(R.string.sync_drive_encrypt_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.drive_encrypt_text))
+                Text(stringResource(R.string.sync_drive_encrypt_text))
                 OutlinedTextField(
                     first,
                     { first = it },
-                    label = { Text(stringResource(R.string.drive_passphrase)) },
+                    label = { Text(stringResource(R.string.sync_drive_passphrase)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     isError = tooShort,
-                    supportingText = { if (tooShort) Text(stringResource(R.string.drive_passphrase_short)) },
+                    supportingText = { if (tooShort) Text(stringResource(R.string.sync_drive_passphrase_short)) },
                 )
                 OutlinedTextField(
                     second,
                     { second = it },
-                    label = { Text(stringResource(R.string.drive_passphrase_confirm)) },
+                    label = { Text(stringResource(R.string.sync_drive_passphrase_confirm)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     isError = mismatch,
-                    supportingText = { if (mismatch) Text(stringResource(R.string.drive_passphrase_mismatch)) },
+                    supportingText = { if (mismatch) Text(stringResource(R.string.sync_drive_passphrase_mismatch)) },
                 )
                 Row(
                     Modifier.selectable(understood, role = Role.Checkbox) {
@@ -224,7 +229,7 @@ private fun PassphraseSetupDialog(onDismiss: () -> Unit, onConfirm: (CharArray) 
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Checkbox(checked = understood, onCheckedChange = null)
-                    Text(stringResource(R.string.drive_encrypt_acknowledge), modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.sync_drive_encrypt_acknowledge), modifier = Modifier.padding(start = 8.dp))
                 }
             }
         },
@@ -234,10 +239,10 @@ private fun PassphraseSetupDialog(onDismiss: () -> Unit, onConfirm: (CharArray) 
                 enabled =
                     first.length >= MIN_PASSPHRASE && first == second && understood,
             ) {
-                Text(stringResource(R.string.drive_encrypt_confirm))
+                Text(stringResource(R.string.sync_drive_encrypt_confirm))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.drive_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.sync_drive_cancel)) } },
     )
 }
 

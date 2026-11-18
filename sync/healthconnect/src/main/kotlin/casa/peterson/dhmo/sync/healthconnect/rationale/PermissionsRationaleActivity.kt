@@ -34,14 +34,14 @@ class PermissionsRationaleActivity : ComponentActivity() {
                         Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        Text(stringResource(R.string.hc_rationale_title), style = MaterialTheme.typography.headlineMedium)
-                        Text(stringResource(R.string.hc_rationale_intro), style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(R.string.sync_healthconnect_rationale_title), style = MaterialTheme.typography.headlineMedium)
+                        Text(stringResource(R.string.sync_healthconnect_rationale_intro), style = MaterialTheme.typography.bodyLarge)
                         listOf(
-                            R.string.hc_rationale_hydration,
-                            R.string.hc_rationale_weight,
-                            R.string.hc_rationale_exercise,
-                            R.string.hc_rationale_activity,
-                            R.string.hc_rationale_background,
+                            R.string.sync_healthconnect_rationale_hydration,
+                            R.string.sync_healthconnect_rationale_weight,
+                            R.string.sync_healthconnect_rationale_exercise,
+                            R.string.sync_healthconnect_rationale_activity,
+                            R.string.sync_healthconnect_rationale_background,
                         ).forEach { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
                     }
                 }

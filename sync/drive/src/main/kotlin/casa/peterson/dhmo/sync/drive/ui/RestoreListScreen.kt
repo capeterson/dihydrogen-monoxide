@@ -41,7 +41,7 @@ import casa.peterson.dhmo.sync.drive.auth.rememberDriveAuthLauncher
 @Composable
 fun DriveRestoreScreen(onBack: () -> Unit) {
     val viewModel: RestoreListViewModel = hiltViewModel()
-    DhmoScreen(topBar = { DhmoTopBar(stringResource(R.string.restore_title), onNavigateBack = onBack) }) { padding ->
+    DhmoScreen(topBar = { DhmoTopBar(stringResource(R.string.sync_drive_restore_title), onNavigateBack = onBack) }) { padding ->
         RestoreList(viewModel, Modifier.padding(padding).consumeWindowInsets(padding), onFinished = {})
     }
 }
@@ -61,11 +61,11 @@ fun DriveRestoreOffer(onSkip: () -> Unit, onRestored: () -> Unit) {
     DhmoScreen { padding ->
         if (!connected) {
             Column(Modifier.padding(padding).fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(stringResource(R.string.restore_title), style = MaterialTheme.typography.headlineMedium)
-                Text(stringResource(R.string.drive_intro), style = MaterialTheme.typography.bodyLarge)
-                if (failed) Text(stringResource(R.string.drive_connect_failed), color = MaterialTheme.colorScheme.error)
-                Button(onClick = launcher::launch, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.drive_connect)) }
-                OutlinedButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.drive_cancel)) }
+                Text(stringResource(R.string.sync_drive_restore_title), style = MaterialTheme.typography.headlineMedium)
+                Text(stringResource(R.string.sync_drive_intro), style = MaterialTheme.typography.bodyLarge)
+                if (failed) Text(stringResource(R.string.sync_drive_connect_failed), color = MaterialTheme.colorScheme.error)
+                Button(onClick = launcher::launch, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.sync_drive_connect)) }
+                OutlinedButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.sync_drive_cancel)) }
             }
         } else {
             val viewModel: RestoreListViewModel = hiltViewModel()
@@ -74,7 +74,7 @@ fun DriveRestoreOffer(onSkip: () -> Unit, onRestored: () -> Unit) {
                     viewModel.markOnboardingComplete()
                     onRestored()
                 })
-                TextButton(onClick = onSkip, modifier = Modifier.padding(16.dp)) { Text(stringResource(R.string.drive_cancel)) }
+                TextButton(onClick = onSkip, modifier = Modifier.padding(16.dp)) { Text(stringResource(R.string.sync_drive_cancel)) }
             }
         }
     }
@@ -89,12 +89,22 @@ private fun RestoreList(viewModel: RestoreListViewModel, modifier: Modifier, onF
             RestoreUi.Loading -> Centered { CircularProgressIndicator() }
 
             is RestoreUi.Failed -> Centered {
-                Text(stringResource(if (ui.reason == ListFailure.AUTH) R.string.restore_error_auth else R.string.restore_error_network))
-                OutlinedButton(onClick = viewModel::load) { Text(stringResource(R.string.restore_retry)) }
+                Text(
+                    stringResource(
+                        if (ui.reason ==
+                            ListFailure.AUTH
+                        ) {
+                            R.string.sync_drive_restore_error_auth
+                        } else {
+                            R.string.sync_drive_restore_error_network
+                        },
+                    ),
+                )
+                OutlinedButton(onClick = viewModel::load) { Text(stringResource(R.string.sync_drive_restore_retry)) }
             }
 
             is RestoreUi.Loaded -> if (ui.backups.isEmpty()) {
-                Centered { Text(stringResource(R.string.restore_empty)) }
+                Centered { Text(stringResource(R.string.sync_drive_restore_empty)) }
             } else {
                 LazyColumn(Modifier.fillMaxSize()) {
                     items(ui.backups, key = { it.id }) { backup -> BackupRow(backup) { viewModel.select(backup) } }
@@ -119,9 +129,9 @@ private fun Centered(content: @Composable () -> Unit) {
 private fun BackupRow(backup: RemoteBackup, onClick: () -> Unit) {
     val disabled = backup.needsNewerApp()
     val details = buildList {
-        backup.entryCount?.let { add(pluralStringResource(R.plurals.restore_entries, it, it)) }
-        if (backup.encrypted) add(stringResource(R.string.restore_encrypted))
-        if (disabled) add(stringResource(R.string.restore_needs_newer_app))
+        backup.entryCount?.let { add(pluralStringResource(R.plurals.sync_drive_restore_entries, it, it)) }
+        if (backup.encrypted) add(stringResource(R.string.sync_drive_restore_encrypted))
+        if (disabled) add(stringResource(R.string.sync_drive_restore_needs_newer_app))
     }.joinToString(" · ")
     ListItem(
         headlineContent = { Text(formatTime(backup.createdAt)) },
@@ -139,15 +149,19 @@ private fun RestoreDialogs(step: RestoreStep, viewModel: RestoreListViewModel, o
 
         is RestoreStep.Confirm -> AlertDialog(
             onDismissRequest = viewModel::dismiss,
-            title = { Text(stringResource(R.string.restore_confirm_title)) },
-            text = { Text(stringResource(R.string.restore_confirm_text)) },
+            title = { Text(stringResource(R.string.sync_drive_restore_confirm_title)) },
+            text = { Text(stringResource(R.string.sync_drive_restore_confirm_text)) },
             confirmButton = {
-                TextButton(onClick = { viewModel.restore(RestoreMode.REPLACE) }) { Text(stringResource(R.string.restore_replace)) }
+                TextButton(onClick = {
+                    viewModel.restore(RestoreMode.REPLACE)
+                }) { Text(stringResource(R.string.sync_drive_restore_replace)) }
             },
             dismissButton = {
                 Column {
-                    TextButton(onClick = { viewModel.restore(RestoreMode.MERGE) }) { Text(stringResource(R.string.restore_merge)) }
-                    TextButton(onClick = viewModel::dismiss) { Text(stringResource(R.string.drive_cancel)) }
+                    TextButton(onClick = {
+                        viewModel.restore(RestoreMode.MERGE)
+                    }) { Text(stringResource(R.string.sync_drive_restore_merge)) }
+                    TextButton(onClick = viewModel::dismiss) { Text(stringResource(R.string.sync_drive_cancel)) }
                 }
             },
         )
@@ -162,9 +176,9 @@ private fun RestoreDialogs(step: RestoreStep, viewModel: RestoreListViewModel, o
                         if (step.mode ==
                             RestoreMode.REPLACE
                         ) {
-                            R.string.restore_done_replaced
+                            R.string.sync_drive_restore_done_replaced
                         } else {
-                            R.string.restore_done_merged
+                            R.string.sync_drive_restore_done_merged
                         },
                     ),
                 )
@@ -179,7 +193,7 @@ private fun RestoreDialogs(step: RestoreStep, viewModel: RestoreListViewModel, o
 
         RestoreStep.Failed -> AlertDialog(
             onDismissRequest = viewModel::dismiss,
-            text = { Text(stringResource(R.string.restore_failed)) },
+            text = { Text(stringResource(R.string.sync_drive_restore_failed)) },
             confirmButton = { TextButton(onClick = viewModel::dismiss) { Text("OK") } },
         )
     }
@@ -190,26 +204,26 @@ private fun PassphraseDialog(step: RestoreStep.Passphrase, onSubmit: (RemoteBack
     var text by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.restore_passphrase_title)) },
+        title = { Text(stringResource(R.string.sync_drive_restore_passphrase_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.restore_passphrase_text))
+                Text(stringResource(R.string.sync_drive_restore_passphrase_text))
                 OutlinedTextField(
                     text,
                     { text = it },
-                    label = { Text(stringResource(R.string.drive_passphrase)) },
+                    label = { Text(stringResource(R.string.sync_drive_passphrase)) },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     isError = step.wrong,
-                    supportingText = { if (step.wrong) Text(stringResource(R.string.restore_wrong_passphrase)) },
+                    supportingText = { if (step.wrong) Text(stringResource(R.string.sync_drive_restore_wrong_passphrase)) },
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = {
                 onSubmit(step.backup, text.toCharArray())
-            }, enabled = text.isNotEmpty()) { Text(stringResource(R.string.restore_unlock)) }
+            }, enabled = text.isNotEmpty()) { Text(stringResource(R.string.sync_drive_restore_unlock)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.drive_cancel)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.sync_drive_cancel)) } },
     )
 }

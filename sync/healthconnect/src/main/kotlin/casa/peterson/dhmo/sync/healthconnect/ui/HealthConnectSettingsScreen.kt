@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -75,11 +76,11 @@ internal fun HealthConnectSettingsScreen(onBack: () -> Unit, viewModel: HealthCo
 }
 
 private val ROWS = listOf(
-    Triple(HcSetting.WRITE_HYDRATION, R.string.hc_write_title, R.string.hc_write_summary),
-    Triple(HcSetting.IMPORT_HYDRATION, R.string.hc_import_title, R.string.hc_import_summary),
-    Triple(HcSetting.SYNC_WEIGHT, R.string.hc_weight_title, R.string.hc_weight_summary),
-    Triple(HcSetting.USE_EXERCISE, R.string.hc_exercise_title, R.string.hc_exercise_summary),
-    Triple(HcSetting.READ_STEPS_AND_CALORIES, R.string.hc_steps_title, R.string.hc_steps_summary),
+    Triple(HcSetting.WRITE_HYDRATION, R.string.sync_healthconnect_write_title, R.string.sync_healthconnect_write_summary),
+    Triple(HcSetting.IMPORT_HYDRATION, R.string.sync_healthconnect_import_title, R.string.sync_healthconnect_import_summary),
+    Triple(HcSetting.SYNC_WEIGHT, R.string.sync_healthconnect_weight_title, R.string.sync_healthconnect_weight_summary),
+    Triple(HcSetting.USE_EXERCISE, R.string.sync_healthconnect_exercise_title, R.string.sync_healthconnect_exercise_summary),
+    Triple(HcSetting.READ_STEPS_AND_CALORIES, R.string.sync_healthconnect_steps_title, R.string.sync_healthconnect_steps_summary),
 )
 
 @Composable
@@ -91,17 +92,17 @@ internal fun HealthConnectSettingsContent(
     onSourceToggle: (String, Boolean) -> Unit,
     onInstall: () -> Unit,
 ) {
-    DhmoScreen(topBar = { DhmoTopBar(stringResource(R.string.hc_title), onNavigateBack = onBack) }) { padding ->
+    DhmoScreen(topBar = { DhmoTopBar(stringResource(R.string.sync_healthconnect_title), onNavigateBack = onBack) }) { padding ->
         Column(
             Modifier.padding(padding).consumeWindowInsets(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             when (state.availability) {
-                HcAvailability.UNAVAILABLE -> Text(stringResource(R.string.hc_unavailable))
+                HcAvailability.UNAVAILABLE -> Text(stringResource(R.string.sync_healthconnect_unavailable))
 
                 HcAvailability.PROVIDER_UPDATE_REQUIRED -> {
-                    Text(stringResource(R.string.hc_update_required))
-                    Button(onClick = onInstall) { Text(stringResource(R.string.hc_update_action)) }
+                    Text(stringResource(R.string.sync_healthconnect_update_required))
+                    Button(onClick = onInstall) { Text(stringResource(R.string.sync_healthconnect_update_action)) }
                 }
 
                 HcAvailability.AVAILABLE -> Available(state, onToggle, onSyncNow, onSourceToggle)
@@ -117,7 +118,7 @@ private fun Available(
     onSyncNow: () -> Unit,
     onSourceToggle: (String, Boolean) -> Unit,
 ) {
-    Text(stringResource(R.string.hc_intro), style = MaterialTheme.typography.bodyMedium)
+    Text(stringResource(R.string.sync_healthconnect_intro), style = MaterialTheme.typography.bodyMedium)
     SectionCard {
         ROWS.forEach { (setting, title, summary) ->
             SwitchRow(
@@ -129,28 +130,28 @@ private fun Available(
         }
         if (state.backgroundOffered) {
             SwitchRow(
-                stringResource(R.string.hc_background_title),
+                stringResource(R.string.sync_healthconnect_background_title),
                 checked = state.settings.backgroundSync,
                 onCheckedChange = { onToggle(HcSetting.BACKGROUND_SYNC, it) },
-                summary = stringResource(R.string.hc_background_summary),
+                summary = stringResource(R.string.sync_healthconnect_background_summary),
             )
         }
         if (state.historyOffered) {
             SwitchRow(
-                stringResource(R.string.hc_history_title),
+                stringResource(R.string.sync_healthconnect_history_title),
                 checked = state.settings.importHistory,
                 onCheckedChange = { onToggle(HcSetting.IMPORT_HISTORY, it) },
-                summary = stringResource(R.string.hc_history_summary),
+                summary = stringResource(R.string.sync_healthconnect_history_summary),
             )
         }
     }
     if (state.permissionDenied) {
-        Text(stringResource(R.string.hc_permission_denied), color = MaterialTheme.colorScheme.error)
+        Text(stringResource(R.string.sync_healthconnect_permission_denied), color = MaterialTheme.colorScheme.error)
     }
     if (state.settings.importHydration) {
-        SectionCard(title = stringResource(R.string.hc_sources_title)) {
+        SectionCard(title = stringResource(R.string.sync_healthconnect_sources_title)) {
             if (state.sources.isEmpty()) {
-                Text(stringResource(R.string.hc_sources_empty), modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.sync_healthconnect_sources_empty), modifier = Modifier.padding(16.dp))
             } else {
                 state.sources.forEach { row ->
                     SwitchRow(row.label, checked = row.included, onCheckedChange = { onSourceToggle(row.packageName, it) })
@@ -160,7 +161,7 @@ private fun Available(
     }
     Text(statusText(state.sync), style = MaterialTheme.typography.bodyMedium)
     OutlinedButton(onClick = onSyncNow, enabled = state.sync !is HcSyncState.Syncing && state.sync !is HcSyncState.Disabled) {
-        Text(stringResource(R.string.hc_sync_now))
+        Text(stringResource(R.string.sync_healthconnect_sync_now))
     }
 }
 
@@ -176,18 +177,18 @@ private fun isOn(state: HcUiState, setting: HcSetting): Boolean = when (setting)
 
 @Composable
 private fun statusText(sync: HcSyncState): String = when (sync) {
-    HcSyncState.Syncing -> stringResource(R.string.hc_status_syncing)
+    HcSyncState.Syncing -> stringResource(R.string.sync_healthconnect_status_syncing)
 
-    is HcSyncState.NeedsPermission -> stringResource(R.string.hc_status_needs_permission)
+    is HcSyncState.NeedsPermission -> stringResource(R.string.sync_healthconnect_status_needs_permission)
 
-    is HcSyncState.Error -> stringResource(R.string.hc_status_error)
+    is HcSyncState.Error -> stringResource(R.string.sync_healthconnect_status_error)
 
     is HcSyncState.Idle -> if (sync.pendingOps > 0) {
-        stringResource(R.string.hc_status_idle_pending, sync.pendingOps)
+        pluralStringResource(R.plurals.sync_healthconnect_status_idle_pending, sync.pendingOps, sync.pendingOps)
     } else if (sync.lastSyncAt == null) {
-        stringResource(R.string.hc_status_never)
+        stringResource(R.string.sync_healthconnect_status_never)
     } else {
-        stringResource(R.string.hc_status_idle)
+        stringResource(R.string.sync_healthconnect_status_idle)
     }
 
     else -> ""
