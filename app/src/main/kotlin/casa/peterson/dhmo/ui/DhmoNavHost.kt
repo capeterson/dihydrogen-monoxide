@@ -8,12 +8,17 @@ import casa.peterson.dhmo.feature.history.navigation.HistoryDayRoute
 import casa.peterson.dhmo.feature.history.navigation.historyScreens
 import casa.peterson.dhmo.feature.insights.navigation.insightsScreens
 import casa.peterson.dhmo.feature.onboarding.navigation.OnboardingGraph
+import casa.peterson.dhmo.feature.onboarding.navigation.OnboardingIntegrations
 import casa.peterson.dhmo.feature.onboarding.navigation.onboardingGraph
 import casa.peterson.dhmo.feature.profile.navigation.ProfileGoalRoute
 import casa.peterson.dhmo.feature.profile.navigation.profileScreens
 import casa.peterson.dhmo.feature.reminders.navigation.RemindersRoute
 import casa.peterson.dhmo.feature.reminders.navigation.remindersScreens
 import casa.peterson.dhmo.feature.settings.navigation.SettingsIntegrations
+import casa.peterson.dhmo.sync.drive.DriveAvailability
+import casa.peterson.dhmo.sync.drive.ui.DriveBackupSection
+import casa.peterson.dhmo.sync.drive.ui.DriveRestoreOffer
+import casa.peterson.dhmo.sync.drive.ui.DriveRestoreScreen
 import casa.peterson.dhmo.sync.healthconnect.ui.HealthConnectSettingsScreen
 import casa.peterson.dhmo.feature.settings.navigation.settingsScreens
 import casa.peterson.dhmo.feature.today.navigation.EditEntryRoute
@@ -39,6 +44,13 @@ fun DhmoNavHost(navController: NavHostController, onboarded: Boolean, modifier: 
             onFinished = {
                 navController.navigate(TodayRoute) { popUpTo(OnboardingGraph) { inclusive = true } }
             },
+            integrations = OnboardingIntegrations(
+                restoreOffer = if (DriveAvailability.isConfigured) {
+                    { onSkip, onRestored -> DriveRestoreOffer(onSkip, onRestored) }
+                } else {
+                    null
+                },
+            ),
         )
         todayScreens(
             navController = navController,
@@ -55,6 +67,8 @@ fun DhmoNavHost(navController: NavHostController, onboarded: Boolean, modifier: 
             onOpenProfile = openGoal,
             onOpenReminders = openReminders,
             integrations = SettingsIntegrations(
+                driveBackupSection = { onOpenRestore -> DriveBackupSection(onOpenRestore) },
+                driveRestoreContent = { onBack -> DriveRestoreScreen(onBack) },
                 healthConnectContent = { onBack -> HealthConnectSettingsScreen(onBack) },
             ),
         )
