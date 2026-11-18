@@ -20,11 +20,25 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             buildFeatures {
                 buildConfig = true
             }
+            // Release signing comes from the environment (filled by scripts/release/build-release.sh from 1Password),
+            // so no secret ever lands in the repository. Without it the release build is simply unsigned, which is
+            // what CI lint and R8 checks need.
+            val keystoreFile = providers.environmentVariable("DHMO_KEYSTORE_FILE").orNull
+            val signingRelease =
+                keystoreFile?.let { path ->
+                    signingConfigs.create("release") {
+                        storeFile = file(path)
+                        storePassword = providers.environmentVariable("DHMO_KEYSTORE_PASSWORD").get()
+                        keyAlias = providers.environmentVariable("DHMO_KEY_ALIAS").get()
+                        keyPassword = providers.environmentVariable("DHMO_KEY_PASSWORD").get()
+                    }
+                }
             buildTypes {
                 debug {
                     applicationIdSuffix = ".debug"
                 }
                 release {
+                    signingConfig = signingRelease
                     isMinifyEnabled = true
                     isShrinkResources = true
                     proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
