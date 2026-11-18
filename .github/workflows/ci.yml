@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 concurrency:
@@ -11,20 +12,42 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # The compile job saves Gradle's local build cache under this key; the jobs that follow restore it, so their
+  # compile tasks come FROM-CACHE instead of recompiling every module.
+  BUILD_CACHE_KEY: gradle-build-cache-${{ github.run_id }}-${{ github.run_attempt }}
+  BUILD_CACHE_PATH: ~/.gradle/caches/build-cache-1
+
 jobs:
-  build:
+  compile:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
+      - uses: ./.github/actions/gradle-setup
 
-      - uses: actions/setup-java@v5
+      - name: Compile everything (app, unit tests, androidTest)
+        run: >
+          ./gradlew assembleDebug compileDebugUnitTestKotlin compileDebugAndroidTestKotlin
+          :core:common:testClasses :core:model:testClasses :core:domain:testClasses :core:backup:testClasses :core:wear:testClasses
+
+      - name: Share the build cache with the jobs that follow
+        uses: actions/cache/save@v4
         with:
-          distribution: temurin
-          # Matches gradle/gradle-daemon-jvm.properties (Temurin 25), so Gradle uses it instead of downloading one.
-          java-version: 25
+          path: ${{ env.BUILD_CACHE_PATH }}
+          key: ${{ env.BUILD_CACHE_KEY }}
 
-      - uses: gradle/actions/setup-gradle@v5
+  static-and-lint:
+    needs: compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/gradle-setup
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.BUILD_CACHE_PATH }}
+          key: ${{ env.BUILD_CACHE_KEY }}
 
       - name: Static analysis
         run: ./gradlew ktlintCheck detekt checkModuleGraph --continue
@@ -32,14 +55,30 @@ jobs:
       - name: Android lint
         run: ./gradlew lint --continue
 
+      - name: Upload lint reports
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: lint-reports
+          path: |
+            **/build/reports/lint-results-*.html
+            **/build/reports/detekt/**
+          if-no-files-found: ignore
+
+  unit-tests:
+    needs: compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/gradle-setup
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.BUILD_CACHE_PATH }}
+          key: ${{ env.BUILD_CACHE_KEY }}
+
       - name: Unit tests
         run: ./gradlew testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test --continue
-
-      - name: Screenshot tests (Roborazzi, JVM)
-        run: ./gradlew verifyRoborazziDebug
-
-      - name: Assemble debug
-        run: ./gradlew assembleDebug
 
       - name: Upload test reports
         if: failure()
@@ -51,6 +90,22 @@ jobs:
             **/build/test-results/**
           if-no-files-found: ignore
 
+  screenshot-tests:
+    name: Screenshot tests (Roborazzi, JVM)
+    needs: compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/gradle-setup
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.BUILD_CACHE_PATH }}
+          key: ${{ env.BUILD_CACHE_KEY }}
+
+      - name: Verify screenshots
+        run: ./gradlew verifyRoborazziDebug
+
       - name: Upload Roborazzi diffs
         if: failure()
         uses: actions/upload-artifact@v5
@@ -59,14 +114,4 @@ jobs:
           path: |
             **/build/outputs/roborazzi/**
             **/build/test-results/roborazzi/**
-          if-no-files-found: ignore
-
-      - name: Upload lint reports
-        if: failure()
-        uses: actions/upload-artifact@v5
-        with:
-          name: lint-reports
-          path: |
-            **/build/reports/lint-results-*.html
-            **/build/reports/detekt/**
           if-no-files-found: ignore
