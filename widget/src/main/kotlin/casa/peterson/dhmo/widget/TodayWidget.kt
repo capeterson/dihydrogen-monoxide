@@ -34,6 +34,8 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import casa.peterson.dhmo.core.designsystem.theme.DarkColors
+import casa.peterson.dhmo.core.designsystem.theme.LightColors
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.model.Source
 import dagger.hilt.EntryPoint
@@ -93,7 +95,7 @@ class TodayWidget : GlanceAppWidget() {
         val model = loadModel(context)
         val open = ComponentName(context.packageName, MAIN_ACTIVITY)
         provideContent {
-            GlanceTheme {
+            GlanceTheme(colors = ColorProviders(light = LightColors, dark = DarkColors)) {
                 WidgetContent(model, androidx.glance.LocalSize.current.height >= LARGE.height, open)
             }
         }

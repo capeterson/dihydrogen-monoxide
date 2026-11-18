@@ -49,7 +49,7 @@ fun HeatmapGrid(
                     DayResult.MET -> StarDay(1f)
                     DayResult.PARTLY_MET -> StarDay(PARTLY_FULLNESS)
                     DayResult.MISSED -> StarDay(MISSED_FULLNESS)
-                    null -> null
+                    null -> StarDay.NoData
                 }
             drawSkyCell(extras, center, cell, day, density, scaleToCell = true)
         }

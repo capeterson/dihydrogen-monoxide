@@ -2,6 +2,7 @@ package casa.peterson.dhmo.feature.today
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,11 +13,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -38,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -47,6 +53,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -77,6 +84,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import java.util.UUID
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun TodayScreen(
@@ -94,13 +102,18 @@ internal fun TodayScreen(
     val undo = stringResource(R.string.feature_today_undo)
     LaunchedEffect(viewModel, resources) {
         viewModel.effects.collect { effect ->
-            when (effect) {
-                is TodayEffect.EntryDeleted -> {
-                    val message = removedMessage(resources, effect.volumeMl, effect.containerName)
-                    if (snackbar.showSnackbar(message, undo) == SnackbarResult.ActionPerformed) viewModel.onUndoDelete(effect.id)
-                }
+            // Each message gets its own coroutine, so a newer one replaces the current toast instead of queueing behind it.
+            launch {
+                snackbar.currentSnackbarData?.dismiss()
+                when (effect) {
+                    is TodayEffect.EntryDeleted -> {
+                        val message = removedMessage(resources, effect.volumeMl, effect.containerName)
+                        val result = snackbar.showSnackbar(message, undo, duration = SnackbarDuration.Long)
+                        if (result == SnackbarResult.ActionPerformed) viewModel.onUndoDelete(effect.id)
+                    }
 
-                is TodayEffect.Error -> snackbar.showSnackbar(resources.getString(effect.messageRes))
+                    is TodayEffect.Error -> snackbar.showSnackbar(resources.getString(effect.messageRes))
+                }
             }
         }
     }
@@ -141,18 +154,29 @@ private fun removedMessage(resources: android.content.res.Resources, volumeMl: I
         )
     }
 
-/** The design's toast: a paper-coloured bar with a hairline border, the action underlined in the primary colour. */
+/** The design's toast: a paper-coloured bar with a hairline border and the action underlined in the primary colour. */
 @Composable
 private fun PaperSnackbarHost(state: SnackbarHostState) {
     SnackbarHost(state) { data ->
+        val shape = MaterialTheme.shapes.medium
         Snackbar(
-            data,
-            modifier = Modifier.padding(horizontal = 12.dp),
-            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.padding(horizontal = 12.dp).border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape),
+            action = data.visuals.actionLabel?.let { label ->
+                {
+                    TextButton(onClick = data::performAction) {
+                        Text(
+                            label,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline,
+                        )
+                    }
+                }
+            },
+            shape = shape,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            actionColor = MaterialTheme.colorScheme.primary,
-        )
+        ) { Text(data.visuals.message) }
     }
 }
 
@@ -181,7 +205,6 @@ private fun greetingFor(state: TodayUiState.Ready, hour: Int): String = when {
     else -> stringResource(R.string.feature_today_greeting_morning)
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun TodayContent(
     state: TodayUiState.Ready,
@@ -199,117 +222,28 @@ internal fun TodayContent(
     animated: Boolean = false,
 ) {
     var custom by remember { mutableStateOf(false) }
-    val locale = LocalConfiguration.current.locales[0]
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    LazyColumn(
-        modifier.fillMaxSize().testTag("today_list"),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        item {
-            Column(
-                Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            state.day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(greetingFor(state, hour), style = MaterialTheme.typography.headlineSmall)
-                    }
-                    DeskScene(animated = animated)
-                }
-                WindowHero(
-                    state.progress,
-                    width = if (landscape) LandscapeHeroWidth else PortraitHeroWidth,
-                    raining = state.pace?.status == PaceStatus.BEHIND,
-                    animated = animated,
-                )
-                TotalLine(state, locale, onOpenGoal)
-                if (state.goalMode != GoalMode.CALCULATED) Text(stringResource(R.string.feature_today_goal_override))
-                state.pace?.let { pace ->
-                    TextButton(onClick = onOpenReminders) {
-                        Text(
-                            if (pace.status == PaceStatus.BEHIND) {
-                                stringResource(
-                                    R.string.feature_today_behind_amount,
-                                    VolumeFormatter.format(pace.deficitMl, state.units, locale),
-                                )
-                            } else {
-                                stringResource(
-                                    if (pace.status ==
-                                        PaceStatus.AHEAD
-                                    ) {
-                                        R.string.feature_today_ahead
-                                    } else {
-                                        R.string.feature_today_on_track
-                                    },
-                                )
-                            },
-                        )
-                    }
-                }
-                if (state.showDisclaimerNote) Text(stringResource(R.string.feature_today_disclaimer))
-                if (state.showBatteryHint) TextButton(onClick = onBatteryHelp) { Text(stringResource(R.string.feature_today_battery_hint)) }
+    val padding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    val spacing = Arrangement.spacedBy(16.dp)
+    val hero: @Composable () -> Unit = { HeroSection(state, hour, animated, landscape, onOpenGoal, onOpenReminders, onBatteryHelp) }
+    val coasters: @Composable () -> Unit = { CoasterSection(state, onQuickAdd, onCustom = { custom = true }, onContainers) }
+    val notebook: @Composable () -> Unit = {
+        NotebookSection(state, onQuickAdd, onCustom = { custom = true }, onDelete, onEdit, onOpenHistoryDay)
+    }
+    if (landscape) {
+        // A short, wide screen: the window and total on the left, what to pour and what was poured on the right.
+        Row(modifier.fillMaxSize()) {
+            LazyColumn(Modifier.weight(1f), contentPadding = padding, verticalArrangement = spacing) { item { hero() } }
+            LazyColumn(Modifier.weight(1f).testTag("today_list"), contentPadding = padding, verticalArrangement = spacing) {
+                item { coasters() }
+                item { notebook() }
             }
         }
-        item {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Equal-width coasters, three to a row (two at large font sizes), wrapping instead of scrolling sideways.
-                FlowRow(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    maxItemsInEachRow = if (LocalConfiguration.current.fontScale > LARGE_FONT_SCALE) 2 else 3,
-                ) {
-                    state.containers.forEach { container ->
-                        QuickAddButton(
-                            container.volumeMl,
-                            state.units,
-                            onClick = { onQuickAdd(container) },
-                            modifier = Modifier.weight(1f).testTag("quick_add_${container.id}"),
-                            label = container.name,
-                            icon = container.icon.drawableRes(),
-                        )
-                    }
-                }
-                // No side padding, so the text lines up with the coasters above.
-                Column {
-                    TextButton(onClick = { custom = true }, contentPadding = FlushTextButtonPadding) {
-                        Text(stringResource(R.string.feature_today_add_custom))
-                    }
-                    TextButton(onClick = onContainers, contentPadding = FlushTextButtonPadding) {
-                        Text(stringResource(R.string.feature_today_manage_containers))
-                    }
-                }
-            }
-        }
-        item {
-            NotebookCard(
-                title = stringResource(R.string.feature_today_recent_drinks),
-                count = pluralStringResource(R.plurals.feature_today_drink_count, state.entries.size, state.entries.size),
-            ) {
-                if (state.entries.isEmpty()) {
-                    EmptyState(
-                        title = stringResource(R.string.feature_today_empty_title),
-                        message = stringResource(R.string.feature_today_empty_message),
-                        actionLabel = stringResource(R.string.feature_today_pour_a_glass),
-                        actionIcon = DhmoIcons.Glass,
-                        onAction = { state.containers.firstOrNull()?.let(onQuickAdd) ?: run { custom = true } },
-                    )
-                } else {
-                    state.entries.forEachIndexed { index, entry ->
-                        TodayEntry(entry, state.units, state.containers, onDelete, onEdit, last = index == state.entries.lastIndex)
-                    }
-                    TextButton(onClick = { onOpenHistoryDay(state.day) }, contentPadding = FlushTextButtonPadding) {
-                        Text(stringResource(R.string.feature_today_history))
-                    }
-                }
-            }
+    } else {
+        LazyColumn(modifier.fillMaxSize().testTag("today_list"), contentPadding = padding, verticalArrangement = spacing) {
+            item { hero() }
+            item { coasters() }
+            item { notebook() }
         }
     }
     if (custom) {
@@ -325,6 +259,129 @@ internal fun TodayContent(
             minMl = 1,
             maxMl = 10_000,
         )
+    }
+}
+
+/** The date and greeting beside the desk, the window, the total and the pace line. */
+@Composable
+private fun HeroSection(
+    state: TodayUiState.Ready,
+    hour: Int,
+    animated: Boolean,
+    landscape: Boolean,
+    onOpenGoal: () -> Unit,
+    onOpenReminders: () -> Unit,
+    onBatteryHelp: () -> Unit,
+) {
+    val locale = LocalConfiguration.current.locales[0]
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    state.day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(greetingFor(state, hour), style = MaterialTheme.typography.headlineSmall)
+            }
+            DeskScene(animated = animated)
+        }
+        WindowHero(
+            state.progress,
+            width = if (landscape) LandscapeHeroWidth else PortraitHeroWidth,
+            raining = state.pace?.status == PaceStatus.BEHIND,
+            animated = animated,
+        )
+        TotalLine(state, locale, onOpenGoal)
+        if (state.goalMode != GoalMode.CALCULATED) Text(stringResource(R.string.feature_today_goal_override))
+        state.pace?.let { pace ->
+            TextButton(onClick = onOpenReminders) {
+                Text(
+                    if (pace.status == PaceStatus.BEHIND) {
+                        stringResource(R.string.feature_today_behind_amount, VolumeFormatter.format(pace.deficitMl, state.units, locale))
+                    } else {
+                        stringResource(
+                            if (pace.status ==
+                                PaceStatus.AHEAD
+                            ) {
+                                R.string.feature_today_ahead
+                            } else {
+                                R.string.feature_today_on_track
+                            },
+                        )
+                    },
+                )
+            }
+        }
+        if (state.showDisclaimerNote) Text(stringResource(R.string.feature_today_disclaimer))
+        if (state.showBatteryHint) TextButton(onClick = onBatteryHelp) { Text(stringResource(R.string.feature_today_battery_hint)) }
+    }
+}
+
+/** The coasters for the user's containers: equal widths, three to a row (two at large font sizes), wrapping. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CoasterSection(state: TodayUiState.Ready, onQuickAdd: (Container) -> Unit, onCustom: () -> Unit, onContainers: () -> Unit) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            maxItemsInEachRow = if (LocalConfiguration.current.fontScale > LARGE_FONT_SCALE) 2 else 3,
+        ) {
+            state.containers.forEach { container ->
+                QuickAddButton(
+                    container.volumeMl,
+                    state.units,
+                    onClick = { onQuickAdd(container) },
+                    modifier = Modifier.weight(1f).testTag("quick_add_${container.id}"),
+                    label = container.name,
+                    icon = container.icon.drawableRes(),
+                )
+            }
+        }
+        // No side padding, so the text lines up with the coasters above.
+        Column {
+            TextButton(onClick = onCustom, contentPadding = FlushTextButtonPadding) {
+                Text(stringResource(R.string.feature_today_add_custom))
+            }
+            TextButton(onClick = onContainers, contentPadding = FlushTextButtonPadding) {
+                Text(stringResource(R.string.feature_today_manage_containers))
+            }
+        }
+    }
+}
+
+/** "Poured today": the day's drinks as notebook rows, or the sleeping cat and a "Pour a glass" button when there are none. */
+@Composable
+private fun NotebookSection(
+    state: TodayUiState.Ready,
+    onQuickAdd: (Container) -> Unit,
+    onCustom: () -> Unit,
+    onDelete: (UUID) -> Unit,
+    onEdit: (UUID) -> Unit,
+    onOpenHistoryDay: (LocalDate) -> Unit,
+) {
+    NotebookCard(
+        title = stringResource(R.string.feature_today_recent_drinks),
+        count = pluralStringResource(R.plurals.feature_today_drink_count, state.entries.size, state.entries.size),
+    ) {
+        if (state.entries.isEmpty()) {
+            EmptyState(
+                title = stringResource(R.string.feature_today_empty_title),
+                message = stringResource(R.string.feature_today_empty_message),
+                actionLabel = stringResource(R.string.feature_today_pour_a_glass),
+                actionIcon = DhmoIcons.Glass,
+                onAction = { state.containers.firstOrNull()?.let(onQuickAdd) ?: onCustom() },
+            )
+        } else {
+            state.entries.forEachIndexed { index, entry ->
+                TodayEntry(entry, state.units, state.containers, onDelete, onEdit, last = index == state.entries.lastIndex)
+            }
+            TextButton(onClick = { onOpenHistoryDay(state.day) }, contentPadding = FlushTextButtonPadding) {
+                Text(stringResource(R.string.feature_today_history))
+            }
+        }
     }
 }
 
@@ -396,6 +453,15 @@ private fun TodayEntry(
             icon = (container?.icon ?: ContainerIcon.GLASS).drawableRes(),
             label = container?.name,
             last = last,
+            trailing = if (entry.isEditable) {
+                {
+                    IconButton(onClick = { onDelete(entry.id) }) {
+                        Icon(painterResource(DhmoIcons.Close), contentDescription = deleteLabel, modifier = Modifier.size(18.dp))
+                    }
+                }
+            } else {
+                null
+            },
         )
     }
 }

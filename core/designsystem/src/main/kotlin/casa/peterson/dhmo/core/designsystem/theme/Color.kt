@@ -14,7 +14,8 @@ import androidx.compose.ui.graphics.Color
  * These are also the fallback schemes when dynamic colour is off (the default) or unavailable below Android 12.
  */
 
-internal val LightColors =
+/** The Day (light) Material scheme, public so the widget can theme itself with the same colours. */
+val LightColors =
     lightColorScheme(
         primary = Color(0xFF2D6A76),
         onPrimary = Color(0xFFF8F7EF),
@@ -54,7 +55,8 @@ internal val LightColors =
         surfaceContainerHighest = Color(0xFFDFE4D3),
     )
 
-internal val DarkColors =
+/** The Night (dark) Material scheme. */
+val DarkColors =
     darkColorScheme(
         primary = Color(0xFF82C6CC),
         onPrimary = Color(0xFF161A2C),
@@ -142,7 +144,7 @@ internal val LightExtraColors =
         glowHalo = Color(0x8CE8A54B),
         wood = Color(0xFFB49A74),
         woodHighlight = Color(0xFFD6C29F),
-        rain = Color(0xCCFFFFFF),
+        rain = Color(0xF2FFFFFF),
         shelfHighlight = Color(0xA6FFFFFF),
         isNight = false,
     )
@@ -166,7 +168,7 @@ internal val DarkExtraColors =
         glowHalo = Color(0x99F2B661),
         wood = Color(0xFF6B5646),
         woodHighlight = Color(0xFF8A7258),
-        rain = Color(0x99C8D7F0),
+        rain = Color(0xE6C8D7F0),
         shelfHighlight = Color(0x29F2B661),
         isNight = true,
     )

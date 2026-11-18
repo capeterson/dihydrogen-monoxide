@@ -45,7 +45,7 @@ private object TagShape : Shape {
 /** A tag with a [label] and an optional monospaced [value] ("Weight  72 kg"); pass [onClick] to make it a button. */
 @Composable
 fun TagChip(label: String, modifier: Modifier = Modifier, value: String? = null, onClick: (() -> Unit)? = null) {
-    val hole = MaterialTheme.colorScheme.surface
+    val hole = MaterialTheme.colorScheme.surfaceContainerLow
     val base =
         if (onClick == null) {
             modifier

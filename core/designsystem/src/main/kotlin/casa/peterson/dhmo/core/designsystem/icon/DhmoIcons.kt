@@ -46,4 +46,12 @@ object DhmoIcons {
     @DrawableRes val Sun: Int = R.drawable.core_designsystem_ic_sun
 
     @DrawableRes val Lantern: Int = R.drawable.core_designsystem_ic_lantern
+
+    @DrawableRes val NavToday: Int = R.drawable.core_designsystem_ic_nav_today
+
+    @DrawableRes val NavHistory: Int = R.drawable.core_designsystem_ic_nav_history
+
+    @DrawableRes val NavInsights: Int = R.drawable.core_designsystem_ic_nav_insights
+
+    @DrawableRes val NavSettings: Int = R.drawable.core_designsystem_ic_nav_settings
 }

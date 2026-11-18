@@ -2,15 +2,20 @@ package casa.peterson.dhmo.feature.insights.chart
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import casa.peterson.dhmo.core.designsystem.component.DayResultColors
+import androidx.compose.ui.unit.sp
+import casa.peterson.dhmo.core.designsystem.theme.LocalDhmoExtraColors
+import casa.peterson.dhmo.core.designsystem.theme.NumeralFontFamily
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.stats.DayResult
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
@@ -20,6 +25,7 @@ import com.patrykandpatrick.vico.compose.cartesian.Zoom
 import com.patrykandpatrick.vico.compose.cartesian.axis.Axis
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModel
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.compose.cartesian.data.ColumnCartesianLayerModel
@@ -39,7 +45,13 @@ import com.patrykandpatrick.vico.compose.common.data.ExtraStore
 import java.util.Locale
 
 private val ChartHeight = 220.dp
-private val ColumnThickness = 8.dp
+private const val DASH_LENGTH = 4
+private const val DASH_GAP = 4
+private const val AREA_ALPHA = 0.45f
+private const val AXIS_TEXT_SIZE = 11
+private val CandleThickness = 20.dp
+private val SlimThickness = 8.dp
+private const val CANDLE_MAX_COLUMNS = 8
 
 /**
  * Daily (or hourly) columns with optional line overlays, drawn with Vico from a fixed model, so the chart is
@@ -59,10 +71,27 @@ internal fun ColumnsWithLines(
     labelEvery: Int = 1,
 ) {
     val fallback = MaterialTheme.colorScheme.primary
-    val columnComponents = columnColors.map { color -> rememberLineComponent(fill = Fill(color), thickness = ColumnThickness) }
-    val fallbackColumn = rememberLineComponent(fill = Fill(fallback), thickness = ColumnThickness)
+    // Few columns are drawn as fat candles, many as slim ones; both have rounded tops like the design's candle bars.
+    val thickness = if (values.size <= CANDLE_MAX_COLUMNS) CandleThickness else SlimThickness
+    val top = thickness / 2
+    val candle = RoundedCornerShape(topStart = top, topEnd = top, bottomStart = 3.dp, bottomEnd = 3.dp)
+    val columnComponents = columnColors.map { color -> rememberLineComponent(fill = Fill(color), thickness = thickness, shape = candle) }
+    val fallbackColumn = rememberLineComponent(fill = Fill(fallback), thickness = thickness, shape = candle)
     val provider = remember(columnComponents, fallbackColumn) { PerColumnProvider(columnComponents, fallbackColumn) }
-    val lineSpecs = lines.map { line -> LineCartesianLayer.rememberLine(fill = LineCartesianLayer.LineFill.single(Fill(line.color))) }
+    val lineSpecs = lines.map { line ->
+        LineCartesianLayer.rememberLine(
+            fill = LineCartesianLayer.LineFill.single(Fill(line.color)),
+            stroke = if (line.dashed) {
+                LineCartesianLayer.LineStroke.Dashed(line.thickness.dp, StrokeCap.Round, DASH_LENGTH.dp, DASH_GAP.dp)
+            } else {
+                LineCartesianLayer.LineStroke.Continuous(line.thickness.dp, StrokeCap.Round)
+            },
+            areaFill = if (line.area) LineCartesianLayer.AreaFill.single(Fill(line.color.copy(alpha = AREA_ALPHA))) else null,
+        )
+    }
+    val axisLabel = rememberAxisLabelComponent(
+        TextStyle(fontFamily = NumeralFontFamily, fontSize = AXIS_TEXT_SIZE.sp, color = MaterialTheme.colorScheme.onSurfaceVariant),
+    )
     val drawnLines = lines.withIndex().filter { it.value.points.isNotEmpty() }
     val layers = buildList {
         add(rememberColumnCartesianLayer(columnProvider = provider))
@@ -76,8 +105,14 @@ internal fun ColumnsWithLines(
     }
     val chart = rememberCartesianChart(
         *layers.toTypedArray(),
-        startAxis = VerticalAxis.rememberStart(valueFormatter = remember(units, locale) { VolumeAxisFormatter(units, locale) }),
+        startAxis = VerticalAxis.rememberStart(
+            label = axisLabel,
+            valueFormatter = remember(units, locale) {
+                VolumeAxisFormatter(units, locale)
+            },
+        ),
         bottomAxis = HorizontalAxis.rememberBottom(
+            label = axisLabel,
             valueFormatter = remember(xLabel) { IndexAxisFormatter(xLabel) },
             itemPlacer = remember(labelEvery) { HorizontalAxis.ItemPlacer.aligned(spacing = { labelEvery }) },
         ),
@@ -105,13 +140,15 @@ internal fun ColumnsWithLines(
     )
 }
 
-/** The column colour for a day result; days without data use the surface variant. */
+/**
+ * The candle colour for a day result: the deep primary for a met goal, the soft water colour for a partly met one and a
+ * grey for a missed or empty one. The three differ strongly in lightness, so they stay apart without colour vision.
+ */
 @Composable
 internal fun resultColor(result: DayResult?): Color = when (result) {
-    DayResult.MET -> DayResultColors.style(casa.peterson.dhmo.core.designsystem.component.DayResult.MET).container
-    DayResult.PARTLY_MET -> DayResultColors.style(casa.peterson.dhmo.core.designsystem.component.DayResult.PARTLY_MET).container
-    DayResult.MISSED -> DayResultColors.style(casa.peterson.dhmo.core.designsystem.component.DayResult.MISSED).container
-    DayResult.NO_DATA, null -> MaterialTheme.colorScheme.outlineVariant
+    DayResult.MET -> MaterialTheme.colorScheme.primary
+    DayResult.PARTLY_MET -> LocalDhmoExtraColors.current.water
+    DayResult.MISSED, DayResult.NO_DATA, null -> MaterialTheme.colorScheme.outlineVariant
 }
 
 private class PerColumnProvider(private val columns: List<LineComponent>, private val fallback: LineComponent) :

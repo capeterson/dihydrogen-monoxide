@@ -74,7 +74,7 @@ internal val DhmoTypography =
 
 /** The big volume figure on the Today screen: monospaced and tabular, 48 sp. */
 val NumeralHeroStyle =
-    TextStyle(fontFamily = NumeralFontFamily, fontWeight = FontWeight.Medium, fontSize = 40.sp, lineHeight = 48.sp)
+    TextStyle(fontFamily = NumeralFontFamily, fontWeight = FontWeight.Medium, fontSize = 48.sp, lineHeight = 52.sp)
 
 /** Smaller monospaced figures: quick-add amounts, row volumes, times. */
 val NumeralLabelStyle =

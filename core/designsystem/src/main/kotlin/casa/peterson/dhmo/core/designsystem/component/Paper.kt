@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
@@ -28,6 +31,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,8 +46,8 @@ fun Modifier.dashedBottomRule(color: androidx.compose.ui.graphics.Color, enabled
     drawBehind {
         drawLine(
             color,
-            Offset(0f, size.height - 0.5f),
-            Offset(size.width, size.height - 0.5f),
+            Offset(0f, size.height - HAIRLINE),
+            Offset(size.width, size.height - HAIRLINE),
             strokeWidth = 1.dp.toPx(),
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())),
         )
@@ -84,9 +88,12 @@ fun NotebookRow(
     @DrawableRes icon: Int? = null,
     label: String? = null,
     last: Boolean = false,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
-        modifier.fillMaxWidth().defaultMinSize(minHeight = 44.dp).dashedBottomRule(MaterialTheme.colorScheme.outlineVariant, !last),
+        modifier.fillMaxWidth().defaultMinSize(
+            minHeight = 44.dp,
+        ).padding(vertical = 4.dp).dashedBottomRule(MaterialTheme.colorScheme.outlineVariant, !last),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -108,12 +115,13 @@ fun NotebookRow(
             )
             if (label != null) Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        trailing?.invoke()
     }
 }
 
 /** An insight: a lamp-coloured round [icon] beside a [title] and [body]. */
 @Composable
-fun InsightCard(title: String, body: String, @DrawableRes icon: Int, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+fun InsightCard(title: String, body: String?, @DrawableRes icon: Int, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     val extras = LocalDhmoExtraColors.current
     PaperCard(modifier) {
         Row(
@@ -129,7 +137,11 @@ fun InsightCard(title: String, body: String, @DrawableRes icon: Int, modifier: M
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
-                Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (body !=
+                    null
+                ) {
+                    Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }
@@ -176,7 +188,14 @@ fun SegmentedPill(
 
 /** One ingredient in the goal's recipe: a round [icon], a [label] and a monospaced [value], over a dashed rule. */
 @Composable
-fun RecipeRow(@DrawableRes icon: Int, label: String, value: String, modifier: Modifier = Modifier, last: Boolean = false) {
+fun RecipeRow(
+    @DrawableRes icon: Int,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    detail: String? = null,
+    last: Boolean = false,
+) {
     Row(
         modifier.fillMaxWidth().defaultMinSize(minHeight = 52.dp).dashedBottomRule(MaterialTheme.colorScheme.outlineVariant, !last),
         verticalAlignment = Alignment.CenterVertically,
@@ -193,7 +212,36 @@ fun RecipeRow(@DrawableRes icon: Int, label: String, value: String, modifier: Mo
                 modifier = Modifier.size(18.dp),
             )
         }
-        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.labelLarge)
+            if (detail !=
+                null
+            ) {
+                Text(detail, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         Text(value, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = NumeralFontFamily, fontWeight = FontWeight.Medium))
     }
 }
+
+/** The recipe card: a [title] and [content] with a big leaf peeking over the top-right corner, as in the design. */
+@Composable
+fun RecipeCard(title: String, modifier: Modifier = Modifier, caption: String? = null, content: @Composable ColumnScope.() -> Unit) {
+    PaperCard(modifier) {
+        Box {
+            CornerLeaf(Modifier.size(110.dp).align(Alignment.TopEnd).offset(x = 26.dp, y = (-22).dp))
+            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+                if (caption !=
+                    null
+                ) {
+                    Text(caption, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.height(16.dp))
+                content()
+            }
+        }
+    }
+}
+
+private const val HAIRLINE = 0.5f

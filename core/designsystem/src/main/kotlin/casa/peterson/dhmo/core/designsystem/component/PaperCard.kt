@@ -38,8 +38,8 @@ fun PaperCard(
                     if (night) {
                         drawLine(
                             NightRim,
-                            androidx.compose.ui.geometry.Offset(0f, 0.5f),
-                            androidx.compose.ui.geometry.Offset(size.width, 0.5f),
+                            androidx.compose.ui.geometry.Offset(0f, HAIRLINE),
+                            androidx.compose.ui.geometry.Offset(size.width, HAIRLINE),
                             1.dp.toPx(),
                         )
                     }
@@ -51,3 +51,5 @@ fun PaperCard(
         Column(content = content)
     }
 }
+
+private const val HAIRLINE = 0.5f

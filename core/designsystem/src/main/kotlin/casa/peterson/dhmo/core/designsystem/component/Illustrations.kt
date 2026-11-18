@@ -108,12 +108,12 @@ fun SleepingCat(modifier: Modifier = Modifier, width: Dp = 132.dp) {
 @Composable
 fun CornerLeaf(modifier: Modifier = Modifier) {
     val leaf = MaterialTheme.colorScheme.tertiary
-    val vein = MaterialTheme.colorScheme.onTertiaryContainer
+    val vein = MaterialTheme.colorScheme.surfaceContainerLow
     Canvas(modifier.aspectRatio(1f)) {
         scale(size.width / 110f, Offset.Zero) {
             rotate(18f, Offset(55f, 55f)) {
-                drawPath(BigLeaf, Brush.linearGradient(listOf(leaf.copy(alpha = 0.55f), leaf)))
-                drawPath(BigLeafVeins, vein.copy(alpha = 0.5f), style = Stroke(width = 3f, cap = StrokeCap.Round))
+                drawPath(BigLeaf, leaf.copy(alpha = 0.95f))
+                drawPath(BigLeafVeins, vein, style = Stroke(width = 3f, cap = StrokeCap.Round))
             }
         }
     }

@@ -2,6 +2,8 @@ package casa.peterson.dhmo.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -31,20 +33,30 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import casa.peterson.dhmo.core.designsystem.component.DhmoScreen
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
+import casa.peterson.dhmo.core.designsystem.component.RecipeCard
+import casa.peterson.dhmo.core.designsystem.component.RecipeRow
 import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.component.SettingsRow
+import casa.peterson.dhmo.core.designsystem.component.TagChip
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
+import casa.peterson.dhmo.core.designsystem.theme.NumeralFontFamily
 import casa.peterson.dhmo.core.domain.body.BodyMeasures
+import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.model.ActivityAdjustment
 import casa.peterson.dhmo.core.model.ClampFlag
+import casa.peterson.dhmo.core.model.ComponentKind
 import casa.peterson.dhmo.core.model.GoalBreakdown
 import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.Intensity
@@ -120,7 +132,10 @@ internal fun ProfileGoalContent(
     ) {
         item(key = "summary") { GoalSummary(state, labels) }
         item(key = "today") { TodayOverrideCard(state, labels, actions) }
-        state.breakdown?.let { breakdown -> item(key = "breakdown") { BreakdownCard(breakdown, labels) } }
+        state.breakdown?.let { breakdown ->
+            item(key = "breakdown") { BreakdownCard(breakdown, labels) }
+            item(key = "went_in") { WhatWentInCard(breakdown, labels) }
+        }
         if (state.profile != null) item(key = "planned") { PlannedExerciseCard(state, actions) }
         item(key = "rows") { GoalRows(state, labels, actions) }
         item(key = "disclaimer") {
@@ -131,17 +146,45 @@ internal fun ProfileGoalContent(
 
 @Composable
 private fun GoalSummary(state: ProfileGoalUiState.Ready, labels: BreakdownLabels) {
-    SectionCard {
-        Text(stringResource(R.string.feature_profile_effective_goal), style = MaterialTheme.typography.titleMedium)
-        Text(labels.volume(state.effective.targetMl), style = MaterialTheme.typography.displaySmall)
+    val breakdown = state.breakdown
+    val warmDay = breakdown?.components?.any { it.kind == ComponentKind.CLIMATE_FORECAST && it.applied && it.ml > 0 } == true
+    val full = labels.volume(state.effective.targetMl)
+    val number = VolumeFormatter.formatNumber(state.effective.targetMl, labels.units, labels.locale)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            stringResource(
-                when (state.effective.mode) {
-                    GoalMode.CALCULATED -> R.string.feature_profile_mode_calculated
-                    GoalMode.GLOBAL_OVERRIDE -> R.string.feature_profile_mode_global
-                    GoalMode.DAY_OVERRIDE -> R.string.feature_profile_mode_day
-                },
-            ),
+            stringResource(R.string.feature_profile_effective_goal).uppercase(labels.locale),
+            style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.12.em),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { heading() },
+        )
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = full },
+        ) {
+            Text(
+                number,
+                style = MaterialTheme.typography.displayLarge.copy(fontSize = 56.sp, lineHeight = 60.sp, letterSpacing = (-0.01).em),
+            )
+            Text(
+                full.removePrefix(number).trim(),
+                Modifier.padding(start = 4.dp, bottom = 8.dp),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            if (warmDay) {
+                stringResource(R.string.feature_profile_warm_day)
+            } else {
+                stringResource(
+                    when (state.effective.mode) {
+                        GoalMode.CALCULATED -> R.string.feature_profile_mode_calculated
+                        GoalMode.GLOBAL_OVERRIDE -> R.string.feature_profile_mode_global
+                        GoalMode.DAY_OVERRIDE -> R.string.feature_profile_mode_day
+                    },
+                )
+            },
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         val calculated = state.effective.calculatedMl
         Text(
@@ -152,7 +195,6 @@ private fun GoalSummary(state: ProfileGoalUiState.Ready, labels: BreakdownLabels
             },
             style = MaterialTheme.typography.titleSmall,
         )
-        val breakdown = state.breakdown
         if (breakdown != null && breakdown.clamp != ClampFlag.NONE) {
             ErrorText(
                 stringResource(
@@ -180,37 +222,6 @@ private fun TodayOverrideCard(state: ProfileGoalUiState.Ready, labels: Breakdown
                 TextButton(onClick = actions.onClearDayOverride) { Text(stringResource(R.string.feature_profile_clear)) }
             }
         }
-    }
-}
-
-@Composable
-private fun BreakdownCard(breakdown: GoalBreakdown, labels: BreakdownLabels) {
-    SectionCard(title = stringResource(R.string.feature_profile_breakdown_title)) {
-        breakdown.components.forEach { component ->
-            Column(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}) {
-                Text(
-                    labels.label(component),
-                    textDecoration = if (component.applied) null else TextDecoration.LineThrough,
-                    color = if (component.applied) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (!component.applied) {
-                    Text(
-                        stringResource(R.string.feature_profile_breakdown_not_applied),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                labels.note(component)?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-        HorizontalDivider()
-        Text(
-            stringResource(R.string.feature_profile_breakdown_total, labels.volume(breakdown.rawMl), labels.volume(breakdown.calculatedMl)),
-            style = MaterialTheme.typography.titleSmall,
-        )
-        Text(stringResource(R.string.feature_profile_drinks_only), style = MaterialTheme.typography.bodySmall)
     }
 }
 

@@ -7,10 +7,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,14 +24,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import casa.peterson.dhmo.core.designsystem.R
+import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
+import casa.peterson.dhmo.core.designsystem.theme.NumeralHeroStyle
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import java.math.BigDecimal
@@ -91,7 +99,12 @@ fun VolumeInputSheet(
     maxMl: Int = DEFAULT_MAX_ML,
     stepMl: Int = DEFAULT_STEP_ML,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, modifier = modifier) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        modifier = modifier,
+        shape = TornTopShape,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
         VolumeInputSheetContent(
             title = title,
             initialMl = initialMl,
@@ -134,6 +147,36 @@ fun VolumeInputSheetContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(text = title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        // The amount as a big monospaced numeral with a stepper either side, like a dial on the desk.
+        val shown = parsedMl?.takeIf { it in minMl..maxMl } ?: sliderMl
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            IconButton(
+                onClick = {
+                    sliderMl = (shown - stepMl).coerceIn(minMl, maxMl)
+                    text = volumeFieldText(sliderMl, unit, locale)
+                },
+                enabled = shown > minMl,
+            ) {
+                Icon(
+                    painterResource(DhmoIcons.Remove),
+                    contentDescription = stringResource(R.string.core_designsystem_volume_sheet_decrease),
+                )
+            }
+            Text(
+                text = VolumeFormatter.format(shown, unit, locale),
+                style = NumeralHeroStyle,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+            IconButton(
+                onClick = {
+                    sliderMl = (shown + stepMl).coerceIn(minMl, maxMl)
+                    text = volumeFieldText(sliderMl, unit, locale)
+                },
+                enabled = shown < maxMl,
+            ) {
+                Icon(painterResource(DhmoIcons.Add), contentDescription = stringResource(R.string.core_designsystem_volume_sheet_increase))
+            }
+        }
         OutlinedTextField(
             value = text,
             onValueChange = { input ->
@@ -160,6 +203,11 @@ fun VolumeInputSheetContent(
                 text = volumeFieldText(sliderMl, unit, locale)
             },
             valueRange = minMl.toFloat()..maxMl.toFloat(),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
+            ),
             modifier = Modifier.fillMaxWidth().semantics {
                 contentDescription = sliderDescription
                 stateDescription = sliderState

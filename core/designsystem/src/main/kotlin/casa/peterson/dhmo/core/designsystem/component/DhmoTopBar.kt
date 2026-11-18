@@ -3,6 +3,7 @@ package casa.peterson.dhmo.core.designsystem.component
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -26,7 +27,17 @@ fun DhmoTopBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     TopAppBar(
-        title = { Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.semantics { heading() }) },
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.semantics {
+                    heading()
+                },
+            )
+        },
         modifier = modifier,
         navigationIcon = {
             if (onNavigateBack != null) {

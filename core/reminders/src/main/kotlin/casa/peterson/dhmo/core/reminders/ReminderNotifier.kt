@@ -82,6 +82,7 @@ constructor(@ApplicationContext private val context: Context) {
         }
         val builder = NotificationCompat.Builder(context, CHANNEL_REMINDERS)
             .setSmallIcon(R.drawable.core_reminders_ic_notification)
+            .setColor(ContextCompat.getColor(context, R.color.core_reminders_accent))
             .setContentTitle(context.getString(R.string.core_reminders_nudge_title))
             .setContentText(text)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
@@ -121,6 +122,7 @@ constructor(@ApplicationContext private val context: Context) {
         }
         val builder = NotificationCompat.Builder(context, CHANNEL_SUMMARIES)
             .setSmallIcon(R.drawable.core_reminders_ic_notification)
+            .setColor(ContextCompat.getColor(context, R.color.core_reminders_accent))
             .setContentTitle(context.getString(R.string.core_reminders_summary_title))
             .setContentText(text)
             .setCategory(NotificationCompat.CATEGORY_STATUS)

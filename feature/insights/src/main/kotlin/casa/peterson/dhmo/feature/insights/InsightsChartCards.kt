@@ -19,6 +19,7 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,8 +45,10 @@ import casa.peterson.dhmo.core.designsystem.component.DhmoScreen
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.EmptyState
 import casa.peterson.dhmo.core.designsystem.component.HeatmapGrid
+import casa.peterson.dhmo.core.designsystem.component.NightSkyPanel
 import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
+import casa.peterson.dhmo.core.designsystem.theme.LocalDhmoExtraColors
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.stats.DayResult
 import casa.peterson.dhmo.core.domain.stats.Insight
@@ -54,6 +57,7 @@ import casa.peterson.dhmo.core.domain.stats.TrendDirection
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import casa.peterson.dhmo.feature.insights.chart.ChartLine
 import casa.peterson.dhmo.feature.insights.chart.ColumnsWithLines
+import casa.peterson.dhmo.feature.insights.chart.DailyAreaChart
 import casa.peterson.dhmo.feature.insights.chart.resultColor
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -77,27 +81,27 @@ internal fun ChartCard(state: InsightsUiState.Ready, locale: Locale, modifier: M
 
 @Composable
 internal fun DailyChart(state: InsightsUiState.Ready, locale: Locale, modifier: Modifier) {
-    val goalColor = MaterialTheme.colorScheme.tertiary
-    val rolling7Color = MaterialTheme.colorScheme.primary
-    val rolling30Color = MaterialTheme.colorScheme.secondary
+    val goalColor = MaterialTheme.colorScheme.secondary
+    val rolling7Color = MaterialTheme.colorScheme.onSurfaceVariant
     val days = state.days
     val goal = state.goalMl
-    val lines = buildList {
-        if (goal != null) add(ChartLine(days.indices.map { it to goal.toDouble() }, goalColor))
-        add(ChartLine(state.rolling7.points(), rolling7Color))
-        if (days.size > ROLLING_7_ONLY_MAX_DAYS) add(ChartLine(state.rolling30.points(), rolling30Color))
+    val from = state.selection.from
+    val slots = ChronoUnit.DAYS.between(from, state.selection.to).toInt() + 1
+    val byDate = days.withIndex().associate { (index, day) -> day.date to index }
+    fun series(source: (Int) -> Double?) = (0 until slots).map { offset ->
+        val date = from.plusDays(offset.toLong())
+        if (date.isAfter(state.today)) null else byDate[date]?.let(source)
     }
-    val format = DateTimeFormatter.ofPattern(if (days.size <= DAYS_PER_WEEK) "EEE" else "d", locale)
+    val week = slots <= DAYS_PER_WEEK
+    val labelFormat = DateTimeFormatter.ofPattern(if (week) "EEEEE" else "d", locale)
     val met = days.count { state.results[it.date] == DayResult.MET }
     SectionCard(modifier, title = stringResource(R.string.feature_insights_chart_daily)) {
-        ColumnsWithLines(
-            values = days.map { it.totalMl.toDouble() },
-            columnColors = days.map { resultColor(state.results[it.date]) },
-            lines = lines,
-            xLabel = { index -> days.getOrNull(index)?.date?.let(format::format).orEmpty() },
-            units = state.units,
-            locale = locale,
-            labelEvery = if (days.size <= DAYS_PER_WEEK) 1 else LABEL_EVERY_DAYS,
+        DailyAreaChart(
+            values = series { days[it].totalMl.toDouble() },
+            labels = (0 until slots).map { labelFormat.format(from.plusDays(it.toLong())) },
+            labelEvery = if (week) 1 else LABEL_EVERY_DAYS,
+            goal = goal?.toDouble(),
+            average = if (days.size > DAYS_PER_WEEK) series { state.rolling7.getOrNull(it) } else null,
             description = pluralStringResource(
                 R.plurals.feature_insights_chart_daily_description,
                 days.size,
@@ -111,8 +115,7 @@ internal fun DailyChart(state: InsightsUiState.Ready, locale: Locale, modifier: 
         Legend(
             buildList {
                 if (goal != null) add(goalColor to stringResource(R.string.feature_insights_legend_goal))
-                add(rolling7Color to stringResource(R.string.feature_insights_legend_rolling7))
-                if (days.size > ROLLING_7_ONLY_MAX_DAYS) add(rolling30Color to stringResource(R.string.feature_insights_legend_rolling30))
+                if (days.size > DAYS_PER_WEEK) add(rolling7Color to stringResource(R.string.feature_insights_legend_rolling7))
             },
         )
     }
@@ -165,9 +168,15 @@ internal fun YearHeatmap(state: InsightsUiState.Ready, modifier: Modifier) {
             DayResult.NO_DATA, null -> null
         }
     }
-    SectionCard(modifier, title = stringResource(R.string.feature_insights_chart_year)) {
-        Row(Modifier.horizontalScroll(rememberScrollState())) {
-            HeatmapGrid(cells = cells, cellSize = 12.dp)
+    NightSkyPanel(
+        title = stringResource(R.string.feature_insights_chart_year),
+        caption = stringResource(R.string.feature_insights_night_sky_caption),
+        modifier = modifier,
+    ) {
+        val scroll = rememberScrollState()
+        LaunchedEffect(scroll.maxValue) { scroll.scrollTo(scroll.maxValue) }
+        Row(Modifier.horizontalScroll(scroll).padding(top = 8.dp)) {
+            HeatmapGrid(cells = cells, cellSize = 14.dp)
         }
     }
 }
@@ -182,3 +191,4 @@ internal fun Legend(items: List<Pair<Color, String>>) {
 }
 
 internal fun List<Double?>.points(): List<Pair<Int, Double>> = mapIndexedNotNull { index, value -> value?.let { index to it } }
+private const val GOAL_LINE_DP = 1.5f

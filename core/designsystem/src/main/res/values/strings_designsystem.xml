@@ -12,6 +12,8 @@
     <string name="core_designsystem_volume_sheet_field_label">Amount in %1$s</string>
     <string name="core_designsystem_volume_sheet_error">Enter an amount from %1$s to %2$s</string>
     <string name="core_designsystem_volume_sheet_slider_description">Amount slider</string>
+    <string name="core_designsystem_volume_sheet_decrease">Decrease amount</string>
+    <string name="core_designsystem_volume_sheet_increase">Increase amount</string>
     <string name="core_designsystem_volume_sheet_confirm">Save</string>
     <string name="core_designsystem_cancel">Cancel</string>
     <string name="core_designsystem_ok">OK</string>

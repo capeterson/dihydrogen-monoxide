@@ -129,19 +129,19 @@ private fun rainField(count: Int, seed: Int): RainField {
     val streaks = List(count) {
         val x = next()
         val top = next() * 0.9f
-        val length = 14f + next() * 26f
+        val length = 20f + next() * 34f
         val period = 1.5f + next() * 1.8f
         val delay = next() * 3f
-        Streak(x, top, length, period, delay, 0.45f + next() * 0.5f)
+        Streak(x, top, length, period, delay, 0.7f + next() * 0.3f)
     }
-    val dew = List(9) {
-        val d = 3f + next() * 4f
+    val dew = List(16) {
+        val d = 4f + next() * 5f
         Dew(next() * 0.96f, next() * 0.92f, d, d * 1.3f)
     }
     return RainField(streaks, dew)
 }
 
-private val WindowRain = rainField(22, 7)
+private val WindowRain = rainField(34, 7)
 
 /** The fraction of the water to draw: [progress] clamped to 0..1, so overshooting the goal never overflows the jar. */
 internal fun jarFraction(progress: Float): Float = if (progress.isNaN()) 0f else progress.coerceIn(0f, 1f)
@@ -399,7 +399,7 @@ private fun DrawScope.drawRain(x: DhmoExtraColors, s: Float, iw: Float, ih: Floa
             Brush.verticalGradient(listOf(Color.Transparent, x.rain), startY = top, endY = top + length),
             Offset(d.x * iw, top),
             Offset(d.x * iw, top + length),
-            strokeWidth = 1.5f * s,
+            strokeWidth = 2.2f * s,
             cap = StrokeCap.Round,
             alpha = d.alpha,
         )

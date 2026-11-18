@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The lo-fi primary (river slate); Android tints the notification header and small icon with it. -->
+    <color name="core_reminders_accent">#2D6A76</color>
+</resources>

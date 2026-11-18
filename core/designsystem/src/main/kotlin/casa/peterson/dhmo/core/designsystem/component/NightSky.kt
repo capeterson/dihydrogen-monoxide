@@ -1,4 +1,4 @@
-@file:Suppress("MagicNumber") // Sizes and opacities are the design's `.cell` rules for the Night Sky card.
+@file:Suppress("MagicNumber", "MatchingDeclarationName") // Sizes and opacities are the design's `.cell` rules for the Night Sky card.
 
 package casa.peterson.dhmo.core.designsystem.component
 
@@ -32,9 +32,14 @@ import kotlin.math.min
 
 /**
  * One day in the Night Sky. [fullness] is the day's total over its goal (1.0 or more means the goal was met); null is a
- * day still in progress, drawn as a dashed outline. A day with no data is a `null` entry in the list instead.
+ * day still in progress, drawn as a dashed outline. [NoData] is a day with nothing logged; a `null` entry is padding.
  */
-class StarDay(val fullness: Float?)
+class StarDay(val fullness: Float?, val noData: Boolean = false) {
+    companion object {
+        /** A day in range with nothing logged: a faint dot. (A `null` entry is only grid padding and draws nothing.) */
+        val NoData = StarDay(null, noData = true)
+    }
+}
 
 private const val MET = 1f
 private const val MAX_FULLNESS = 1.05f
@@ -52,29 +57,37 @@ internal fun DrawScope.drawSkyCell(
     dp: Float,
     scaleToCell: Boolean = false,
 ) {
-    if (day == null) {
-        drawCircle(extras.star.copy(alpha = 0.25f), cell * 0.08f, center)
-        return
+    val fullness = day?.fullness
+    when {
+        day == null -> Unit
+
+        day.noData -> drawCircle(extras.star.copy(alpha = 0.25f), cell * 0.08f, center)
+
+        fullness == null -> {
+            val d = if (scaleToCell) cell * 0.5f else 10f * dp
+            outlineStar(extras.star, center, d, 1.2f * dp, PathEffect.dashPathEffect(floatArrayOf(2f * dp, 2f * dp)))
+        }
+
+        else -> {
+            val met = fullness >= MET
+            val size = if (scaleToCell) {
+                cell * (0.4f + 0.6f * min(fullness, MAX_FULLNESS))
+            } else {
+                (6f + 10f * min(fullness, MAX_FULLNESS)) *
+                    dp
+            }
+            val alpha = if (met) 1f else 0.3f + 0.7f * min(fullness, 1f)
+            if (met) {
+                val radius = cell / 2f + 4f * dp
+                drawCircle(
+                    Brush.radialGradient(0f to extras.glowHalo, 0.65f to Color.Transparent, center = center, radius = radius),
+                    radius,
+                    center,
+                )
+            }
+            drawStar(center, size, (if (met) extras.glow else extras.star).copy(alpha = alpha))
+        }
     }
-    val fullness = day.fullness
-    if (fullness == null) {
-        val d = if (scaleToCell) cell * 0.5f else 10f * dp
-        val dash = PathEffect.dashPathEffect(floatArrayOf(2f * dp, 2f * dp))
-        outlineStar(extras.star, center, d, 1.2f * dp, dash)
-        return
-    }
-    val met = fullness >= MET
-    val size = if (scaleToCell) cell * (0.4f + 0.6f * min(fullness, MAX_FULLNESS)) else (6f + 10f * min(fullness, MAX_FULLNESS)) * dp
-    val alpha = if (met) 1f else 0.3f + 0.7f * min(fullness, 1f)
-    if (met) {
-        val radius = cell / 2f + 4f * dp
-        drawCircle(
-            Brush.radialGradient(0f to extras.glowHalo, 0.65f to Color.Transparent, center = center, radius = radius),
-            radius,
-            center,
-        )
-    }
-    drawStar(center, size, (if (met) extras.glow else extras.star).copy(alpha = alpha))
 }
 
 private fun DrawScope.outlineStar(color: Color, center: Offset, diameter: Float, strokeWidth: Float, effect: PathEffect) {

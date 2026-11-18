@@ -20,8 +20,12 @@ private const val FORECAST_VERY_HOT_ML = 750
 private const val NUMBER_FRACTION_DIGITS = 1
 
 /** Formats the breakdown lines of TECHNICAL_PLAN §7.3 in the user's units, for example "Base 2,310 ml (33 ml × 70 kg)". */
-internal class BreakdownLabels(private val resources: Resources, private val units: VolumeUnit, private val locale: Locale) {
+@Suppress("TooManyFunctions") // One small formatter per kind of component; they belong together.
+internal class BreakdownLabels(private val resources: Resources, val units: VolumeUnit, val locale: Locale) {
     fun volume(ml: Int): String = VolumeFormatter.format(ml, units, locale)
+
+    /** A volume with its sign, for ingredients: "+250 ml". */
+    fun signed(ml: Int): String = (if (ml > 0) "+" else "") + volume(ml)
 
     /** The one-line label for [component]. Unknown or missing detail values fall back to safe defaults rather than throwing. */
     fun label(component: GoalComponent): String {
@@ -74,6 +78,40 @@ internal class BreakdownLabels(private val resources: Resources, private val uni
         }
 
     private fun string(id: Int, vararg args: Any): String = resources.getString(id, *args)
+
+    /** The working under a recipe row ("34 ml × 72 kg"), or null when the row says it all. */
+    fun detail(component: GoalComponent): String? {
+        val d = component.detail
+        return when (component.kind) {
+            ComponentKind.BASE_WEIGHT -> string(R.string.feature_profile_detail_base_weight, volume(d.int("factor")), number(d["weightKg"]))
+            ComponentKind.ACTIVITY_MINUTES -> string(R.string.feature_profile_detail_minutes, number(d["minutes"]))
+            ComponentKind.CLIMATE_FORECAST -> string(R.string.feature_profile_detail_forecast, number(d["maxApparentTempC"]))
+            else -> null
+        }
+    }
+
+    /** What the user gave the calculation: weight, active minutes, the forecast and the kind of base, as (name, value) pairs. */
+    fun inputs(components: List<GoalComponent>): List<Pair<Int, String>> = components.filter { it.applied }.mapNotNull { c ->
+        when (c.kind) {
+            ComponentKind.BASE_WEIGHT ->
+                R.string.feature_profile_ingredient_weight to
+                    string(R.string.feature_profile_input_kg, number(c.detail["weightKg"]))
+
+            ComponentKind.BASE_GENDER_FLOOR -> R.string.feature_profile_ingredient_base to string(R.string.feature_profile_input_adult)
+
+            ComponentKind.BASE_CHILD_TABLE -> R.string.feature_profile_ingredient_base to c.detail["ageBand"].orEmpty().replace('-', '–')
+
+            ComponentKind.ACTIVITY_MINUTES ->
+                R.string.feature_profile_ingredient_active to
+                    string(R.string.feature_profile_input_minutes, number(c.detail["minutes"]))
+
+            ComponentKind.CLIMATE_FORECAST ->
+                R.string.feature_profile_ingredient_forecast to
+                    string(R.string.feature_profile_input_celsius, number(c.detail["maxApparentTempC"]))
+
+            else -> null
+        }
+    }
 
     /** A `Locale.ROOT` decimal from a `detail` map, reformatted for [locale]. */
     private fun number(raw: String?): String {
