@@ -3,7 +3,18 @@
     <string name="feature_insights_insights_title">Insights</string>
     <string name="feature_insights_custom_range_title">Custom range</string>
     <string name="feature_insights_correlation_title">Correlation</string>
-    <string name="feature_insights_correlation_placeholder">Correlations with weather and activity arrive with Health Connect and weather support.</string>
+    <string name="feature_insights_correlation_title_temperature">Water and temperature</string>
+    <string name="feature_insights_correlation_title_activity">Water and activity</string>
+    <string name="feature_insights_correlation_not_enough">Not enough data yet. It takes at least 14 days that have both a drink log and this information; you have %1$d so far.</string>
+    <string name="feature_insights_correlation_none_temperature">No clear link between the day\'s temperature and how much you drank.</string>
+    <string name="feature_insights_correlation_none_activity">No clear link between how active you were and how much you drank.</string>
+    <string name="feature_insights_correlation_basis">Based on %1$d days.</string>
+    <string name="feature_insights_correlation_disclaimer">This shows a pattern in your own days. It does not show that one thing causes the other.</string>
+    <string name="feature_insights_correlation_plot_description">Scatter plot of %1$d days, each dot is one day.</string>
+    <string name="feature_insights_correlation_x_temperature">Feels-like high</string>
+    <string name="feature_insights_correlation_x_activity">Active minutes</string>
+    <string name="feature_insights_correlation_y_axis">Water per day, up to %1$s</string>
+    <string name="feature_insights_correlation_y_range">Water per day: %1$s – %2$s</string>
 
     <!-- Range tabs and navigation -->
     <string name="feature_insights_range_day">Day</string>
