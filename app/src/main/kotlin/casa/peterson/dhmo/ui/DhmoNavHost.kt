@@ -8,6 +8,7 @@ import casa.peterson.dhmo.feature.history.navigation.HistoryDayRoute
 import casa.peterson.dhmo.feature.history.navigation.historyScreens
 import casa.peterson.dhmo.feature.insights.navigation.insightsScreens
 import casa.peterson.dhmo.feature.onboarding.navigation.OnboardingGraph
+import casa.peterson.dhmo.feature.onboarding.navigation.OnboardingIntegrations
 import casa.peterson.dhmo.feature.onboarding.navigation.onboardingGraph
 import casa.peterson.dhmo.feature.profile.navigation.ProfileGoalRoute
 import casa.peterson.dhmo.feature.profile.navigation.profileScreens
@@ -18,6 +19,11 @@ import casa.peterson.dhmo.feature.settings.navigation.settingsScreens
 import casa.peterson.dhmo.feature.today.navigation.EditEntryRoute
 import casa.peterson.dhmo.feature.today.navigation.TodayRoute
 import casa.peterson.dhmo.feature.today.navigation.todayScreens
+import casa.peterson.dhmo.sync.drive.DriveAvailability
+import casa.peterson.dhmo.sync.drive.ui.DriveBackupSection
+import casa.peterson.dhmo.sync.drive.ui.DriveRestoreOffer
+import casa.peterson.dhmo.sync.drive.ui.DriveRestoreScreen
+import casa.peterson.dhmo.sync.healthconnect.ui.HealthConnectSettingsScreen
 
 /**
  * Calls every feature entry function. Cross-feature navigation is passed in as lambdas so features stay
@@ -38,6 +44,13 @@ fun DhmoNavHost(navController: NavHostController, onboarded: Boolean, modifier: 
             onFinished = {
                 navController.navigate(TodayRoute) { popUpTo(OnboardingGraph) { inclusive = true } }
             },
+            integrations = OnboardingIntegrations(
+                restoreOffer = if (DriveAvailability.isConfigured) {
+                    { onSkip, onRestored -> DriveRestoreOffer(onSkip, onRestored) }
+                } else {
+                    null
+                },
+            ),
         )
         todayScreens(
             navController = navController,
@@ -53,7 +66,11 @@ fun DhmoNavHost(navController: NavHostController, onboarded: Boolean, modifier: 
             navController = navController,
             onOpenProfile = openGoal,
             onOpenReminders = openReminders,
-            integrations = SettingsIntegrations(),
+            integrations = SettingsIntegrations(
+                driveBackupSection = { onOpenRestore -> DriveBackupSection(onOpenRestore) },
+                driveRestoreContent = { onBack -> DriveRestoreScreen(onBack) },
+                healthConnectContent = { onBack -> HealthConnectSettingsScreen(onBack) },
+            ),
         )
     }
 }

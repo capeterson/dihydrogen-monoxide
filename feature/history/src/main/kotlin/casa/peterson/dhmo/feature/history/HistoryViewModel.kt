@@ -75,7 +75,11 @@ class HistoryViewModel @Inject constructor(
         HistoryUiState(current.units, anomalies(completed).map { it.date }.toSet(), totals.associateBy { it.date }, goalMap)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), HistoryUiState())
 
-    val entries: Flow<PagingData<HistoryItem>> = combine(intake.pagedHistory(), uiState) { paging, state ->
+    /**
+     * The pager's output is cached first: `combine` re-emits the latest `PagingData` whenever [uiState] changes, and an
+     * uncached `PagingData` can only be collected once (a second collection crashes). Caching it makes the repeat safe.
+     */
+    val entries: Flow<PagingData<HistoryItem>> = combine(intake.pagedHistory().cachedIn(viewModelScope), uiState) { paging, state ->
         groupHistory(paging, state)
     }.cachedIn(viewModelScope)
 

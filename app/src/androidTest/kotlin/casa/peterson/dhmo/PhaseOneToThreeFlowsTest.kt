@@ -100,7 +100,12 @@ class PhaseOneToThreeFlowsTest {
             when {
                 compose.has(hasText("Today")) && compose.has(hasText("Quick add")) -> return
 
-                compose.has(hasText("Start tracking")) -> compose.onNodeWithText("Start tracking").performClick()
+                compose.has(hasText("Start tracking")) -> {
+                    compose.onNodeWithText("Start tracking").performClick()
+                    // Finishing is asynchronous; the button lingers until Today replaces it, so stop looping here.
+                    compose.waitForText("Quick add")
+                    return
+                }
 
                 compose.has(hasText("Not now")) -> compose.onNodeWithText("Not now").performClick()
 

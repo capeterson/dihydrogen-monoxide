@@ -23,12 +23,12 @@ import casa.peterson.dhmo.core.model.ActivitySource
 import casa.peterson.dhmo.core.model.ClampFlag
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.ContainerIcon
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.GoalBreakdown
 import casa.peterson.dhmo.core.model.GoalMode
 import casa.peterson.dhmo.core.model.Intensity
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.ProfileSource
-import casa.peterson.dhmo.core.model.Sex
 import casa.peterson.dhmo.core.model.Source
 import java.util.UUID
 
@@ -102,7 +102,7 @@ private fun ProfileSnapshotDto.toEntity(): ProfileSnapshotEntity? = ProfileSnaps
     id = uuidOrNull(id) ?: return null,
     effectiveFrom = effectiveFrom,
     birthDate = birthDate,
-    sex = enumOrNull<Sex>(sex) ?: return null,
+    gender = enumOrNull<Gender>(gender) ?: return null,
     weightKg = weightKg,
     heightCm = heightCm,
     activityLevel = enumOrNull<ActivityLevel>(activityLevel) ?: return null,

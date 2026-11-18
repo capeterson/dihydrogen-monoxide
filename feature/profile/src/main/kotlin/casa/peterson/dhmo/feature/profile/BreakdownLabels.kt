@@ -38,7 +38,7 @@ internal class BreakdownLabels(private val resources: Resources, private val uni
                 number(detail["weightKg"]),
             )
 
-            ComponentKind.BASE_SEX_FLOOR ->
+            ComponentKind.BASE_GENDER_FLOOR ->
                 string(R.string.feature_profile_component_base_floor, amount, volume(detail.int("weightBaseMl")))
 
             ComponentKind.PREGNANCY -> string(R.string.feature_profile_component_pregnancy, amount)

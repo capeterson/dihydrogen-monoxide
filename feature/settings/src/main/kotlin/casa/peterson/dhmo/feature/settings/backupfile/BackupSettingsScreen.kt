@@ -1,5 +1,3 @@
-@file:Suppress("UNUSED_PARAMETER") // the Drive slots are filled by Phase 4
-
 package casa.peterson.dhmo.feature.settings.backupfile
 
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -78,6 +76,7 @@ internal fun BackupSettingsScreen(
         onCancel = viewModel::cancel,
         onUndo = viewModel::undoLastRestore,
         snackbarHost = { SnackbarHost(snackbar) },
+        driveSection = { integrations.driveBackupSection(onOpenRestore) },
     )
 }
 
@@ -104,6 +103,7 @@ internal fun BackupFileContent(
     onUndo: () -> Unit,
     snackbarHost: @Composable () -> Unit = {},
     zone: ZoneId = ZoneId.systemDefault(),
+    driveSection: @Composable () -> Unit = {},
 ) {
     var confirmUndo by rememberSaveable { mutableStateOf(false) }
     val idle = state.step == RestoreStep.Idle
@@ -115,6 +115,7 @@ internal fun BackupFileContent(
             Modifier.padding(padding).consumeWindowInsets(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            driveSection()
             SectionCard(title = stringResource(R.string.feature_settings_backup_file_section)) {
                 val working = stringResource(R.string.feature_settings_backup_working)
                 SettingsRow(
@@ -135,12 +136,6 @@ internal fun BackupFileContent(
                     )
                 }
             }
-            Text(
-                stringResource(R.string.feature_settings_backup_drive_later),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp),
-            )
         }
     }
     when (val step = state.step) {

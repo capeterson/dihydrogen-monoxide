@@ -1,13 +1,12 @@
 package casa.peterson.dhmo.feature.onboarding.navigation
 
 import androidx.compose.runtime.Composable
-import casa.peterson.dhmo.core.designsystem.component.ComingSoon
 
 /**
  * Slots whose content lives in modules that `:feature:onboarding` must not depend on. `:app` replaces the
- * defaults in later phases (restore offer in Phase 4, weather rationale in Phase 5).
+ * defaults in later phases (the Drive restore offer).
  */
 class OnboardingIntegrations(
-    val restoreOffer: @Composable (onDone: () -> Unit) -> Unit = { ComingSoon() },
-    val weatherRationale: @Composable (onDone: () -> Unit) -> Unit = { ComingSoon() },
+    /** Offered from the welcome screen on a first run. Null when this build cannot restore from Drive. */
+    val restoreOffer: (@Composable (onSkip: () -> Unit, onRestored: () -> Unit) -> Unit)? = null,
 )

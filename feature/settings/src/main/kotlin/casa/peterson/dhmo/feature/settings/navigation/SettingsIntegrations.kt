@@ -8,8 +8,8 @@ import casa.peterson.dhmo.core.designsystem.component.ComingSoon
  * APIs). `:app` supplies them, so `:feature:settings` never depends on `:sync:*` (TECHNICAL_PLAN §13.4).
  */
 class SettingsIntegrations(
-    val driveBackupContent: @Composable (onBack: () -> Unit, onOpenRestore: () -> Unit) -> Unit = { _, _ -> ComingSoon() },
+    /** The Google Drive section at the top of the Backup screen. Empty when this build has no Drive support. */
+    val driveBackupSection: @Composable (onOpenRestore: () -> Unit) -> Unit = { },
     val driveRestoreContent: @Composable (onBack: () -> Unit) -> Unit = { ComingSoon() },
     val healthConnectContent: @Composable (onBack: () -> Unit) -> Unit = { ComingSoon() },
-    val weatherLocationPermission: @Composable (onResult: (Boolean) -> Unit) -> Unit = { },
 )

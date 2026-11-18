@@ -4,12 +4,12 @@ import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.Container
 import casa.peterson.dhmo.core.model.ContainerIcon
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.IntakeEntry
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.Profile
 import casa.peterson.dhmo.core.model.ProfileSnapshot
 import casa.peterson.dhmo.core.model.ProfileSource
-import casa.peterson.dhmo.core.model.Sex
 import casa.peterson.dhmo.core.model.Source
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import java.time.Instant
@@ -38,7 +38,7 @@ object TestData {
 
     val adultProfile: Profile = Profile(
         birthDate = LocalDate.of(1990, 5, 17),
-        sex = Sex.FEMALE,
+        gender = Gender.FEMALE,
         weightKg = 65.0,
         heightCm = 168.0,
         activityLevel = ActivityLevel.MODERATE,

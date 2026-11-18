@@ -9,7 +9,8 @@ enum class ProfileSource { MANUAL, HEALTH_CONNECT }
 
 enum class ActivitySource { HEALTH_CONNECT, MANUAL_PLANNED }
 
-enum class Sex { FEMALE, MALE, UNSPECIFIED }
+/** Stored by name, so existing rows stay valid. Non-binary and unspecified use the same average values in the goal. */
+enum class Gender { FEMALE, MALE, NON_BINARY, UNSPECIFIED }
 
 enum class ActivityLevel { SEDENTARY, LIGHT, MODERATE, VERY_ACTIVE }
 

@@ -9,17 +9,19 @@ import casa.peterson.dhmo.core.data.repository.DeviceStateRepository
 import casa.peterson.dhmo.core.data.repository.ProfileRepository
 import casa.peterson.dhmo.core.data.repository.SettingsRepository
 import casa.peterson.dhmo.core.data.usecase.onboarding.CompleteOnboardingUseCase
+import casa.peterson.dhmo.core.domain.body.BodyInputs
 import casa.peterson.dhmo.core.domain.goal.GoalCalculator
 import casa.peterson.dhmo.core.domain.time.hydrationDay
 import casa.peterson.dhmo.core.model.ActivityInput
 import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.ClimateInput
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.GoalBreakdown
 import casa.peterson.dhmo.core.model.GoalInput
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.Profile
-import casa.peterson.dhmo.core.model.Sex
+import casa.peterson.dhmo.core.model.settings.BodyUnits
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
@@ -43,10 +45,10 @@ internal data class OnboardingState(
     val dayStart: Int = 0,
     val condition: Boolean = false,
     val choice: GoalChoice = GoalChoice.CALCULATED,
+    /** ISO date, `1990-05-10`, or empty. It is only shown through [casa.peterson.dhmo.core.designsystem.component.BirthDateField]. */
     val birthDate: String = "",
-    val weight: String = "",
-    val height: String = "",
-    val sex: Sex = Sex.UNSPECIFIED,
+    val body: BodyInputs = BodyInputs(),
+    val gender: Gender = Gender.UNSPECIFIED,
     val activity: ActivityLevel = ActivityLevel.SEDENTARY,
     val climate: Climate = Climate.TEMPERATE,
     val pregnant: Boolean = false,
@@ -82,18 +84,24 @@ internal class OnboardingViewModel @Inject constructor(
             val current = settings.current()
             val onboarding = device.current().onboarding
             val profile = profiles.observeCurrent().first()
+            val isReturning = profile != null || containers.getAll().isNotEmpty()
             mutableState.value = OnboardingState(
                 loading = false,
-                returning = profile != null || containers.getAll().isNotEmpty(),
+                returning = isReturning,
                 resumeStep = onboarding.lastStep,
                 units = saved.get<String>("units")?.let(VolumeUnit::valueOf) ?: current.units,
                 dayStart = saved["dayStart"] ?: current.dayStartMinutes,
                 condition = saved["condition"] ?: onboarding.manualModeRecommended,
                 choice = GoalChoice.valueOf(saved["choice"] ?: if (onboarding.manualModeRecommended) "MANUAL" else "CALCULATED"),
                 birthDate = saved["birthDate"] ?: "",
-                weight = saved["weight"] ?: "",
-                height = saved["height"] ?: "",
-                sex = Sex.valueOf(saved["sex"] ?: "UNSPECIFIED"),
+                body = BodyInputs(
+                    units = saved.get<String>("bodyUnits")?.let(BodyUnits::valueOf) ?: firstRunBodyUnits(isReturning, current.bodyUnits),
+                    weight = saved["weight"] ?: "",
+                    heightCm = saved["height"] ?: "",
+                    heightFeet = saved["heightFeet"] ?: "",
+                    heightInches = saved["heightInches"] ?: "",
+                ),
+                gender = Gender.valueOf(saved["gender"] ?: "UNSPECIFIED"),
                 activity = ActivityLevel.valueOf(saved["activity"] ?: "SEDENTARY"),
                 climate = Climate.valueOf(saved["climate"] ?: "TEMPERATE"),
                 pregnant = saved["pregnant"] ?: false,
@@ -119,6 +127,11 @@ internal class OnboardingViewModel @Inject constructor(
         mutableState.value = next
         saved["units"] = next.units.name
         saved["dayStart"] = next.dayStart
+        saved["bodyUnits"] = next.body.units.name
+        saved["weight"] = next.body.weight
+        saved["height"] = next.body.heightCm
+        saved["heightFeet"] = next.body.heightFeet
+        saved["heightInches"] = next.body.heightInches
         saved["wake"] = next.wake
         saved["sleep"] = next.sleep
         saved["remindersEnabled"] = next.remindersEnabled
@@ -126,9 +139,7 @@ internal class OnboardingViewModel @Inject constructor(
         saved["condition"] = next.condition
         saved["choice"] = next.choice.name
         saved["birthDate"] = next.birthDate
-        saved["weight"] = next.weight
-        saved["height"] = next.height
-        saved["sex"] = next.sex.name
+        saved["gender"] = next.gender.name
         saved["activity"] = next.activity.name
         saved["climate"] = next.climate.name
         saved["pregnant"] = next.pregnant
@@ -140,7 +151,7 @@ internal class OnboardingViewModel @Inject constructor(
     fun persistStep(step: String) {
         val s = state.value
         viewModelScope.launch {
-            settings.update { it.copy(units = s.units, dayStartMinutes = s.dayStart) }
+            settings.update { it.copy(units = s.units, bodyUnits = s.body.units, dayStartMinutes = s.dayStart) }
             device.update { it.copy(onboarding = it.onboarding.copy(lastStep = step, manualModeRecommended = s.condition)) }
         }
     }
@@ -154,13 +165,13 @@ internal class OnboardingViewModel @Inject constructor(
     fun profile(): Profile? = runCatching {
         val s = state.value
         val date = LocalDate.parse(s.birthDate)
-        val weight = s.weight.toDouble()
-        val height = s.height.takeIf { it.isNotBlank() }?.toDouble()
+        val weight = requireNotNull(s.body.weightKg())
+        val height = if (s.body.heightBlank) null else requireNotNull(s.body.heightCmValue())
         require(date <= LocalDate.now(clock))
         require(weight in 1.0..500.0)
         require(height == null || height in 30.0..300.0)
         Profile(
-            date, s.sex, weight, height, s.activity, s.climate,
+            date, s.gender, weight, height, s.activity, s.climate,
             if (s.pregnant) PregnancyStatus.PREGNANT else PregnancyStatus.NONE,
             s.lactating, s.altitude,
         )
@@ -184,7 +195,8 @@ internal class OnboardingViewModel @Inject constructor(
         return hydrationDay(now, zone.current().rules.getOffset(now), dayStart)
     }
 
-    fun validProfile(): Boolean = (profile() != null).also { if (!it) change { s -> s.copy(error = true) } }
+    /** Writes the state directly: [change] clears the error flag, which would hide the message at once. */
+    fun validProfile(): Boolean = (profile() != null).also { if (!it) mutableState.value = state.value.copy(error = true) }
     fun validManualGoal(): Boolean = (state.value.manualGoal.toIntOrNull() in 250..10000).also {
         if (!it) {
             mutableState.value =
@@ -201,6 +213,7 @@ internal class OnboardingViewModel @Inject constructor(
                 settings.update {
                     it.copy(
                         units = s.units,
+                        bodyUnits = s.body.units,
                         dayStartMinutes = s.dayStart,
                         reminders = it.reminders.copy(
                             enabled =
@@ -234,3 +247,9 @@ internal class OnboardingViewModel @Inject constructor(
         }
     }
 }
+
+/** Imperial is the default only for a first run in the few regions that use it; afterwards the saved choice wins. */
+private fun firstRunBodyUnits(returning: Boolean, saved: BodyUnits): BodyUnits =
+    if (!returning && saved == BodyUnits.METRIC && java.util.Locale.getDefault().country in IMPERIAL_REGIONS) BodyUnits.IMPERIAL else saved
+
+private val IMPERIAL_REGIONS = setOf("US", "LR", "MM")

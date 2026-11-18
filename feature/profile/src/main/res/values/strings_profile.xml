@@ -75,7 +75,9 @@
     <!-- Rows -->
     <string name="feature_profile_more_title">Settings for your goal</string>
     <string name="feature_profile_row_profile">Profile</string>
-    <string name="feature_profile_row_profile_summary">Age %1$d, %2$s kg</string>
+    <string name="feature_profile_row_profile_summary">Age %1$d, %2$s</string>
+    <string name="feature_profile_weight_kg_value">%1$s kg</string>
+    <string name="feature_profile_weight_lb_value">%1$s lb</string>
     <string name="feature_profile_row_profile_missing">Not set up</string>
     <string name="feature_profile_row_fixed_on">On: %1$s</string>
     <string name="feature_profile_row_fixed_off">Off</string>
@@ -84,13 +86,11 @@
     <string name="feature_profile_disclaimer">This goal is general guidance, not medical advice. If you have heart or kidney disease, a prescribed fluid restriction, or another condition affecting fluid intake, follow your clinician’s advice.</string>
 
     <!-- Edit profile -->
-    <string name="feature_profile_birth_date">Birth date (YYYY-MM-DD)</string>
-    <string name="feature_profile_weight">Weight (kg)</string>
-    <string name="feature_profile_height">Height (cm, optional)</string>
-    <string name="feature_profile_sex">Sex</string>
-    <string name="feature_profile_sex_female">Female</string>
-    <string name="feature_profile_sex_male">Male</string>
-    <string name="feature_profile_sex_unspecified">Prefer not to say</string>
+    <string name="feature_profile_gender">Gender</string>
+    <string name="feature_profile_gender_female">Female</string>
+    <string name="feature_profile_gender_male">Male</string>
+    <string name="feature_profile_gender_non_binary">Non-binary</string>
+    <string name="feature_profile_gender_unspecified">Prefer not to say</string>
     <string name="feature_profile_activity">Usual activity level</string>
     <string name="feature_profile_level_sedentary">Sedentary</string>
     <string name="feature_profile_level_light">Lightly active</string>
@@ -128,7 +128,7 @@
 
     <!-- Sources -->
     <string name="feature_profile_sources_intro">The calculated goal follows published adequate intakes for water. The per-kilogram factors and the activity, climate and altitude amounts are this app’s own guidance values, not clinical values.</string>
-    <string name="feature_profile_source_efsa">EFSA Panel on Dietetic Products, Nutrition and Allergies (2010). Scientific Opinion on Dietary Reference Values for water. EFSA Journal 8(3):1459. Used for the adequate intakes by age and sex, and for pregnancy and breastfeeding.</string>
+    <string name="feature_profile_source_efsa">EFSA Panel on Dietetic Products, Nutrition and Allergies (2010). Scientific Opinion on Dietary Reference Values for water. EFSA Journal 8(3):1459. Used for the adequate intakes by age and gender, and for pregnancy and breastfeeding.</string>
     <string name="feature_profile_source_nasem">US National Academies (2004). Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate. Basis for counting about 80% of total water as drinks.</string>
     <string name="feature_profile_source_acsm">American College of Sports Medicine (2007). Exercise and Fluid Replacement, position stand. Basis for the per-minute exercise allowance.</string>
     <string name="feature_profile_limits">Calculated goals are kept between %1$s and %2$s for adults and %3$s and %4$s for children under 14.</string>

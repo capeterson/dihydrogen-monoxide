@@ -20,7 +20,7 @@
 
 **Goals**
 - Logging water takes one tap from a notification, widget, Quick Settings tile or the app.
-- A recommended daily target that shows how it was worked out and responds to age, sex, weight, pregnancy or lactation, activity and the day's weather.
+- A recommended daily target that shows how it was worked out and responds to age, gender, weight, pregnancy or lactation, activity and the day's weather.
 - Manual overrides at every level: a fixed global target, a target for one day, or adjusted inputs.
 - Smart reminders that only fire when you're behind pace, respect quiet hours, and can log a drink straight from the notification.
 - Reporting and trend analysis over any range: totals, how often the goal is met, streaks, time-of-day patterns, trends and correlations.
@@ -104,7 +104,7 @@ IntakeEntry(
 
 Container(id, name, volumeMl, icon, sortOrder)   // quick-add presets: "Glass 250", "Bottle 750"
 
-ProfileSnapshot(id, effectiveFrom: LocalDate, birthDate, sex, weightKg, heightCm?,
+ProfileSnapshot(id, effectiveFrom: LocalDate, birthDate, gender, weightKg, heightCm?,
                 activityLevel, climate, pregnancyStatus, lactating, source)
 // A new row is added whenever an input changes, so a past goal can be recomputed exactly.
 // Health Connect weight imports add rows with source = HEALTH_CONNECT.

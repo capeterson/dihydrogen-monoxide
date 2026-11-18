@@ -4,9 +4,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import casa.peterson.dhmo.core.database.entity.ProfileSnapshotEntity
 import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
+import casa.peterson.dhmo.core.model.Gender
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.ProfileSource
-import casa.peterson.dhmo.core.model.Sex
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
 import java.time.LocalDate
@@ -26,7 +26,7 @@ class ProfileDaoTest {
         id = UUID.randomUUID(),
         effectiveFrom = from,
         birthDate = LocalDate.of(1990, 1, 1),
-        sex = Sex.FEMALE,
+        gender = Gender.FEMALE,
         weightKg = 60.0,
         activityLevel = ActivityLevel.LIGHT,
         climate = Climate.TEMPERATE,

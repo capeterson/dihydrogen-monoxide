@@ -1,3 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_settings_weather_intro">A forecast adds a little to your goal on hot days. Only a rounded location (about 11 km) is sent to Open-Meteo, with no account or identifier.</string>
+    <string name="feature_settings_weather_mode_off">Off</string>
+    <string name="feature_settings_weather_mode_off_summary">Your goal uses the climate setting from your profile.</string>
+    <string name="feature_settings_weather_mode_device">Approximate device location</string>
+    <string name="feature_settings_weather_mode_device_summary">Read only while the app is open, and rounded to 0.1°.</string>
+    <string name="feature_settings_weather_mode_device_unsupported">Needs Google Play services, which this phone does not have.</string>
+    <string name="feature_settings_weather_mode_city">A city I choose</string>
+    <string name="feature_settings_weather_mode_city_summary">No location permission needed.</string>
+    <string name="feature_settings_weather_change_city">Change city: %1$s</string>
+    <string name="feature_settings_weather_permission_denied">Location permission was not granted, so weather stays off. You can choose a city instead.</string>
+    <string name="feature_settings_weather_status_ok">Forecast updated</string>
+    <string name="feature_settings_weather_status_failed">Forecast unavailable, using your climate setting</string>
+    <string name="feature_settings_weather_refresh">Refresh now</string>
+    <string name="feature_settings_weather_attribution">Weather data by Open-Meteo.com (CC BY 4.0)</string>
+    <string name="feature_settings_city_search_label">City name</string>
+    <string name="feature_settings_city_search_hint">Type at least 2 letters</string>
+    <string name="feature_settings_city_search_none">No matching places</string>
+    <string name="feature_settings_city_search_error">Search failed. Check your connection and try again.</string>
 </resources>

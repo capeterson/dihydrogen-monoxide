@@ -42,18 +42,18 @@ class GoalCalculator(private val policy: GoalPolicy = GoalPolicyV1) {
         if (child) {
             return GoalComponent(
                 ComponentKind.BASE_CHILD_TABLE,
-                policy.childBaseMl(age, profile.sex),
+                policy.childBaseMl(age, profile.gender),
                 applied = true,
                 detail = mapOf("ageBand" to policy.childAgeBand(age)),
             )
         }
         val factor = policy.perKgFactor(age)
         val weightBase = GoalMath.weightBaseMl(profile.weightKg, factor)
-        val floor = policy.sexFloorMl(profile.sex)
+        val floor = policy.genderFloorMl(profile.gender)
         val weight = num(profile.weightKg)
         return if (weightBase < floor) {
             GoalComponent(
-                ComponentKind.BASE_SEX_FLOOR,
+                ComponentKind.BASE_GENDER_FLOOR,
                 floor,
                 applied = true,
                 detail = mapOf(
