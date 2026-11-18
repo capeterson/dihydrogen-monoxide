@@ -36,7 +36,7 @@ fun QuickAddButton(amountMl: Int, unit: VolumeUnit, onClick: () -> Unit, modifie
         modifier = modifier.defaultMinSize(minWidth = MinTouchTarget, minHeight = MinTouchTarget),
         enabled = enabled,
         shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+        colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
     ) {
         Row(
             modifier = Modifier.clearAndSetSemantics { contentDescription = description },

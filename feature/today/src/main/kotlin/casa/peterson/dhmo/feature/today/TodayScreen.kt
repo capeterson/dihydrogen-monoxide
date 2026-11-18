@@ -1,5 +1,6 @@
 package casa.peterson.dhmo.feature.today
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -109,6 +110,11 @@ internal fun TodayScreen(
     }
 }
 
+private val PortraitHeroWidth = 240.dp
+
+/** Landscape screens are short, so the arch shrinks to leave room for the figure and quick-add below it. */
+private val LandscapeHeroWidth = 140.dp
+
 @Composable
 internal fun TodayContent(
     state: TodayUiState.Ready,
@@ -125,6 +131,7 @@ internal fun TodayContent(
 ) {
     var custom by remember { mutableStateOf(false) }
     val locale = LocalConfiguration.current.locales[0]
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     LazyColumn(modifier.fillMaxSize().testTag("today_list"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -132,7 +139,12 @@ internal fun TodayContent(
                     state.day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)),
                     style = MaterialTheme.typography.titleMedium,
                 )
-                WindowHero(state.progress, raining = state.pace?.status == PaceStatus.BEHIND) {
+                WindowHero(
+                    state.progress,
+                    modifier = Modifier.padding(top = 12.dp),
+                    width = if (landscape) LandscapeHeroWidth else PortraitHeroWidth,
+                    raining = state.pace?.status == PaceStatus.BEHIND,
+                ) {
                     VolumeText(state.consumedMl, state.units, style = NumeralHeroStyle)
                 }
                 GoalChip(state.goalMl, state.units, onClick = onOpenGoal)
