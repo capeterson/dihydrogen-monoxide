@@ -35,7 +35,15 @@ class DriveApiTest {
     @Before
     fun setUp() {
         server.start()
-        api = DriveApi(OkHttpClient(), Json { ignoreUnknownKeys = true }, DriveEndpoints(server.url("/drive/v3/"), server.url("/upload/drive/v3/files")), tokens)
+        api =
+            DriveApi(
+                OkHttpClient(),
+                Json {
+                    ignoreUnknownKeys = true
+                },
+                DriveEndpoints(server.url("/drive/v3/"), server.url("/upload/drive/v3/files")),
+                tokens,
+            )
     }
 
     @After
@@ -48,7 +56,10 @@ class DriveApiTest {
 
     @Test
     fun `list asks for the app data folder with the documented query`() = runTest {
-        respond("""{"files":[{"id":"1","name":"hydration-backup-v1-20261115T030000Z.json.gz","size":"1234","createdTime":"2026-11-15T03:00:01.000Z","appProperties":{"entryCount":"42"}}]}""")
+        respond(
+            """{"files":[{"id":"1","name":"hydration-backup-v1-20261115T030000Z.json.gz","size":"1234",""" +
+                """"createdTime":"2026-11-15T03:00:01.000Z","appProperties":{"entryCount":"42"}}]}""",
+        )
         val files = api.list()
         val request = server.takeRequest()
         assertThat(request.method).isEqualTo("GET")
@@ -75,7 +86,12 @@ class DriveApiTest {
     @Test
     fun `upload is a multipart related post with metadata then bytes`() = runTest {
         respond("""{"id":"new","name":"x","size":"3"}""")
-        val file = api.upload("hydration-backup-v1-20261115T030000Z.json.gz", byteArrayOf(1, 2, 3), "application/gzip", mapOf("schemaVersion" to "1"))
+        val file = api.upload(
+            "hydration-backup-v1-20261115T030000Z.json.gz",
+            byteArrayOf(1, 2, 3),
+            "application/gzip",
+            mapOf("schemaVersion" to "1"),
+        )
         val request = server.takeRequest()
         assertThat(request.method).isEqualTo("POST")
         assertThat(request.url.encodedPath).isEqualTo("/upload/drive/v3/files")

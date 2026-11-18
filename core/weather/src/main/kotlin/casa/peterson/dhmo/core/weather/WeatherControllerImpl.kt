@@ -39,9 +39,11 @@ internal class WeatherControllerImpl @Inject constructor(
         val today = ticker.today().first()
         val existing = weather.forDay(today)
         val age = existing?.let { ChronoUnit.MILLIS.between(it.fetchedAt, clock.instant()) }
-        if (existing == null || age == null || age > STALE_AFTER_MS || age < 0) refreshNow()
+        val fresh = age != null && age in 0..STALE_AFTER_MS
+        if (!fresh) refreshNow()
     }
 
+    @Suppress("ReturnCount")
     override suspend fun refreshNow(): WeatherResult<WeatherDay> {
         val current = settings.current().weather
         val today = ticker.today().first()
@@ -53,6 +55,7 @@ internal class WeatherControllerImpl @Inject constructor(
 
         val result = when (val forecast = provider.todayForecast(coordinates.first, coordinates.second)) {
             is WeatherResult.Failure -> forecast
+
             is WeatherResult.Success -> {
                 val value = forecast.value
                 if (abs(ChronoUnit.DAYS.between(value.date, today)) > 1) {
@@ -75,9 +78,12 @@ internal class WeatherControllerImpl @Inject constructor(
         }
         return when (result) {
             is WeatherResult.Failure -> failed(result.reason, today)
+
             is WeatherResult.Success -> {
                 weather.save(result.value)
-                deviceState.update { it.copy(weatherRuntime = it.weatherRuntime.copy(lastFetchAtMs = clock.millis(), lastFetchFailed = false)) }
+                deviceState.update {
+                    it.copy(weatherRuntime = it.weatherRuntime.copy(lastFetchAtMs = clock.millis(), lastFetchFailed = false))
+                }
                 snapshot(today)
                 result
             }

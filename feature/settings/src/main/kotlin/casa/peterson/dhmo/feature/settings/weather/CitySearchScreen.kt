@@ -53,7 +53,9 @@ internal fun CitySearchContent(
             )
             when (state) {
                 CitySearchState.Idle -> Unit
+
                 CitySearchState.Searching -> CircularProgressIndicator(Modifier.padding(16.dp))
+
                 CitySearchState.Failed -> Text(
                     stringResource(R.string.feature_settings_city_search_error),
                     color = MaterialTheme.colorScheme.error,

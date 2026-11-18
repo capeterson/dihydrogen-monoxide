@@ -63,7 +63,10 @@ internal class RestoreListViewModel @Inject constructor(
         viewModelScope.launch {
             controller.listBackups().fold(
                 onSuccess = { _list.value = RestoreUi.Loaded(it.sortedByDescending { b -> b.createdAt }) },
-                onFailure = { _list.value = RestoreUi.Failed(if ((it as? BackupException)?.error == BackupError.AUTH) ListFailure.AUTH else ListFailure.NETWORK) },
+                onFailure = {
+                    _list.value =
+                        RestoreUi.Failed(if ((it as? BackupException)?.error == BackupError.AUTH) ListFailure.AUTH else ListFailure.NETWORK)
+                },
             )
         }
     }

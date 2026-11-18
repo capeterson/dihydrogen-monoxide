@@ -48,6 +48,7 @@ internal class WeatherWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
     override suspend fun doWork(): Result = when (val result = controller.refreshNow()) {
         is WeatherResult.Success -> Result.success()
+
         is WeatherResult.Failure -> when (result.reason) {
             WeatherFailure.NETWORK, WeatherFailure.HTTP -> Result.retry()
             WeatherFailure.PARSE, WeatherFailure.NO_DATA -> Result.success()

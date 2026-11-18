@@ -32,7 +32,11 @@ import casa.peterson.dhmo.feature.settings.R
 import casa.peterson.dhmo.feature.settings.units.ChoiceRow
 
 @Composable
-internal fun WeatherSettingsScreen(onBack: () -> Unit, onOpenCitySearch: () -> Unit, viewModel: WeatherSettingsViewModel = hiltViewModel()) {
+internal fun WeatherSettingsScreen(
+    onBack: () -> Unit,
+    onOpenCitySearch: () -> Unit,
+    viewModel: WeatherSettingsViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission(), viewModel::onLocationPermissionResult)
     val context = LocalContext.current
@@ -113,7 +117,11 @@ internal fun WeatherSettingsContent(
             if (state.mode != WeatherMode.OFF) {
                 Text(
                     stringResource(
-                        if (state.lastFetchFailed) R.string.feature_settings_weather_status_failed else R.string.feature_settings_weather_status_ok,
+                        if (state.lastFetchFailed) {
+                            R.string.feature_settings_weather_status_failed
+                        } else {
+                            R.string.feature_settings_weather_status_ok
+                        },
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )

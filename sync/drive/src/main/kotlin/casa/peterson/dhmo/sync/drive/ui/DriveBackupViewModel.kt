@@ -34,7 +34,12 @@ internal class DriveBackupViewModel @Inject constructor(
 ) : ViewModel() {
     private val connectFailed = MutableStateFlow(false)
 
-    val state: StateFlow<DriveBackupUiState> = combine(controller.state, settings.settings, deviceState.state, connectFailed) { drive, s, d, failed ->
+    val state: StateFlow<DriveBackupUiState> = combine(controller.state, settings.settings, deviceState.state, connectFailed) {
+            drive,
+            s,
+            d,
+            failed,
+        ->
         DriveBackupUiState(drive, s.backup, d.backupRuntime.accountEmail, failed)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DriveBackupUiState())
 

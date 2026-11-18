@@ -98,6 +98,7 @@ internal fun HealthConnectSettingsContent(
         ) {
             when (state.availability) {
                 HcAvailability.UNAVAILABLE -> Text(stringResource(R.string.hc_unavailable))
+
                 HcAvailability.PROVIDER_UPDATE_REQUIRED -> {
                     Text(stringResource(R.string.hc_update_required))
                     Button(onClick = onInstall) { Text(stringResource(R.string.hc_update_action)) }
@@ -110,7 +111,12 @@ internal fun HealthConnectSettingsContent(
 }
 
 @Composable
-private fun Available(state: HcUiState, onToggle: (HcSetting, Boolean) -> Unit, onSyncNow: () -> Unit, onSourceToggle: (String, Boolean) -> Unit) {
+private fun Available(
+    state: HcUiState,
+    onToggle: (HcSetting, Boolean) -> Unit,
+    onSyncNow: () -> Unit,
+    onSourceToggle: (String, Boolean) -> Unit,
+) {
     Text(stringResource(R.string.hc_intro), style = MaterialTheme.typography.bodyMedium)
     SectionCard {
         ROWS.forEach { (setting, title, summary) ->
@@ -171,8 +177,11 @@ private fun isOn(state: HcUiState, setting: HcSetting): Boolean = when (setting)
 @Composable
 private fun statusText(sync: HcSyncState): String = when (sync) {
     HcSyncState.Syncing -> stringResource(R.string.hc_status_syncing)
+
     is HcSyncState.NeedsPermission -> stringResource(R.string.hc_status_needs_permission)
+
     is HcSyncState.Error -> stringResource(R.string.hc_status_error)
+
     is HcSyncState.Idle -> if (sync.pendingOps > 0) {
         stringResource(R.string.hc_status_idle_pending, sync.pendingOps)
     } else if (sync.lastSyncAt == null) {

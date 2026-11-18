@@ -35,7 +35,7 @@ internal class DriveBackupRunner @Inject constructor(
     private val runState: DriveRunState,
 ) {
 
-    @Suppress("TooGenericExceptionCaught")
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
     suspend fun run(): RunOutcome {
         runState.running.value = true
         return try {
@@ -76,7 +76,8 @@ internal class DriveBackupRunner @Inject constructor(
             bytes = BackupCrypto.encrypt(bytes, keyStore.unwrap(wrapped), java.util.Base64.getDecoder().decode(salt))
         }
         val now = Instant.now(clock)
-        val name = "hydration-backup-v${doc.schemaVersion}-${STAMP.format(now.atOffset(ZoneOffset.UTC))}.json.gz" + if (encrypted) ".enc" else ""
+        val name =
+            "hydration-backup-v${doc.schemaVersion}-${STAMP.format(now.atOffset(ZoneOffset.UTC))}.json.gz" + if (encrypted) ".enc" else ""
         api.upload(
             name = name,
             bytes = bytes,
@@ -109,7 +110,14 @@ internal class DriveBackupRunner @Inject constructor(
     private suspend fun fail(error: BackupError): RunOutcome {
         val now = clock.millis()
         deviceState.update {
-            it.copy(backupRuntime = it.backupRuntime.copy(lastError = error.name, lastErrorAtMs = now, needsReconnect = error == BackupError.AUTH || it.backupRuntime.needsReconnect))
+            it.copy(
+                backupRuntime = it.backupRuntime.copy(
+                    lastError = error.name,
+                    lastErrorAtMs = now,
+                    needsReconnect =
+                        error == BackupError.AUTH || it.backupRuntime.needsReconnect,
+                ),
+            )
         }
         if (error == BackupError.AUTH) notifier.notifyReconnectNeeded()
         return if (error == BackupError.NETWORK) RunOutcome.RETRY else RunOutcome.FAILURE

@@ -14,9 +14,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import casa.peterson.dhmo.core.data.repository.HealthConnectController
 import casa.peterson.dhmo.core.data.repository.WeatherController
-import casa.peterson.dhmo.core.weather.LocationRefresher
 import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
 import casa.peterson.dhmo.core.model.settings.ThemeMode
+import casa.peterson.dhmo.core.weather.LocationRefresher
 import casa.peterson.dhmo.ui.DhmoApp
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject

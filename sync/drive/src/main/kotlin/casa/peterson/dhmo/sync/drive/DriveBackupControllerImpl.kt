@@ -42,9 +42,13 @@ internal class DriveBackupControllerImpl @Inject constructor(
         val runtime = d.backupRuntime
         when {
             !auth.isConfigured -> DriveBackupState.NotConfigured
+
             runtime.accountEmail == null -> DriveBackupState.SignedOut
+
             runtime.needsReconnect -> DriveBackupState.NeedsReconnect
+
             running -> DriveBackupState.Running
+
             else -> {
                 val lastError = runtime.lastError
                 if (lastError != null && s.backup.driveEnabled) {
@@ -93,10 +97,14 @@ internal class DriveBackupControllerImpl @Inject constructor(
             settings.update { it.copy(backup = it.backup.copy(encryptionEnabled = false)) }
             return
         }
-        require(passphrase.size >= BackupCrypto.MIN_PASSPHRASE_LENGTH) { "Passphrases have at least ${BackupCrypto.MIN_PASSPHRASE_LENGTH} characters" }
+        require(passphrase.size >= BackupCrypto.MIN_PASSPHRASE_LENGTH) {
+            "Passphrases have at least ${BackupCrypto.MIN_PASSPHRASE_LENGTH} characters"
+        }
         val salt = keyStore.newSalt()
         val wrapped = keyStore.wrap(BackupCrypto.deriveKey(passphrase, salt))
-        deviceState.update { it.copy(backupRuntime = it.backupRuntime.copy(wrappedKeyB64 = wrapped, kdfSaltB64 = Base64.getEncoder().encodeToString(salt))) }
+        deviceState.update {
+            it.copy(backupRuntime = it.backupRuntime.copy(wrappedKeyB64 = wrapped, kdfSaltB64 = Base64.getEncoder().encodeToString(salt)))
+        }
         settings.update { it.copy(backup = it.backup.copy(encryptionEnabled = true)) }
     }
 

@@ -87,7 +87,9 @@ class GoogleAuthManager @Inject internal constructor(
     }
 
     suspend fun rememberAccount(email: String) {
-        deviceState.update { it.copy(backupRuntime = it.backupRuntime.copy(accountEmail = email, needsReconnect = false, lastError = null)) }
+        deviceState.update {
+            it.copy(backupRuntime = it.backupRuntime.copy(accountEmail = email, needsReconnect = false, lastError = null))
+        }
     }
 
     /** A rejected token is cleared from Google's cache so the next [authorize] returns a fresh one. */
@@ -101,7 +103,11 @@ class GoogleAuthManager @Inject internal constructor(
         if (email != null) {
             runCatching {
                 Identity.getAuthorizationClient(context)
-                    .revokeAccess(RevokeAccessRequest.builder().setAccount(Account(email, GOOGLE_ACCOUNT_TYPE)).setScopes(listOf(DRIVE_SCOPE)).build())
+                    .revokeAccess(
+                        RevokeAccessRequest.builder().setAccount(
+                            Account(email, GOOGLE_ACCOUNT_TYPE),
+                        ).setScopes(listOf(DRIVE_SCOPE)).build(),
+                    )
                     .await()
             }
         }

@@ -1,7 +1,7 @@
 package casa.peterson.dhmo.widget
 
-import android.content.Context
 import android.content.ComponentName
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -103,6 +103,7 @@ class TodayWidget : GlanceAppWidget() {
 
         /** `:widget` cannot see `:app`, so the launcher activity is named. */
         private const val MAIN_ACTIVITY = "casa.peterson.dhmo.MainActivity"
+        private const val PERCENT = 100
     }
 }
 
@@ -118,12 +119,16 @@ private fun WidgetContent(model: WidgetModel, large: Boolean, open: ComponentNam
             Column(modifier = GlanceModifier.defaultWeight()) {
                 Text(
                     label,
-                    style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = if (large) 20.sp else 14.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(
+                        color = GlanceTheme.colors.onSurface,
+                        fontSize = if (large) 20.sp else 14.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
                     maxLines = 1,
                 )
                 if (large && model.goalText != null) {
                     Text(
-                        "${(model.fraction * 100).toInt()}%",
+                        "${(model.fraction * PERCENT).toInt()}%",
                         style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 14.sp),
                     )
                 }

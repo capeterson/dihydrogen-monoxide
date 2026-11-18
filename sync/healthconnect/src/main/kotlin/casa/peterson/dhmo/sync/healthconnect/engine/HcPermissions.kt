@@ -13,14 +13,20 @@ import casa.peterson.dhmo.core.model.sync.HcSetting
 internal object HcPermissions {
     fun forSetting(setting: HcSetting): Set<String> = when (setting) {
         HcSetting.WRITE_HYDRATION -> setOf(HealthPermission.getWritePermission(HydrationRecord::class))
+
         HcSetting.IMPORT_HYDRATION -> setOf(HealthPermission.getReadPermission(HydrationRecord::class))
+
         HcSetting.SYNC_WEIGHT -> setOf(HealthPermission.getReadPermission(WeightRecord::class))
+
         HcSetting.USE_EXERCISE -> setOf(HealthPermission.getReadPermission(ExerciseSessionRecord::class))
+
         HcSetting.READ_STEPS_AND_CALORIES -> setOf(
             HealthPermission.getReadPermission(StepsRecord::class),
             HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
         )
+
         HcSetting.BACKGROUND_SYNC -> setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND)
+
         HcSetting.IMPORT_HISTORY -> setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY)
     }
 

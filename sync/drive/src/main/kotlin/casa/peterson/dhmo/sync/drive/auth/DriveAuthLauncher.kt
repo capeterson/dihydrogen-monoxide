@@ -35,7 +35,8 @@ internal interface DriveAuthEntryPoint {
 fun rememberDriveAuthLauncher(onResult: (authorised: Boolean) -> Unit): DriveAuthLauncher {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val auth = remember(context) { EntryPointAccessors.fromApplication(context.applicationContext, DriveAuthEntryPoint::class.java).authManager() }
+    val auth =
+        remember(context) { EntryPointAccessors.fromApplication(context.applicationContext, DriveAuthEntryPoint::class.java).authManager() }
     val consent = rememberLauncherForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
         scope.launch { onResult(auth.completeResolution(result.data) is DriveAuthResult.Authorized) }
     }
@@ -51,7 +52,11 @@ fun rememberDriveAuthLauncher(onResult: (authorised: Boolean) -> Unit): DriveAut
                 auth.rememberAccount(email)
                 when (val result = auth.authorize()) {
                     is DriveAuthResult.Authorized -> onResult(true)
-                    is DriveAuthResult.NeedsResolution -> consent.launch(IntentSenderRequest.Builder(result.pendingIntent.intentSender).build())
+
+                    is DriveAuthResult.NeedsResolution -> consent.launch(
+                        IntentSenderRequest.Builder(result.pendingIntent.intentSender).build(),
+                    )
+
                     DriveAuthResult.Cancelled, DriveAuthResult.NotConfigured -> onResult(false)
                 }
             }

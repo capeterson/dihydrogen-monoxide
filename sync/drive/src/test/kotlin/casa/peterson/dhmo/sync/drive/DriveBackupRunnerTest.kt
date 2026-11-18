@@ -3,9 +3,9 @@ package casa.peterson.dhmo.sync.drive
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import casa.peterson.dhmo.core.backup.BackupCodec
 import casa.peterson.dhmo.core.backup.BackupCounts
+import casa.peterson.dhmo.core.backup.BackupCrypto
 import casa.peterson.dhmo.core.backup.BackupDocument
 import casa.peterson.dhmo.core.backup.BackupEntities
-import casa.peterson.dhmo.core.backup.BackupCrypto
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import casa.peterson.dhmo.core.model.settings.BackupSettings
 import casa.peterson.dhmo.core.testing.FakeBackupRepository
@@ -61,7 +61,15 @@ class DriveBackupRunnerTest {
     @Before
     fun setUp() {
         server.start()
-        val api = DriveApi(OkHttpClient(), Json { ignoreUnknownKeys = true }, DriveEndpoints(server.url("/drive/v3/"), server.url("/upload/drive/v3/files")), tokens)
+        val api =
+            DriveApi(
+                OkHttpClient(),
+                Json {
+                    ignoreUnknownKeys = true
+                },
+                DriveEndpoints(server.url("/drive/v3/"), server.url("/upload/drive/v3/files")),
+                tokens,
+            )
         runner = DriveBackupRunner(api, FakeBackupRepository(document), settings, deviceState, keyStore, notifier, clock, DriveRunState())
     }
 

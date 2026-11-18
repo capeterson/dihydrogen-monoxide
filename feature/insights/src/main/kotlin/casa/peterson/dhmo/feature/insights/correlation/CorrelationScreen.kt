@@ -45,11 +45,20 @@ internal fun CorrelationScreen(onBack: () -> Unit, viewModel: CorrelationViewMod
 @Composable
 internal fun CorrelationContent(state: CorrelationUiState, onBack: () -> Unit) {
     val title = stringResource(
-        if (state.driver == CorrelationDriver.TEMPERATURE) R.string.feature_insights_correlation_title_temperature else R.string.feature_insights_correlation_title_activity,
+        if (state.driver ==
+            CorrelationDriver.TEMPERATURE
+        ) {
+            R.string.feature_insights_correlation_title_temperature
+        } else {
+            R.string.feature_insights_correlation_title_activity
+        },
     )
     DhmoScreen(topBar = { DhmoTopBar(title, onNavigateBack = onBack) }) { padding ->
         when {
-            state.loading -> Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            state.loading -> Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+
             state.result == null -> EmptyState(
                 title = title,
                 message = stringResource(R.string.feature_insights_correlation_not_enough, state.pairs.size),
@@ -86,8 +95,11 @@ private fun description(state: CorrelationUiState): String {
         }
 
         temperature && result.positive -> R.string.feature_insights_text_temperature_more
+
         temperature -> R.string.feature_insights_text_temperature_less
+
         result.positive -> R.string.feature_insights_text_activity_more
+
         else -> R.string.feature_insights_text_activity_less
     }
     val strength = when (result.strength) {
@@ -115,7 +127,13 @@ private fun ScatterPlot(state: CorrelationUiState) {
     val dot = MaterialTheme.colorScheme.primary
     val axis = MaterialTheme.colorScheme.outline
     val xLabel = stringResource(
-        if (state.driver == CorrelationDriver.TEMPERATURE) R.string.feature_insights_correlation_x_temperature else R.string.feature_insights_correlation_x_activity,
+        if (state.driver ==
+            CorrelationDriver.TEMPERATURE
+        ) {
+            R.string.feature_insights_correlation_x_temperature
+        } else {
+            R.string.feature_insights_correlation_x_activity
+        },
     )
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
@@ -142,11 +160,20 @@ private fun ScatterPlot(state: CorrelationUiState) {
             style = MaterialTheme.typography.labelSmall,
         )
         Text(
-            stringResource(R.string.feature_insights_correlation_y_range, VolumeFormatter.format(minY.toInt(), state.unit, locale), VolumeFormatter.format(maxY.toInt(), state.unit, locale)),
+            stringResource(
+                R.string.feature_insights_correlation_y_range,
+                VolumeFormatter.format(minY.toInt(), state.unit, locale),
+                VolumeFormatter.format(maxY.toInt(), state.unit, locale),
+            ),
             style = MaterialTheme.typography.labelSmall,
         )
     }
 }
 
-private fun axisValue(state: CorrelationUiState, value: Double): String =
-    if (state.driver == CorrelationDriver.TEMPERATURE) String.format(Locale.getDefault(), "%.0f°C", value) else String.format(Locale.getDefault(), "%.0f min", value)
+private fun axisValue(state: CorrelationUiState, value: Double): String = if (state.driver ==
+    CorrelationDriver.TEMPERATURE
+) {
+    String.format(Locale.getDefault(), "%.0f°C", value)
+} else {
+    String.format(Locale.getDefault(), "%.0f min", value)
+}

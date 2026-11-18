@@ -87,6 +87,7 @@ private fun RestoreList(viewModel: RestoreListViewModel, modifier: Modifier, onF
     Column(modifier.fillMaxSize()) {
         when (val ui = list) {
             RestoreUi.Loading -> Centered { CircularProgressIndicator() }
+
             is RestoreUi.Failed -> Centered {
                 Text(stringResource(if (ui.reason == ListFailure.AUTH) R.string.restore_error_auth else R.string.restore_error_network))
                 OutlinedButton(onClick = viewModel::load) { Text(stringResource(R.string.restore_retry)) }
@@ -106,7 +107,10 @@ private fun RestoreList(viewModel: RestoreListViewModel, modifier: Modifier, onF
 
 @Composable
 private fun Centered(content: @Composable () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp, alignment = androidx.compose.ui.Alignment.CenterVertically)) {
+    Column(
+        Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp, alignment = androidx.compose.ui.Alignment.CenterVertically),
+    ) {
         content()
     }
 }
@@ -130,12 +134,16 @@ private fun BackupRow(backup: RemoteBackup, onClick: () -> Unit) {
 private fun RestoreDialogs(step: RestoreStep, viewModel: RestoreListViewModel, onFinished: () -> Unit) {
     when (step) {
         RestoreStep.None -> Unit
+
         is RestoreStep.Passphrase -> PassphraseDialog(step, viewModel::submitPassphrase, viewModel::dismiss)
+
         is RestoreStep.Confirm -> AlertDialog(
             onDismissRequest = viewModel::dismiss,
             title = { Text(stringResource(R.string.restore_confirm_title)) },
             text = { Text(stringResource(R.string.restore_confirm_text)) },
-            confirmButton = { TextButton(onClick = { viewModel.restore(RestoreMode.REPLACE) }) { Text(stringResource(R.string.restore_replace)) } },
+            confirmButton = {
+                TextButton(onClick = { viewModel.restore(RestoreMode.REPLACE) }) { Text(stringResource(R.string.restore_replace)) }
+            },
             dismissButton = {
                 Column {
                     TextButton(onClick = { viewModel.restore(RestoreMode.MERGE) }) { Text(stringResource(R.string.restore_merge)) }
@@ -145,9 +153,22 @@ private fun RestoreDialogs(step: RestoreStep, viewModel: RestoreListViewModel, o
         )
 
         is RestoreStep.Restoring -> AlertDialog(onDismissRequest = {}, confirmButton = {}, text = { CircularProgressIndicator() })
+
         is RestoreStep.Done -> AlertDialog(
             onDismissRequest = {},
-            text = { Text(stringResource(if (step.mode == RestoreMode.REPLACE) R.string.restore_done_replaced else R.string.restore_done_merged)) },
+            text = {
+                Text(
+                    stringResource(
+                        if (step.mode ==
+                            RestoreMode.REPLACE
+                        ) {
+                            R.string.restore_done_replaced
+                        } else {
+                            R.string.restore_done_merged
+                        },
+                    ),
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.dismiss()
@@ -184,7 +205,11 @@ private fun PassphraseDialog(step: RestoreStep.Passphrase, onSubmit: (RemoteBack
                 )
             }
         },
-        confirmButton = { TextButton(onClick = { onSubmit(step.backup, text.toCharArray()) }, enabled = text.isNotEmpty()) { Text(stringResource(R.string.restore_unlock)) } },
+        confirmButton = {
+            TextButton(onClick = {
+                onSubmit(step.backup, text.toCharArray())
+            }, enabled = text.isNotEmpty()) { Text(stringResource(R.string.restore_unlock)) }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.drive_cancel)) } },
     )
 }

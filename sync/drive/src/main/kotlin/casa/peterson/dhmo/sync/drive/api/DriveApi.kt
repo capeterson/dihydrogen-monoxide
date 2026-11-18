@@ -108,10 +108,16 @@ class DriveApi @Inject internal constructor(
             .addQueryParameter("uploadType", "multipart")
             .addQueryParameter("fields", "id,name,size,createdTime,appProperties")
             .build()
-        return parse(FileDto.serializer(), 
+        return parse(
+            FileDto.serializer(),
             send { builder ->
                 val body = MultipartBody.Builder().setType("multipart/related".toMediaType())
-                    .addPart(json.encodeToString(JsonObject.serializer(), metadata).toRequestBody("application/json; charset=UTF-8".toMediaType()))
+                    .addPart(
+                        json.encodeToString(
+                            JsonObject.serializer(),
+                            metadata,
+                        ).toRequestBody("application/json; charset=UTF-8".toMediaType()),
+                    )
                     .addPart(bytes.toRequestBody(mimeType.toMediaType()))
                     .build()
                 builder.url(url).post(body)
@@ -137,6 +143,7 @@ class DriveApi @Inject internal constructor(
         return DriveAbout(about.storageQuota?.usage?.toLongOrNull(), about.storageQuota?.limit?.toLongOrNull(), about.user?.emailAddress)
     }
 
+    @Suppress("ThrowsCount")
     private suspend fun send(allow404: Boolean = false, build: (Request.Builder) -> Request.Builder): HttpResult {
         var attempt = 0
         while (true) {
@@ -149,14 +156,20 @@ class DriveApi @Inject internal constructor(
             }
             when {
                 result.successful -> return result
+
                 result.code == HTTP_UNAUTHORIZED && attempt == 0 -> {
                     tokens.invalidate(token)
                     attempt++
                 }
 
                 result.code == HTTP_UNAUTHORIZED -> throw BackupException(BackupError.AUTH, "Drive rejected the token twice")
+
                 result.code == HTTP_NOT_FOUND && allow404 -> return result
-                result.code == HTTP_FORBIDDEN -> throw BackupException(if (result.text.contains("storageQuotaExceeded")) BackupError.QUOTA else BackupError.AUTH)
+
+                result.code == HTTP_FORBIDDEN -> throw BackupException(
+                    if (result.text.contains("storageQuotaExceeded")) BackupError.QUOTA else BackupError.AUTH,
+                )
+
                 else -> throw BackupException(BackupError.NETWORK, "HTTP ${result.code}")
             }
         }

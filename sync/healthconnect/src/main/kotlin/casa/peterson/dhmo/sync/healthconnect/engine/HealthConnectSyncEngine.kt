@@ -62,6 +62,7 @@ data class SyncReport(val missingPermissions: Set<String>, val changedDays: Set<
  * the daily aggregates. A mutex lets only one run happen at a time. Failures propagate so the caller can map them
  * to a state or a retry.
  */
+@Suppress("TooManyFunctions") // one sync run, split by phase: push, pull, apply, reconcile, aggregates
 @Singleton
 class HealthConnectSyncEngine @Inject internal constructor(
     private val clients: HealthConnectClientProvider,
@@ -167,6 +168,7 @@ class HealthConnectSyncEngine @Inject internal constructor(
 
     // region pull
 
+    @Suppress("ReturnCount")
     private suspend fun pull(client: HealthConnectClient, eff: HcPermissions.Effective, changed: MutableSet<LocalDate>) {
         val types = buildSet<KClass<out Record>> {
             if (eff.importHydration) add(HydrationRecord::class)
@@ -223,7 +225,14 @@ class HealthConnectSyncEngine @Inject internal constructor(
         val known = settings.current().healthConnect.importSources.keys
         val fresh = seen - known
         if (fresh.isNotEmpty()) {
-            settings.update { s -> s.copy(healthConnect = s.healthConnect.copy(importSources = s.healthConnect.importSources + fresh.associateWith { true })) }
+            settings.update { s ->
+                s.copy(
+                    healthConnect = s.healthConnect.copy(
+                        importSources =
+                            s.healthConnect.importSources + fresh.associateWith { true },
+                    ),
+                )
+            }
         }
     }
 
@@ -242,7 +251,13 @@ class HealthConnectSyncEngine @Inject internal constructor(
         }
     }
 
-    private suspend fun importHydration(record: HydrationRecord, sources: Map<String, Boolean>, dayStart: LocalTime, changed: MutableSet<LocalDate>) {
+    @Suppress("ReturnCount")
+    private suspend fun importHydration(
+        record: HydrationRecord,
+        sources: Map<String, Boolean>,
+        dayStart: LocalTime,
+        changed: MutableSet<LocalDate>,
+    ) {
         val origin = record.metadata.dataOrigin.packageName
         if (origin == context.packageName || sources[origin] == false) return
         val ml = floor(record.volume.inMilliliters + HALF).toInt()
@@ -360,6 +375,7 @@ class HealthConnectSyncEngine @Inject internal constructor(
     // region reconcile
 
     /** Initial load, and the fallback when the changes token expired: read a window and drop what vanished. */
+    @Suppress("CyclomaticComplexMethod")
     private suspend fun reconcile(
         client: HealthConnectClient,
         eff: HcPermissions.Effective,

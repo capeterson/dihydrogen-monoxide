@@ -22,7 +22,14 @@ internal class HealthConnectSources @Inject constructor(
     private val clock: Clock,
 ) {
     suspend fun setIncluded(packageName: String, included: Boolean) {
-        settings.update { s -> s.copy(healthConnect = s.healthConnect.copy(importSources = s.healthConnect.importSources + (packageName to included))) }
+        settings.update { s ->
+            s.copy(
+                healthConnect = s.healthConnect.copy(
+                    importSources =
+                        s.healthConnect.importSources + (packageName to included),
+                ),
+            )
+        }
         if (included) {
             hcDao.deleteState(HealthConnectSyncEngine.TOKEN) // the next sync reconciles and brings its records back
             controller.requestSync(immediate = true)

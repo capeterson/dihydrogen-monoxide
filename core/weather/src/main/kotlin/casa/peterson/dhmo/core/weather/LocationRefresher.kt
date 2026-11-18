@@ -42,6 +42,7 @@ class LocationRefresher @Inject internal constructor(
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     /** Refreshes the cache when the mode is device location, permission is held and the cache is over six hours old. */
+    @Suppress("ReturnCount")
     suspend fun refreshIfForeground(): Boolean {
         if (settings.current().weather.mode != WeatherMode.DEVICE_LOCATION) return false
         if (!hasPermission() || !isPlayServicesAvailable()) return false
@@ -50,7 +51,7 @@ class LocationRefresher @Inject internal constructor(
         return refreshNow()
     }
 
-    @Suppress("MissingPermission", "TooGenericExceptionCaught")
+    @Suppress("MissingPermission", "TooGenericExceptionCaught", "ReturnCount")
     suspend fun refreshNow(): Boolean {
         if (!hasPermission() || !isPlayServicesAvailable()) return false
         val client = LocationServices.getFusedLocationProviderClient(context)

@@ -14,13 +14,13 @@ import casa.peterson.dhmo.core.domain.goal.GoalPolicyV1
 import casa.peterson.dhmo.core.model.Source
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import casa.peterson.dhmo.core.model.settings.HealthConnectSettings
+import casa.peterson.dhmo.core.model.sync.HcSetting
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MutableClock
 import casa.peterson.dhmo.sync.healthconnect.engine.HcPermissions
 import casa.peterson.dhmo.sync.healthconnect.engine.HealthConnectClientProvider
 import casa.peterson.dhmo.sync.healthconnect.engine.HealthConnectSyncEngine
-import casa.peterson.dhmo.core.model.sync.HcSetting
 import io.mockk.mockk
 import java.time.Instant
 import java.time.LocalDate
@@ -51,16 +51,17 @@ internal class EngineTestEnvironment(hc: HealthConnectSettings = HealthConnectSe
         permissions.grantPermissions(settings.flatMap { HcPermissions.forSetting(it) }.toSet())
     }
 
-    fun entry(volumeMl: Int = 250, at: Instant = clock.instant(), source: Source = Source.MANUAL, id: UUID = UUID.randomUUID()) = IntakeEntryEntity(
-        id = id,
-        instant = at,
-        zoneOffsetSeconds = 0,
-        hydrationDay = LocalDate.ofInstant(at, ZoneOffset.UTC),
-        volumeMl = volumeMl,
-        source = source,
-        createdAt = at,
-        updatedAt = at,
-    )
+    fun entry(volumeMl: Int = 250, at: Instant = clock.instant(), source: Source = Source.MANUAL, id: UUID = UUID.randomUUID()) =
+        IntakeEntryEntity(
+            id = id,
+            instant = at,
+            zoneOffsetSeconds = 0,
+            hydrationDay = LocalDate.ofInstant(at, ZoneOffset.UTC),
+            volumeMl = volumeMl,
+            source = source,
+            createdAt = at,
+            updatedAt = at,
+        )
 
     /** Pretends another app wrote this record to Health Connect. */
     suspend fun insertFrom(
@@ -87,7 +88,6 @@ internal class EngineTestEnvironment(hc: HealthConnectSettings = HealthConnectSe
         client.setPackageName(own)
         return id
     }
-
 
     fun close() = db.close()
 }

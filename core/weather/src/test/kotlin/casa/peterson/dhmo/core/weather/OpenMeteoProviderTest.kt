@@ -100,7 +100,8 @@ class OpenMeteoProviderTest {
     @Test
     fun `city search sends language subtag and maps results`() = runTest {
         respond(
-            """{"results":[{"id":1,"name":"Berlin","latitude":52.52,"longitude":13.41,"country_code":"DE","country":"Germany","admin1":"State of Berlin"}]}""",
+            """{"results":[{"id":1,"name":"Berlin","latitude":52.52,"longitude":13.41,""" +
+                """"country_code":"DE","country":"Germany","admin1":"State of Berlin"}]}""",
         )
         val result = provider.searchCity("Berlin", "de-DE") as WeatherResult.Success
         val request = server.takeRequest()

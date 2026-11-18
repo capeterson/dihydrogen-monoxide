@@ -59,7 +59,9 @@ internal class HealthConnectControllerImpl @Inject constructor(
     override val state: Flow<HcSyncState> = combine(settings.settings, hcDao.observePendingCount(), run, lastSync) { s, pending, r, last ->
         when (val availability = availability()) {
             HcAvailability.UNAVAILABLE -> HcSyncState.Unavailable
+
             HcAvailability.PROVIDER_UPDATE_REQUIRED -> HcSyncState.ProviderUpdateRequired
+
             HcAvailability.AVAILABLE -> when {
                 !HcPermissions.anyOn(s.healthConnect) -> HcSyncState.Disabled
                 r is Run.Syncing -> HcSyncState.Syncing
@@ -110,7 +112,7 @@ internal class HealthConnectControllerImpl @Inject constructor(
     }
 
     /** Called by the workers. Maps failures to a state and to the worker's retry decision (§10.4). */
-    @Suppress("TooGenericExceptionCaught")
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
     suspend fun runSync(): HcRunResult {
         if (availability() != HcAvailability.AVAILABLE) return HcRunResult.FAILURE
         if (lastSync.value == null) lastSync.value = engine.lastSyncAt()

@@ -78,7 +78,11 @@ internal fun DriveBackupContent(
     SectionCard(title = stringResource(R.string.drive_section_title)) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             when (val drive = state.drive) {
-                DriveBackupState.NotConfigured -> Text(stringResource(R.string.drive_not_configured), style = MaterialTheme.typography.bodyMedium)
+                DriveBackupState.NotConfigured -> Text(
+                    stringResource(R.string.drive_not_configured),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
                 DriveBackupState.SignedOut -> {
                     Text(stringResource(R.string.drive_intro), style = MaterialTheme.typography.bodyMedium)
                     if (state.connectFailed) Text(stringResource(R.string.drive_connect_failed), color = MaterialTheme.colorScheme.error)
@@ -91,7 +95,9 @@ internal fun DriveBackupContent(
                     TextButton(onClick = onDisconnect) { Text(stringResource(R.string.drive_disconnect)) }
                 }
 
-                else -> Connected(state, drive, onDisconnect, onAutomatic, onFrequency, onUnmetered, { askPassphrase = true }, onDisableEncryption, onBackUpNow, onOpenRestore)
+                else -> Connected(state, drive, onDisconnect, onAutomatic, onFrequency, onUnmetered, {
+                    askPassphrase = true
+                }, onDisableEncryption, onBackUpNow, onOpenRestore)
             }
         }
     }
@@ -120,8 +126,12 @@ private fun Connected(
     SwitchRow(stringResource(R.string.drive_auto), checked = state.settings.driveEnabled, onCheckedChange = onAutomatic)
     if (state.settings.driveEnabled) {
         Column(Modifier.fillMaxWidth()) {
-            FrequencyChoice(R.string.drive_frequency_daily, state.settings.frequency == BackupFrequency.DAILY) { onFrequency(BackupFrequency.DAILY) }
-            FrequencyChoice(R.string.drive_frequency_weekly, state.settings.frequency == BackupFrequency.WEEKLY) { onFrequency(BackupFrequency.WEEKLY) }
+            FrequencyChoice(R.string.drive_frequency_daily, state.settings.frequency == BackupFrequency.DAILY) {
+                onFrequency(BackupFrequency.DAILY)
+            }
+            FrequencyChoice(R.string.drive_frequency_weekly, state.settings.frequency == BackupFrequency.WEEKLY) {
+                onFrequency(BackupFrequency.WEEKLY)
+            }
         }
         SwitchRow(
             stringResource(R.string.drive_unmetered),
@@ -158,6 +168,7 @@ private fun FrequencyChoice(label: Int, selected: Boolean, onSelect: () -> Unit)
 @Composable
 private fun statusText(drive: DriveBackupState): String = when (drive) {
     DriveBackupState.Running -> stringResource(R.string.drive_running)
+
     is DriveBackupState.Error -> stringResource(
         when (drive.error) {
             BackupError.QUOTA -> R.string.drive_error_quota
@@ -206,14 +217,23 @@ private fun PassphraseSetupDialog(onDismiss: () -> Unit, onConfirm: (CharArray) 
                     isError = mismatch,
                     supportingText = { if (mismatch) Text(stringResource(R.string.drive_passphrase_mismatch)) },
                 )
-                Row(Modifier.selectable(understood, role = Role.Checkbox) { understood = !understood }, verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.selectable(understood, role = Role.Checkbox) {
+                        understood = !understood
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Checkbox(checked = understood, onCheckedChange = null)
                     Text(stringResource(R.string.drive_encrypt_acknowledge), modifier = Modifier.padding(start = 8.dp))
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(first.toCharArray()) }, enabled = first.length >= MIN_PASSPHRASE && first == second && understood) {
+            TextButton(
+                onClick = { onConfirm(first.toCharArray()) },
+                enabled =
+                    first.length >= MIN_PASSPHRASE && first == second && understood,
+            ) {
                 Text(stringResource(R.string.drive_encrypt_confirm))
             }
         },

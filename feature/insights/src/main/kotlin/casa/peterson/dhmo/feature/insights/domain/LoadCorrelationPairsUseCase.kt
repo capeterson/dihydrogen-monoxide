@@ -23,6 +23,7 @@ class LoadCorrelationPairsUseCase @Inject constructor(
         val totals = intake.dailyTotals(from, to).filter { it.totalMl > 0 }.associate { it.date to it.totalMl.toDouble() }
         val drivers: Map<LocalDate, Double> = when (driver) {
             CorrelationDriver.TEMPERATURE -> weather.range(from, to).associate { it.date to it.maxApparentTempC }
+
             // With any activity data at all, a logged day without a session was a rest day, not a missing value.
             CorrelationDriver.ACTIVE_MINUTES -> activity.minutesPerDay(from, to).let { minutes ->
                 if (minutes.isEmpty()) emptyMap() else totals.keys.associateWith { (minutes[it] ?: 0).toDouble() }

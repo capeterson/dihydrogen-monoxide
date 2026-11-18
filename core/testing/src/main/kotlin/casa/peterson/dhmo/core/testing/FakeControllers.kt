@@ -141,11 +141,8 @@ class FakeWeatherProvider(
     override suspend fun searchCity(query: String, languageTag: String): WeatherResult<List<GeoPlace>> = places
 }
 
-class FakeDeviceLocationSource(
-    var supported: Boolean = true,
-    var permission: Boolean = false,
-    var refreshResult: Boolean = true,
-) : casa.peterson.dhmo.core.data.repository.DeviceLocationSource {
+class FakeDeviceLocationSource(var supported: Boolean = true, var permission: Boolean = false, var refreshResult: Boolean = true) :
+    casa.peterson.dhmo.core.data.repository.DeviceLocationSource {
     var refreshCount = 0
         private set
 

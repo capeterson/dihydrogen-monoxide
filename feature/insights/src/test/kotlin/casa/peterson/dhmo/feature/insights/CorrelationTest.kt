@@ -73,7 +73,9 @@ class CorrelationTest {
     @Test
     fun `with some activity data a logged day without a session is a rest day`() = runTest {
         seed(4, temperatures = false)
-        activity.put(ActivityAdjustment(ActivitySource.HEALTH_CONNECT, "r1", today.minusDays(1), 30, Intensity.MODERATE, 360, null, clock.instant()))
+        activity.put(
+            ActivityAdjustment(ActivitySource.HEALTH_CONNECT, "r1", today.minusDays(1), 30, Intensity.MODERATE, 360, null, clock.instant()),
+        )
         val pairs = load(CorrelationDriver.ACTIVE_MINUTES, today)
         assertThat(pairs).hasSize(4)
         assertThat(pairs.count { it.first == 0.0 }).isEqualTo(3)

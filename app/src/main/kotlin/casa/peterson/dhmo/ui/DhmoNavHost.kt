@@ -15,15 +15,15 @@ import casa.peterson.dhmo.feature.profile.navigation.profileScreens
 import casa.peterson.dhmo.feature.reminders.navigation.RemindersRoute
 import casa.peterson.dhmo.feature.reminders.navigation.remindersScreens
 import casa.peterson.dhmo.feature.settings.navigation.SettingsIntegrations
+import casa.peterson.dhmo.feature.settings.navigation.settingsScreens
+import casa.peterson.dhmo.feature.today.navigation.EditEntryRoute
+import casa.peterson.dhmo.feature.today.navigation.TodayRoute
+import casa.peterson.dhmo.feature.today.navigation.todayScreens
 import casa.peterson.dhmo.sync.drive.DriveAvailability
 import casa.peterson.dhmo.sync.drive.ui.DriveBackupSection
 import casa.peterson.dhmo.sync.drive.ui.DriveRestoreOffer
 import casa.peterson.dhmo.sync.drive.ui.DriveRestoreScreen
 import casa.peterson.dhmo.sync.healthconnect.ui.HealthConnectSettingsScreen
-import casa.peterson.dhmo.feature.settings.navigation.settingsScreens
-import casa.peterson.dhmo.feature.today.navigation.EditEntryRoute
-import casa.peterson.dhmo.feature.today.navigation.TodayRoute
-import casa.peterson.dhmo.feature.today.navigation.todayScreens
 
 /**
  * Calls every feature entry function. Cross-feature navigation is passed in as lambdas so features stay

@@ -140,8 +140,9 @@ internal class OpenMeteoProvider @Inject constructor(
     companion object {
         const val USER_AGENT = "DihydrogenMonoxide (Android)"
         private val HTTP_OK_RANGE = 200..299
+        private const val TENTHS = 10.0
 
         /** `525` -> `"52.5"`, `-3` -> `"-0.3"`, `0` -> `"0.0"` (never `-0.0`). */
-        fun formatE1(valueE1: Int): String = String.format(Locale.ROOT, "%.1f", valueE1 / 10.0).let { if (it == "-0.0") "0.0" else it }
+        fun formatE1(valueE1: Int): String = String.format(Locale.ROOT, "%.1f", valueE1 / TENTHS).let { if (it == "-0.0") "0.0" else it }
     }
 }

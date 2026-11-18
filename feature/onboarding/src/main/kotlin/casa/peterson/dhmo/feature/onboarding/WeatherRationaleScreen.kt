@@ -31,25 +31,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
-@HiltViewModel
-internal class WeatherRationaleViewModel @Inject constructor(
-    private val settings: SettingsRepository,
-    private val controller: WeatherController,
-    private val location: DeviceLocationSource,
-) : ViewModel() {
-    val deviceSupported: Boolean = location.isSupported()
-
-    fun hasPermission(): Boolean = location.hasPermission()
-
-    fun useDeviceLocation(onDone: () -> Unit) {
-        viewModelScope.launch {
-            settings.update { it.copy(weather = it.weather.copy(mode = WeatherMode.DEVICE_LOCATION)) }
-            controller.onSettingsChanged()
-            onDone()
-        }
-    }
-}
-
 /**
  * Explains what the weather feature sends before it is switched on. Choosing a city is done later in
  * Settings → Weather; here the choices are the approximate device location or nothing.
@@ -70,7 +51,13 @@ internal fun WeatherRationaleScreen(onDone: () -> Unit, viewModel: WeatherRation
             if (viewModel.deviceSupported) {
                 Button(
                     onClick = {
-                        if (viewModel.hasPermission()) viewModel.useDeviceLocation(onDone) else permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                        if (viewModel.hasPermission()) {
+                            viewModel.useDeviceLocation(
+                                onDone,
+                            )
+                        } else {
+                            permission.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(stringResource(R.string.feature_onboarding_weather_use_location)) }

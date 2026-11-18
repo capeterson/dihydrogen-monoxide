@@ -33,7 +33,9 @@ fun NavGraphBuilder.onboardingGraph(
     integrations: OnboardingIntegrations = OnboardingIntegrations(),
 ) {
     navigation<OnboardingGraph>(startDestination = WelcomeRoute) {
-        composable<WelcomeRoute> { entry -> Page(navController, entry, OnboardingPage.WELCOME, onFinished, integrations.restoreOffer != null) }
+        composable<WelcomeRoute> { entry ->
+            Page(navController, entry, OnboardingPage.WELCOME, onFinished, integrations.restoreOffer != null)
+        }
         composable<DisclaimerRoute> { entry -> Page(navController, entry, OnboardingPage.DISCLAIMER, onFinished) }
         composable<UnitsRoute> { entry -> Page(navController, entry, OnboardingPage.UNITS, onFinished) }
         composable<GoalModeRoute> { entry -> Page(navController, entry, OnboardingPage.GOAL_MODE, onFinished) }
@@ -54,7 +56,13 @@ fun NavGraphBuilder.onboardingGraph(
 }
 
 @Composable
-private fun Page(nav: NavController, entry: NavBackStackEntry, page: OnboardingPage, onFinished: () -> Unit, offerRestore: Boolean = false) {
+private fun Page(
+    nav: NavController,
+    entry: NavBackStackEntry,
+    page: OnboardingPage,
+    onFinished: () -> Unit,
+    offerRestore: Boolean = false,
+) {
     val parent = remember(entry) { nav.getBackStackEntry<OnboardingGraph>() }
     val viewModel: OnboardingViewModel = LocalOnboardingViewModel.current ?: hiltViewModel(parent)
     val state by viewModel.state.collectAsStateWithLifecycle()

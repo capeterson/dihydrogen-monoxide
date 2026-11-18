@@ -21,9 +21,9 @@ import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.sync.drive.api.DriveApi
 import casa.peterson.dhmo.sync.drive.api.DriveFile
 import casa.peterson.dhmo.sync.drive.auth.DriveAuth
+import casa.peterson.dhmo.sync.drive.crypto.BackupKeyStore
 import casa.peterson.dhmo.sync.drive.work.DriveRunState
 import casa.peterson.dhmo.sync.drive.work.DriveScheduler
-import casa.peterson.dhmo.sync.drive.crypto.BackupKeyStore
 import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -61,10 +61,14 @@ class DriveBackupControllerTest {
     private val auth = FakeAuth()
     private val scheduler = RecordingScheduler()
     private val backups = FakeBackupRepository()
-    private val settings = FakeSettingsRepository(AppSettings(backup = BackupSettings(driveEnabled = true, frequency = BackupFrequency.WEEKLY, unmeteredOnly = false)))
+    private val settings =
+        FakeSettingsRepository(
+            AppSettings(backup = BackupSettings(driveEnabled = true, frequency = BackupFrequency.WEEKLY, unmeteredOnly = false)),
+        )
     private val deviceState = FakeDeviceStateRepository(DeviceState(backupRuntime = BackupRuntime(accountEmail = "a@b.c")))
     private val software = KeyGenerator.getInstance("AES").apply { init(256) }.generateKey()
-    private val controller = DriveBackupControllerImpl(api, auth, DriveRunState(), scheduler, backups, settings, deviceState, BackupKeyStore { software })
+    private val controller =
+        DriveBackupControllerImpl(api, auth, DriveRunState(), scheduler, backups, settings, deviceState, BackupKeyStore { software })
 
     private val document = BackupDocument(
         appVersion = "1.0.0", appVersionCode = 1, dbVersion = 1, policyVersion = 1, createdAt = Instant.EPOCH, deviceName = "Pixel",
@@ -101,7 +105,18 @@ class DriveBackupControllerTest {
     @Test
     fun `listing maps the app properties`() = runTest {
         coEvery { api.list() } returns listOf(
-            DriveFile("a", "hydration-backup-v1-x.json.gz.enc", 5, null, mapOf("createdAt" to "2026-11-15T03:00:00Z", "encrypted" to "true", "entryCount" to "42", "schemaVersion" to "2")),
+            DriveFile(
+                "a",
+                "hydration-backup-v1-x.json.gz.enc",
+                5,
+                null,
+                mapOf(
+                    "createdAt" to "2026-11-15T03:00:00Z",
+                    "encrypted" to "true",
+                    "entryCount" to "42",
+                    "schemaVersion" to "2",
+                ),
+            ),
         )
         val row = controller.listBackups().getOrThrow().single()
         assertThat(row.createdAt).isEqualTo(Instant.parse("2026-11-15T03:00:00Z"))
@@ -126,7 +141,9 @@ class DriveBackupControllerTest {
         assertThat((noPass.exceptionOrNull() as BackupException).error).isEqualTo(BackupError.PASSPHRASE_REQUIRED)
         val wrong = controller.restore(remote.copy(encrypted = true), RestoreMode.REPLACE, "wrong passphrase".toCharArray())
         assertThat((wrong.exceptionOrNull() as BackupException).error).isEqualTo(BackupError.WRONG_PASSPHRASE)
-        assertThat(controller.restore(remote.copy(encrypted = true), RestoreMode.REPLACE, "right passphrase".toCharArray()).isSuccess).isTrue()
+        assertThat(
+            controller.restore(remote.copy(encrypted = true), RestoreMode.REPLACE, "right passphrase".toCharArray()).isSuccess,
+        ).isTrue()
     }
 
     @Test

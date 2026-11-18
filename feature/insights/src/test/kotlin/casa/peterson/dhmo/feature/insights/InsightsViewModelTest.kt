@@ -14,8 +14,8 @@ import casa.peterson.dhmo.core.testing.FakeWeatherRepository
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MainDispatcherRule
 import casa.peterson.dhmo.core.testing.MutableClock
-import casa.peterson.dhmo.feature.insights.domain.LoadStatsRangeUseCase
 import casa.peterson.dhmo.feature.insights.domain.LoadCorrelationPairsUseCase
+import casa.peterson.dhmo.feature.insights.domain.LoadStatsRangeUseCase
 import casa.peterson.dhmo.feature.insights.domain.ObserveInsightsUseCase
 import com.google.common.truth.Truth.assertThat
 import java.time.Instant
@@ -51,7 +51,13 @@ class InsightsViewModelTest {
         settings,
         intake,
         loadStats,
-        ObserveInsightsUseCase(ticker, settings, loadStats, intake, LoadCorrelationPairsUseCase(intake, FakeWeatherRepository(), FakeActivityRepository(clock))),
+        ObserveInsightsUseCase(
+            ticker,
+            settings,
+            loadStats,
+            intake,
+            LoadCorrelationPairsUseCase(intake, FakeWeatherRepository(), FakeActivityRepository(clock)),
+        ),
         zone,
         UnconfinedTestDispatcher(main.dispatcher.scheduler),
     )

@@ -51,7 +51,9 @@ internal class HealthConnectSettingsViewModel @Inject constructor(
             sync = sync,
             backgroundOffered = bg,
             historyOffered = history,
-            sources = s.healthConnect.importSources.map { (pkg, included) -> SourceRow(pkg, sources.label(pkg), included) }.sortedBy { it.label },
+            sources = s.healthConnect.importSources.map { (pkg, included) ->
+                SourceRow(pkg, sources.label(pkg), included)
+            }.sortedBy { it.label },
             permissionDenied = wasDenied,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HcUiState())
@@ -99,8 +101,14 @@ internal class HealthConnectSettingsViewModel @Inject constructor(
             try {
                 val available = clients.get().features
                 features.update {
-                    (available.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_IN_BACKGROUND) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE) to
-                        (available.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE)
+                    (
+                        available.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_IN_BACKGROUND) ==
+                            HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+                        ) to
+                        (
+                            available.getFeatureStatus(HealthConnectFeatures.FEATURE_READ_HEALTH_DATA_HISTORY) ==
+                                HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+                            )
                 }
             } catch (_: RuntimeException) {
                 // Older providers cannot report features; the two options stay hidden.
