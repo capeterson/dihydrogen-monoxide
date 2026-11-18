@@ -35,8 +35,10 @@
     <string name="feature_onboarding_altitude">High altitude</string>
     <string name="feature_onboarding_manual_goal_title">Your daily goal</string>
     <string name="feature_onboarding_goal_ml">Daily goal (ml)</string>
+    <string name="feature_onboarding_goal_l">Daily goal (L)</string>
+    <string name="feature_onboarding_goal_oz">Daily goal (fl oz)</string>
     <string name="feature_onboarding_goal_preview_title">Your goal</string>
-    <string name="feature_onboarding_goal_value">%1$d ml per day</string>
+    <string name="feature_onboarding_goal_value">%1$s per day</string>
     <string name="feature_onboarding_goal_disclaimer">This is an estimate, not medical advice. You can change it at any time.</string>
     <string name="feature_onboarding_notification_rationale_title">Reminders</string>
     <string name="feature_onboarding_notification_body">Allow notifications to receive optional drinking reminders. You can change this later in settings.</string>
@@ -63,5 +65,5 @@
     <string name="feature_onboarding_component_activity">Activity</string>
     <string name="feature_onboarding_component_climate">Climate</string>
     <string name="feature_onboarding_component_altitude">Altitude</string>
-    <string name="feature_onboarding_component_value">%1$s: %2$d ml</string>
+    <string name="feature_onboarding_component_value">%1$s: %2$s</string>
 </resources>
