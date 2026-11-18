@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,6 +19,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import casa.peterson.dhmo.core.designsystem.R
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
+import casa.peterson.dhmo.core.designsystem.theme.NumeralLabelStyle
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 
@@ -32,6 +35,8 @@ fun QuickAddButton(amountMl: Int, unit: VolumeUnit, onClick: () -> Unit, modifie
         onClick = onClick,
         modifier = modifier.defaultMinSize(minWidth = MinTouchTarget, minHeight = MinTouchTarget),
         enabled = enabled,
+        shape = MaterialTheme.shapes.medium,
+        colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
     ) {
         Row(
             modifier = Modifier.clearAndSetSemantics { contentDescription = description },
@@ -39,7 +44,7 @@ fun QuickAddButton(amountMl: Int, unit: VolumeUnit, onClick: () -> Unit, modifie
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(painterResource(DhmoIcons.Add), contentDescription = null, modifier = Modifier.size(18.dp))
-            Text(text = formatted)
+            Text(text = formatted, style = NumeralLabelStyle)
         }
     }
 }

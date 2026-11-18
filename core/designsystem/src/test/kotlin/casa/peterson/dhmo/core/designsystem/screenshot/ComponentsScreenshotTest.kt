@@ -20,7 +20,6 @@ import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.EmptyState
 import casa.peterson.dhmo.core.designsystem.component.GoalChip
 import casa.peterson.dhmo.core.designsystem.component.HeatmapGrid
-import casa.peterson.dhmo.core.designsystem.component.ProgressRing
 import casa.peterson.dhmo.core.designsystem.component.QuickAddButton
 import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.component.SettingsRow
@@ -28,7 +27,9 @@ import casa.peterson.dhmo.core.designsystem.component.SwitchRow
 import casa.peterson.dhmo.core.designsystem.component.TimePickerRow
 import casa.peterson.dhmo.core.designsystem.component.VolumeInputSheetContent
 import casa.peterson.dhmo.core.designsystem.component.VolumeText
+import casa.peterson.dhmo.core.designsystem.component.WindowHero
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
+import casa.peterson.dhmo.core.designsystem.theme.NumeralHeroStyle
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,15 +37,15 @@ import org.robolectric.annotation.GraphicsMode
 
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-class ProgressRingScreenshotTest {
+class WindowHeroScreenshotTest {
     @Test
     fun capturesInLightDarkAndLargeFont() {
-        captureStable("ProgressRing") {
+        captureStable("WindowHero") {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                ProgressRing(progress = 0.62f) {
-                    VolumeText(ml = 1240, unit = VolumeUnit.ML, style = MaterialTheme.typography.headlineSmall)
+                WindowHero(progress = 0.62f, raining = true) {
+                    VolumeText(ml = 1240, unit = VolumeUnit.ML, style = NumeralHeroStyle)
                 }
-                ProgressRing(progress = 1.4f, size = 120.dp, strokeWidth = 12.dp) {
+                WindowHero(progress = 1.4f, width = 140.dp) {
                     Text("140%", style = MaterialTheme.typography.titleMedium)
                 }
             }

@@ -21,10 +21,10 @@ class AppearanceViewModelTest {
     fun themeChangesAreSaved() = runTest {
         model.theme.launchIn(backgroundScope)
         model.setMode(ThemeMode.DARK)
-        model.setDynamicColor(false)
+        model.setDynamicColor(true)
         advanceUntilIdle()
         assertThat(settings.current().theme.mode).isEqualTo(ThemeMode.DARK)
-        assertThat(settings.current().theme.dynamicColor).isFalse()
+        assertThat(settings.current().theme.dynamicColor).isTrue()
         assertThat(model.theme.value.mode).isEqualTo(ThemeMode.DARK)
     }
 }

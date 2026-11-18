@@ -45,10 +45,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.GoalChip
-import casa.peterson.dhmo.core.designsystem.component.ProgressRing
 import casa.peterson.dhmo.core.designsystem.component.QuickAddButton
 import casa.peterson.dhmo.core.designsystem.component.VolumeInputSheet
 import casa.peterson.dhmo.core.designsystem.component.VolumeText
+import casa.peterson.dhmo.core.designsystem.component.WindowHero
+import casa.peterson.dhmo.core.designsystem.theme.NumeralHeroStyle
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.pace.PaceStatus
 import casa.peterson.dhmo.core.model.GoalMode
@@ -131,7 +132,9 @@ internal fun TodayContent(
                     state.day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)),
                     style = MaterialTheme.typography.titleMedium,
                 )
-                ProgressRing(state.progress) { VolumeText(state.consumedMl, state.units, style = MaterialTheme.typography.headlineMedium) }
+                WindowHero(state.progress, raining = state.pace?.status == PaceStatus.BEHIND) {
+                    VolumeText(state.consumedMl, state.units, style = NumeralHeroStyle)
+                }
                 GoalChip(state.goalMl, state.units, onClick = onOpenGoal)
                 if (state.goalMl > 0 && state.consumedMl >= state.goalMl) {
                     Text(
