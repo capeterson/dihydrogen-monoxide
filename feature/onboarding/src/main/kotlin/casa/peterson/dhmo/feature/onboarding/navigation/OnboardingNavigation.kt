@@ -23,6 +23,7 @@ import casa.peterson.dhmo.feature.onboarding.GoalChoice
 import casa.peterson.dhmo.feature.onboarding.OnboardingPage
 import casa.peterson.dhmo.feature.onboarding.OnboardingPageContent
 import casa.peterson.dhmo.feature.onboarding.OnboardingViewModel
+import casa.peterson.dhmo.feature.onboarding.WeatherRationaleScreen
 
 internal val LocalOnboardingViewModel = staticCompositionLocalOf<OnboardingViewModel?> { null }
 
@@ -42,7 +43,7 @@ fun NavGraphBuilder.onboardingGraph(
         composable<NotificationRationaleRoute> { entry -> Page(navController, entry, OnboardingPage.NOTIFICATION, onFinished) }
         composable<ReminderSetupRoute> { entry -> Page(navController, entry, OnboardingPage.REMINDERS, onFinished) }
         composable<RestoreOfferRoute> { integrations.restoreOffer { navController.popBackStack() } }
-        composable<WeatherRationaleRoute> { integrations.weatherRationale { navController.popBackStack() } }
+        composable<WeatherRationaleRoute> { WeatherRationaleScreen(onDone = { navController.navigate(OnboardingDoneRoute) }) }
         composable<OnboardingDoneRoute> { entry -> Page(navController, entry, OnboardingPage.DONE, onFinished) }
     }
 }
@@ -133,7 +134,7 @@ private fun Page(nav: NavController, entry: NavBackStackEntry, page: OnboardingP
 
                 OnboardingPage.NOTIFICATION -> Unit
 
-                OnboardingPage.REMINDERS -> advance(OnboardingPage.DONE)
+                OnboardingPage.REMINDERS -> nav.navigate(WeatherRationaleRoute)
 
                 OnboardingPage.DONE -> viewModel.finish(onFinished)
             }

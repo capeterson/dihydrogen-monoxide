@@ -11,14 +11,23 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import casa.peterson.dhmo.core.data.repository.WeatherController
+import casa.peterson.dhmo.core.weather.LocationRefresher
 import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
 import casa.peterson.dhmo.core.model.settings.ThemeMode
 import casa.peterson.dhmo.ui.DhmoApp
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
+
+    @Inject lateinit var weatherController: WeatherController
+
+    @Inject lateinit var locationRefresher: LocationRefresher
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
@@ -55,7 +64,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        // T-WX2 hook: call WeatherController.refreshIfStale() and LocationRefresher.refreshIfForeground() here.
+        lifecycleScope.launch {
+            // Location first, so a stale forecast is refetched for where the phone is now.
+            locationRefresher.refreshIfForeground()
+            weatherController.refreshIfStale()
+        }
     }
 
     /**

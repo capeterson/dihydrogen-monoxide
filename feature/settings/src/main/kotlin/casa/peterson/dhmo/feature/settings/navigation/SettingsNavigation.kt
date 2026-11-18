@@ -55,7 +55,6 @@ fun NavGraphBuilder.settingsScreens(
         WeatherSettingsScreen(
             onBack = back,
             onOpenCitySearch = { navController.navigate(CitySearchRoute) },
-            integrations = integrations,
         )
     }
     composable<CitySearchRoute> { CitySearchScreen(onBack = back) }

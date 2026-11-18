@@ -11,5 +11,4 @@ class SettingsIntegrations(
     val driveBackupContent: @Composable (onBack: () -> Unit, onOpenRestore: () -> Unit) -> Unit = { _, _ -> ComingSoon() },
     val driveRestoreContent: @Composable (onBack: () -> Unit) -> Unit = { ComingSoon() },
     val healthConnectContent: @Composable (onBack: () -> Unit) -> Unit = { ComingSoon() },
-    val weatherLocationPermission: @Composable (onResult: (Boolean) -> Unit) -> Unit = { },
 )
