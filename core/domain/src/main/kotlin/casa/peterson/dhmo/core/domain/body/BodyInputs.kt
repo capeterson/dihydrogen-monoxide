@@ -79,8 +79,11 @@ data class BodyInputs(
 
     private fun heightInFeetInchesToDouble(): Double? {
         if (heightFeet.isBlank() && heightInches.isBlank()) return null
-        val feet = if (heightFeet.isBlank()) 0.0 else BodyMeasures.parse(heightFeet) ?: return null
-        val inches = if (heightInches.isBlank()) 0.0 else BodyMeasures.parse(heightInches) ?: return null
-        return BodyMeasures.feetInchesToCm(feet, inches)
+        val feet = partOrZero(heightFeet)
+        val inches = partOrZero(heightInches)
+        return if (feet == null || inches == null) null else BodyMeasures.feetInchesToCm(feet, inches)
     }
+
+    /** A part left empty counts as zero (`5 ft` with no inches); text that is not a number is null. */
+    private fun partOrZero(text: String): Double? = if (text.isBlank()) 0.0 else BodyMeasures.parse(text)
 }
