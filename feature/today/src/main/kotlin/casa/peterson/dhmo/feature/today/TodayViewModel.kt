@@ -50,7 +50,7 @@ sealed interface TodayUiState {
 }
 
 sealed interface TodayEffect {
-    data class EntryDeleted(val id: UUID) : TodayEffect
+    data class EntryDeleted(val id: UUID, val volumeMl: Int? = null, val containerName: String? = null) : TodayEffect
     data class Error(val messageRes: Int) : TodayEffect
 }
 
@@ -108,10 +108,13 @@ class TodayViewModel @Inject constructor(
     }
 
     fun onDelete(id: UUID) {
+        val ready = uiState.value as? TodayUiState.Ready
+        val volume = ready?.entries?.firstOrNull { it.id == id }?.volumeMl
+        val name = ready?.containers?.firstOrNull { it.volumeMl == volume }?.name
         viewModelScope.launch {
             try {
                 deleteIntake(id)
-                effectChannel.send(TodayEffect.EntryDeleted(id))
+                effectChannel.send(TodayEffect.EntryDeleted(id, volume, name))
             } catch (_: IllegalStateException) {
                 effectChannel.send(TodayEffect.Error(R.string.feature_today_entry_not_editable))
             } catch (_: NoSuchElementException) {

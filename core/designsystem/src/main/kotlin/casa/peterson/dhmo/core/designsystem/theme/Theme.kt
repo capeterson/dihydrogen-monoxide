@@ -2,11 +2,13 @@ package casa.peterson.dhmo.core.designsystem.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 
 /**
@@ -28,6 +30,8 @@ fun DhmoTheme(darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean 
             else -> LightColors
         }
     CompositionLocalProvider(LocalDhmoExtraColors provides if (darkTheme) DarkExtraColors else LightExtraColors) {
-        MaterialTheme(colorScheme = colorScheme, typography = DhmoTypography, shapes = DhmoShapes, content = content)
+        MaterialTheme(colorScheme = colorScheme, typography = DhmoTypography, shapes = DhmoShapes) {
+            Box(Modifier.paperGrain(darkTheme)) { content() }
+        }
     }
 }

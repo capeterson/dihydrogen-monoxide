@@ -1,6 +1,15 @@
+@file:Suppress("MagicNumber", "LongMethod", "TooManyFunctions", "LongParameterList")
+
 package casa.peterson.dhmo.core.designsystem.component
 
+import android.provider.Settings
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -20,11 +34,16 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -35,63 +54,94 @@ import androidx.compose.ui.unit.dp
 import casa.peterson.dhmo.core.designsystem.R
 import casa.peterson.dhmo.core.designsystem.theme.DhmoExtraColors
 import casa.peterson.dhmo.core.designsystem.theme.LocalDhmoExtraColors
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
+/*
+ * The arched window from the lo-fi design, drawn in the design's own units: everything is laid out for a window 230 wide
+ * and 287.5 tall, then scaled by (width / 230). Names follow the design's CSS (.glass, .muntin, .sill, .plant, .jar,
+ * .lantern) so the two can be compared side by side.
+ */
+
+private const val DESIGN_WIDTH = 230f
+private const val HEIGHT_PER_WIDTH = 1.25f
 private const val PERCENT = 100f
-private const val FILL_MILLIS = 700
-private const val HEIGHT_PER_WIDTH = 1.18f
-private const val SILL_FRACTION = 0.075f
-private const val HALF = 0.5f
-private const val START_ANGLE = 180f
-private const val SWEEP_ANGLE = 180f
-private val FrameWidth = 5.dp
-private val JarStrokeWidth = 2.dp
-private val DefaultWidth = 240.dp
+private const val FILL_MILLIS = 1_100
+private val DefaultWidth = 230.dp
 
-private const val JAR_WIDTH = 0.36f
-private const val JAR_HEIGHT = 0.42f
-private const val JAR_CORNER = 0.14f
-private const val LID_WIDTH = 0.7f
-private const val LID_HEIGHT = 0.07f
-private const val WATER_INSET = 0.06f
-private const val GLASS_STROKE_ALPHA = 0.55f
-private const val MENISCUS_ALPHA = 0.5f
+private const val FRAME = 7f
+private const val SILL_HEIGHT = 16f
+private const val GLASS_BOTTOM_INSET = 14f
+private const val OBJECT_BOTTOM = 15f
+private const val TWO_PI = (2.0 * PI).toFloat()
 
-private const val LANTERN_X = 0.8f
-private const val LANTERN_RADIUS = 0.07f
-private const val LANTERN_GLOW_RADIUS = 0.3f
-private const val LANTERN_UNLIT_ALPHA = 0.35f
+private const val DAY_MID_STOP = 0.48f
+private const val NIGHT_MID_STOP = 0.52f
 
-private const val STREAK_COUNT = 16
-private const val STREAK_STEP = 0.067f
-private const val STREAK_SLANT = 0.03f
-private const val STREAK_LENGTH = 0.09f
-private const val STREAK_MIN_FACTOR = 0.6f
+private val RoofPath by lazy {
+    PathParser().parsePathString("M0 70V40h14v-8h12v14h10V26h8v10h12V44h14V30h10V18h8v14h10v10h12V34h10v-6h10v16h14V36h12v34z").toPath()
+}
+private val MuntinArch by lazy { PathParser().parsePathString("M0 100C0 40 40 0 100 0s100 40 100 100").toPath() }
 
-/** Star positions as fractions of the window's width and height, kept still so the preview and tests are stable. */
-private val StarPositions =
+/** Stars: x, y, radius in a 200x250 box. */
+private val Stars =
     listOf(
-        0.18f to 0.14f, 0.34f to 0.08f, 0.52f to 0.18f, 0.7f to 0.1f, 0.84f to 0.22f,
-        0.26f to 0.3f, 0.62f to 0.32f, 0.9f to 0.4f, 0.1f to 0.42f,
+        Triple(30f, 60f, 1.2f), Triple(62f, 28f, 1.6f), Triple(96f, 48f, 1f), Triple(130f, 22f, 1.4f), Triple(158f, 64f, 1.1f),
+        Triple(176f, 38f, 1.6f), Triple(48f, 100f, 1f), Triple(118f, 86f, 1.2f), Triple(150f, 112f, 1f), Triple(82f, 74f, 1f),
+        Triple(20f, 120f, 1.2f), Triple(104f, 14f, 1f),
     )
 
-/** Cloud puffs: centre x, centre y, radius, each a fraction of the window width. */
-private val CloudPuffs =
-    listOf(
-        Triple(0.26f, 0.36f, 0.09f),
-        Triple(0.34f, 0.33f, 0.11f),
-        Triple(0.43f, 0.37f, 0.08f),
-        Triple(0.68f, 0.22f, 0.07f),
-        Triple(0.75f, 0.2f, 0.09f),
-        Triple(0.83f, 0.23f, 0.06f),
-    )
-
-/** City lights along the horizon at night: x fraction and light width fraction. */
+/** Lit windows in the skyline's 200x70 box. */
 private val CityLights =
-    listOf(0.08f to 0.03f, 0.2f to 0.02f, 0.31f to 0.035f, 0.46f to 0.02f, 0.58f to 0.03f, 0.72f to 0.025f, 0.86f to 0.03f)
+    listOf(
+        40f to 30f, 46f to 38f, 9f to 46f, 84f to 24f, 90f to 40f, 108f to 36f, 122f to 22f,
+        150f to 34f, 168f to 30f, 186f to 42f, 22f to 54f, 70f to 52f, 132f to 52f, 176f to 56f,
+    )
 
-private const val CITY_HEIGHT = 0.12f
-private const val CITY_LIGHT_SIZE = 0.012f
+/** A painted cloud: left and top as fractions of the glass, width in design units, opacity, drift period (s) and phase (s). */
+private class Cloud(val left: Float, val top: Float, val width: Float, val alpha: Float, val period: Float, val phase: Float)
+
+private val Clouds =
+    listOf(
+        Cloud(0.06f, 0.22f, 92f, 0.92f, 58f, 20f),
+        Cloud(0.44f, 0.40f, 74f, 0.92f, 78f, 44f),
+        Cloud(0.10f, 0.56f, 92f, 0.70f, 44f, 8f),
+    )
+
+private class Streak(val x: Float, val top: Float, val length: Float, val period: Float, val delay: Float, val alpha: Float)
+
+private class Dew(val x: Float, val y: Float, val width: Float, val height: Float)
+
+private class RainField(val streaks: List<Streak>, val dew: List<Dew>)
+
+/** The design's seeded generator, so the same drops fall in the preview and the app. */
+private fun rainField(count: Int, seed: Int): RainField {
+    var s = seed
+    fun next(): Float {
+        s = (s * 9301 + 49297) % 233280
+        return s / 233280f
+    }
+    val streaks = List(count) {
+        val x = next()
+        val top = next() * 0.9f
+        val length = 14f + next() * 26f
+        val period = 1.5f + next() * 1.8f
+        val delay = next() * 3f
+        Streak(x, top, length, period, delay, 0.45f + next() * 0.5f)
+    }
+    val dew = List(9) {
+        val d = 3f + next() * 4f
+        Dew(next() * 0.96f, next() * 0.92f, d, d * 1.3f)
+    }
+    return RainField(streaks, dew)
+}
+
+private val WindowRain = rainField(22, 7)
 
 /** The fraction of the water to draw: [progress] clamped to 0..1, so overshooting the goal never overflows the jar. */
 internal fun jarFraction(progress: Float): Float = if (progress.isNaN()) 0f else progress.coerceIn(0f, 1f)
@@ -99,10 +149,31 @@ internal fun jarFraction(progress: Float): Float = if (progress.isNaN()) 0f else
 /** The whole percent announced to TalkBack. Not capped, so 120 percent of the goal is reported as such. */
 internal fun jarPercent(progress: Float): Int = if (progress.isNaN()) 0 else (progress.coerceAtLeast(0f) * PERCENT).roundToInt()
 
+/** True when the user has turned system animations off (animator scale zero); ambient motion then stays still. */
+@Composable
+fun rememberReducedMotion(): Boolean {
+    val resolver = LocalContext.current.contentResolver
+    return remember(resolver) { Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
+}
+
+/** Seconds since the screen appeared while [enabled]; a constant 0 otherwise, so still frames are deterministic. */
+@Composable
+internal fun rememberAmbientTime(enabled: Boolean): State<Float> {
+    if (!enabled) return remember { mutableFloatStateOf(0f) }
+    return rememberInfiniteTransition(label = "ambient").animateFloat(
+        initialValue = 0f,
+        targetValue = 3_600f,
+        animationSpec = infiniteRepeatable(tween(3_600_000, easing = LinearEasing)),
+        label = "time",
+    )
+}
+
 /**
- * Today's hero: an arched window with a glass jar on the sill. The jar fills as [progress] (a fraction of the goal,
- * 1.0 is the goal) grows and a paper lantern lights on the sill when it is reached. The sky is the day or night sky of
- * the theme; [raining] streaks the glass when the user is behind pace. [content] is laid out under the sill.
+ * Today's hero: the arched window with a jar on the sill, a potted plant and a paper lantern. The jar fills as
+ * [progress] (a fraction of the goal, 1.0 is the goal) grows, with a droplet falling in and a wobble when it increases,
+ * and the lantern lights, flickers on and then pulses when the goal is reached. The sky is the golden-hour or dusk
+ * gradient of the theme; [raining] streaks and beads the glass when the user is behind pace. With [animated] the
+ * clouds drift, rain falls and the water sloshes (never when system animations are off). [content] sits under the sill.
  *
  * TalkBack announces "N percent of goal" for the whole hero (the visible [content] is not read separately).
  */
@@ -112,14 +183,20 @@ fun WindowHero(
     modifier: Modifier = Modifier,
     width: Dp = DefaultWidth,
     raining: Boolean = false,
+    animated: Boolean = false,
     description: String =
         pluralStringResource(R.plurals.core_designsystem_progress_ring_description, jarPercent(progress), jarPercent(progress)),
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val fraction = jarFraction(progress)
-    val animated by animateFloatAsState(fraction, tween(FILL_MILLIS), label = "jarFill")
+    val level by animateFloatAsState(fraction, tween(FILL_MILLIS), label = "jarFill")
     val extras = LocalDhmoExtraColors.current
-    val jarOutline = MaterialTheme.colorScheme.onSurface.copy(alpha = GLASS_STROKE_ALPHA)
+    val colors = MaterialTheme.colorScheme
+    val time by rememberAmbientTime(animated && !rememberReducedMotion())
+    val pour = rememberPour(fraction)
+    val lit = fraction >= 1f
+    val flicker = rememberFlicker(lit)
+    val look = HeroLook(extras, colors.primary, colors.tertiary, colors.onSurfaceVariant, colors.surfaceVariant, colors.secondary)
     Column(
         modifier =
             modifier.clearAndSetSemantics {
@@ -130,114 +207,347 @@ fun WindowHero(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Canvas(Modifier.width(width).height(width * HEIGHT_PER_WIDTH)) {
-            val sillTop = size.height * (1f - SILL_FRACTION)
-            val arch = archPath(size.width, sillTop)
-            clipPath(arch) {
-                drawSky(extras, sillTop)
-                if (raining && fraction < 1f) drawRain(extras.rain, sillTop)
-            }
-            drawPath(arch, extras.wood, style = Stroke(width = FrameWidth.toPx()))
-            drawSill(extras, sillTop)
-            drawJar(extras, animated, sillTop, jarOutline)
-            drawLantern(extras, lit = fraction >= 1f, sillTop = sillTop)
+            val s = size.width / DESIGN_WIDTH
+            drawWindow(look, s, raining && !lit, time)
+            drawSill(look, s)
+            drawPlantOnSill(look, s)
+            drawJarOnSill(look, s, level, pour, time)
+            drawLanternOnSill(look, s, lit, flicker, time)
         }
         content()
     }
 }
 
-private fun archPath(width: Float, bottom: Float): Path = Path().apply {
-    moveTo(0f, bottom)
-    lineTo(0f, width * HALF)
-    arcTo(Rect(0f, 0f, width, width), START_ANGLE, SWEEP_ANGLE, forceMoveTo = false)
-    lineTo(width, bottom)
-    close()
-}
+/** The theme colours the hero draws with. */
+private class HeroLook(
+    val x: DhmoExtraColors,
+    val primary: Color,
+    val leaf: Color,
+    val inkMuted: Color,
+    val surface2: Color,
+    val glowInk: Color,
+)
 
-private fun DrawScope.drawSky(extras: DhmoExtraColors, horizon: Float) {
-    drawRect(Brush.verticalGradient(listOf(extras.skyTop, extras.skyMiddle, extras.skyBottom), endY = horizon))
-    if (extras.isNight) {
-        StarPositions.forEach { (x, y) ->
-            drawCircle(extras.star, radius = size.width * CITY_LIGHT_SIZE, center = Offset(size.width * x, horizon * y))
+private class Pour(val drop: Float, val wobble: Float)
+
+@Composable
+private fun rememberPour(fraction: Float): Pour {
+    val drop = remember { Animatable(1f) }
+    val wobble = remember { Animatable(1f) }
+    var last by remember { mutableFloatStateOf(fraction) }
+    LaunchedEffect(fraction) {
+        val grew = fraction > last
+        last = fraction
+        if (grew) {
+            drop.snapTo(0f)
+            wobble.snapTo(0f)
+            drop.animateTo(1f, tween(750, easing = LinearEasing))
+            wobble.animateTo(1f, tween(900))
         }
     }
-    CloudPuffs.forEach { (x, y, r) ->
-        drawCircle(extras.cloud, radius = size.width * r, center = Offset(size.width * x, horizon * y))
+    return Pour(drop.value, wobble.value)
+}
+
+@Composable
+private fun rememberFlicker(lit: Boolean): Float {
+    val flicker = remember { Animatable(if (lit) 1f else 0f) }
+    LaunchedEffect(lit) {
+        if (lit) {
+            flicker.snapTo(0f)
+            flicker.animateTo(
+                1f,
+                keyframes {
+                    durationMillis = 1_200
+                    0f at 0
+                    0.9f at 144
+                    0.25f at 288
+                    1f at 456
+                    0.4f at 624
+                    1f at 864
+                    1f at 1_200
+                },
+            )
+        } else {
+            flicker.snapTo(0f)
+        }
     }
-    if (extras.isNight) {
-        drawRect(extras.skyline, topLeft = Offset(0f, horizon * (1f - CITY_HEIGHT)), size = Size(size.width, horizon * CITY_HEIGHT))
-        CityLights.forEach { (x, w) ->
+    return flicker.value
+}
+
+/** The glass outline at [inset] design units inside the frame: an elliptical arch on top, [corner] at the bottom. */
+private fun glassPath(width: Float, bottom: Float, inset: Float, corner: Float): Path {
+    val left = inset
+    val right = width - inset
+    val base = bottom - inset
+    val rx = width / 2f - inset
+    val ry = 0.375f * bottom - inset
+    return Path().apply {
+        moveTo(left, inset + ry)
+        arcTo(Rect(left, inset, right, inset + 2f * ry), 180f, 180f, forceMoveTo = false)
+        lineTo(right, base - corner)
+        if (corner > 0f) arcTo(Rect(right - 2f * corner, base - 2f * corner, right, base), 0f, 90f, forceMoveTo = false)
+        lineTo(left + corner, base)
+        if (corner > 0f) arcTo(Rect(left, base - 2f * corner, left + 2f * corner, base), 90f, 90f, forceMoveTo = false)
+        close()
+    }
+}
+
+private fun DrawScope.drawWindow(look: HeroLook, s: Float, raining: Boolean, time: Float) {
+    val x = look.x
+    val glassBottom = size.height - GLASS_BOTTOM_INSET * s
+    drawPath(glassPath(size.width, glassBottom, 0f, 6f * s), x.wood)
+    val inner = glassPath(size.width, glassBottom, FRAME * s, 0f)
+    val iw = size.width - 2f * FRAME * s
+    val ih = glassBottom - 2f * FRAME * s
+    clipPath(inner) {
+        translate(FRAME * s, FRAME * s) {
+            drawSkyLayers(x, iw, ih)
+            if (x.isNight) drawStars(x, iw, ih)
+            Clouds.forEach { drawCloud(x, it, s, iw, ih, time) }
+            drawCity(x, iw, ih)
+            if (raining) drawRain(x, s, iw, ih, time)
+            drawShine(x, iw, ih)
+            drawMuntins(x, s, iw, ih)
             drawRect(
-                extras.glow,
-                topLeft = Offset(size.width * x, horizon * (1f - CITY_HEIGHT * HALF)),
-                size = Size(size.width * w, size.width * CITY_LIGHT_SIZE),
+                Brush.radialGradient(
+                    0.72f to Color.Transparent,
+                    1f to Color.Black.copy(alpha = 0.28f),
+                    center = Offset(iw / 2f, ih / 2f),
+                    radius = hypot(iw, ih) / 2f,
+                ),
+                size = Size(iw, ih),
             )
         }
     }
 }
 
-private fun DrawScope.drawRain(color: Color, horizon: Float) {
-    val stroke = JarStrokeWidth.toPx() * HALF
-    repeat(STREAK_COUNT) { i ->
-        val x = size.width * (STREAK_STEP * (i + 1))
-        val y = horizon * (((i * 7) % STREAK_COUNT) / STREAK_COUNT.toFloat())
-        val length = size.width * STREAK_LENGTH * (STREAK_MIN_FACTOR + (i % 3) * STREAK_MIN_FACTOR * HALF)
-        drawLine(color, Offset(x, y), Offset(x - size.width * STREAK_SLANT, y + length), strokeWidth = stroke, cap = StrokeCap.Round)
-    }
-}
-
-private fun DrawScope.drawSill(extras: DhmoExtraColors, top: Float) {
-    val overhang = FrameWidth.toPx()
-    drawRoundRect(
-        brush = Brush.verticalGradient(listOf(extras.woodHighlight, extras.wood), startY = top, endY = size.height),
-        topLeft = Offset(-overhang, top),
-        size = Size(size.width + overhang * 2, size.height - top),
-        cornerRadius = CornerRadius(overhang),
+private fun DrawScope.drawSkyLayers(x: DhmoExtraColors, iw: Float, ih: Float) {
+    val mid = if (x.isNight) NIGHT_MID_STOP else DAY_MID_STOP
+    drawRect(Brush.verticalGradient(0f to x.skyTop, mid to x.skyMiddle, 1f to x.skyBottom, startY = 0f, endY = ih), size = Size(iw, ih))
+    val sunCenter = Offset(0.72f * iw, 0.82f * ih)
+    drawRect(Brush.radialGradient(listOf(x.sun, Color.Transparent), sunCenter, 0.55f * hypot(0.72f * iw, 0.82f * ih)), size = Size(iw, ih))
+    val hazeCenter = Offset(0.18f * iw, 0.08f * ih)
+    drawRect(
+        Brush.radialGradient(listOf(x.haze, Color.Transparent), hazeCenter, 0.55f * hypot(0.82f * iw, 0.92f * ih)),
+        size = Size(iw, ih),
     )
 }
 
-private fun DrawScope.drawJar(extras: DhmoExtraColors, fill: Float, sillTop: Float, outline: Color) {
-    val jarWidth = size.width * JAR_WIDTH
-    val jarHeight = size.height * JAR_HEIGHT
-    val left = (size.width - jarWidth) * HALF
-    val top = sillTop - jarHeight
-    val body = RoundRect(left, top, left + jarWidth, sillTop, CornerRadius(jarWidth * JAR_CORNER))
-    val bodyPath = Path().apply { addRoundRect(body) }
-    drawPath(bodyPath, extras.glass)
-    clipPath(bodyPath) {
-        val inset = jarHeight * WATER_INSET
-        val surface = sillTop - (jarHeight - inset) * fill
-        if (fill > 0f) {
-            drawRect(extras.water, topLeft = Offset(left, surface), size = Size(jarWidth, sillTop - surface))
-            drawLine(
-                Color.White.copy(alpha = MENISCUS_ALPHA),
-                Offset(left, surface),
-                Offset(left + jarWidth, surface),
-                strokeWidth = JarStrokeWidth.toPx(),
-            )
-        }
-    }
-    drawPath(bodyPath, outline, style = Stroke(width = JarStrokeWidth.toPx()))
-    val lidWidth = jarWidth * LID_WIDTH
-    drawRoundRect(
-        outline,
-        topLeft = Offset((size.width - lidWidth) * HALF, top - jarHeight * LID_HEIGHT),
-        size = Size(lidWidth, jarHeight * LID_HEIGHT),
-        cornerRadius = CornerRadius(JarStrokeWidth.toPx()),
-    )
+private fun DrawScope.drawStars(x: DhmoExtraColors, iw: Float, ih: Float) {
+    val k = max(iw / 200f, ih / 250f)
+    val ox = (iw - 200f * k) / 2f
+    val oy = (ih - 250f * k) / 2f
+    Stars.forEach { (cx, cy, r) -> drawCircle(x.star, r * k, Offset(ox + cx * k, oy + cy * k)) }
 }
 
-private fun DrawScope.drawLantern(extras: DhmoExtraColors, lit: Boolean, sillTop: Float) {
-    val radius = size.width * LANTERN_RADIUS
-    val center = Offset(size.width * LANTERN_X, sillTop - radius)
-    if (lit) {
-        drawCircle(
-            Brush.radialGradient(listOf(extras.glow.copy(alpha = HALF), Color.Transparent), center, size.width * LANTERN_GLOW_RADIUS),
-            radius = size.width * LANTERN_GLOW_RADIUS,
-            center = center,
+private fun pingPong(t: Float): Float {
+    val f = t - kotlin.math.floor(t)
+    return if (f < 0.5f) f * 2f else (1f - f) * 2f
+}
+
+/** Four overlapping blobs with a lit top-left, like the design's `.cloud`, drifting between -40 and +70 design units. */
+private fun DrawScope.drawCloud(x: DhmoExtraColors, cloud: Cloud, s: Float, iw: Float, ih: Float, time: Float) {
+    val drift = -40f + 110f * pingPong((time + cloud.phase) / (2f * cloud.period))
+    val originX = cloud.left * iw + drift * s
+    val originY = cloud.top * ih
+    val pieces =
+        listOf(
+            Rect(0f, 14f, 42f, 40f),
+            Rect(18f, -1f, 58f, 33f),
+            Rect(44f, 14f, 90f, 40f),
+            Rect(6f, 24f, cloud.width - 6f, 40f),
         )
-        drawCircle(extras.glow, radius, center)
-    } else {
-        drawCircle(extras.glow.copy(alpha = LANTERN_UNLIT_ALPHA), radius, center)
+    pieces.forEachIndexed { index, r ->
+        val w = (r.width) * s
+        val h = (r.height) * s
+        val topLeft = Offset(originX + r.left * s, originY + r.top * s)
+        val brush =
+            Brush.radialGradient(
+                listOf(x.cloudHigh, x.cloudLow),
+                Offset(topLeft.x + 0.4f * w, topLeft.y + 0.32f * h),
+                hypot(0.6f * w, 0.68f * h),
+            )
+        if (index == 3) {
+            drawRoundRect(brush, topLeft, Size(w, h), CornerRadius(12f * s), alpha = cloud.alpha)
+        } else {
+            drawOval(brush, topLeft, Size(w, h), alpha = cloud.alpha)
+        }
     }
-    drawCircle(extras.wood, radius, center, style = Stroke(width = JarStrokeWidth.toPx()))
+}
+
+private fun DrawScope.drawCity(x: DhmoExtraColors, iw: Float, ih: Float) {
+    val h = 0.36f * ih
+    translate(0f, ih - h) {
+        val sx = iw / 200f
+        val sy = h / 70f
+        drawPath(RoofPath.copy(sx, sy), x.skyline)
+        if (x.isNight) CityLights.forEach { (lx, ly) -> drawRect(x.glow, Offset(lx * sx, ly * sy), Size(2.6f * sx, 3f * sy)) }
+    }
+}
+
+private fun Path.copy(sx: Float, sy: Float): Path = Path().also {
+    it.addPath(this)
+    it.transform(Matrix().apply { scale(sx, sy) })
+}
+
+private fun DrawScope.drawRain(x: DhmoExtraColors, s: Float, iw: Float, ih: Float, time: Float) {
+    WindowRain.streaks.forEach { d ->
+        val length = d.length * s
+        val top =
+            if (time == 0f) d.top * ih else (-0.2f + 1.3f * (((time + d.delay) / d.period) % 1f)) * ih
+        drawLine(
+            Brush.verticalGradient(listOf(Color.Transparent, x.rain), startY = top, endY = top + length),
+            Offset(d.x * iw, top),
+            Offset(d.x * iw, top + length),
+            strokeWidth = 1.5f * s,
+            cap = StrokeCap.Round,
+            alpha = d.alpha,
+        )
+    }
+    WindowRain.dew.forEach { d ->
+        val w = d.width * s
+        val h = d.height * s
+        val tl = Offset(d.x * iw, d.y * ih)
+        drawOval(
+            Brush.radialGradient(listOf(x.rain, Color.Transparent), Offset(tl.x + 0.35f * w, tl.y + 0.3f * h), max(w, h) * 0.8f),
+            tl,
+            Size(w, h),
+            alpha = 0.8f,
+        )
+    }
+}
+
+private fun DrawScope.drawShine(x: DhmoExtraColors, iw: Float, ih: Float) {
+    val angle = 115f * PI.toFloat() / 180f
+    val dx = sin(angle)
+    val dy = -cos(angle)
+    val length = abs(iw * dx) + abs(ih * dy)
+    val c = Offset(iw / 2f, ih / 2f)
+    val start = Offset(c.x - dx * length / 2f, c.y - dy * length / 2f)
+    val end = Offset(c.x + dx * length / 2f, c.y + dy * length / 2f)
+    drawRect(
+        Brush.linearGradient(
+            0f to x.shine,
+            0.24f to Color.Transparent,
+            0.62f to Color.Transparent,
+            0.78f to x.shine,
+            0.84f to Color.Transparent,
+            start = start,
+            end = end,
+        ),
+        size = Size(iw, ih),
+        alpha = 0.5f,
+    )
+}
+
+private fun DrawScope.drawMuntins(x: DhmoExtraColors, s: Float, iw: Float, ih: Float) {
+    val stroke = Stroke(width = 4f * s)
+    drawLine(x.wood, Offset(iw / 2f, 0f), Offset(iw / 2f, ih), strokeWidth = stroke.width)
+    drawLine(x.wood, Offset(0f, 120f / 250f * ih), Offset(iw, 120f / 250f * ih), strokeWidth = stroke.width)
+    drawPath(MuntinArch.copy(iw / 200f, ih / 250f), x.wood, style = stroke)
+}
+
+private fun DrawScope.drawSill(look: HeroLook, s: Float) {
+    val top = size.height - SILL_HEIGHT * s
+    drawRoundRect(
+        Color.Black.copy(alpha = 0.18f),
+        Offset(-8f * s + 2f * s, top + 5f * s),
+        Size(size.width + 16f * s - 4f * s, SILL_HEIGHT * s),
+        CornerRadius(5f * s),
+    )
+    drawRoundRect(
+        Brush.verticalGradient(listOf(look.x.woodHighlight, look.x.wood), startY = top, endY = size.height),
+        Offset(-8f * s, top),
+        Size(size.width + 16f * s, SILL_HEIGHT * s),
+        CornerRadius(5f * s),
+    )
+}
+
+private fun DrawScope.drawPlantOnSill(look: HeroLook, s: Float) {
+    drawPlant(Offset(0.07f * size.width, size.height - (OBJECT_BOTTOM + 56f) * s), 38f * s, look.leaf, look.x.wood, look.x.woodHighlight)
+}
+
+private fun DrawScope.drawJarOnSill(look: HeroLook, s: Float, fill: Float, pour: Pour, time: Float) {
+    val x = look.x
+    val cx = size.width / 2f
+    val bottom = size.height - OBJECT_BOTTOM * s
+    val bodyW = 56f * s
+    val bodyH = 68f * s
+    val bodyTop = bottom - bodyH
+    val left = cx - bodyW / 2f
+    val tilt = -3f * sin(pour.wobble * TWO_PI * 1.25f) * (1f - pour.wobble)
+    rotate(tilt, Offset(cx, bottom)) {
+        val body =
+            RoundRect(
+                left,
+                bodyTop,
+                left + bodyW,
+                bottom,
+                CornerRadius(10f * s),
+                CornerRadius(10f * s),
+                CornerRadius(14f * s),
+                CornerRadius(14f * s),
+            )
+        val bodyPath = Path().apply { addRoundRect(body) }
+        drawPath(bodyPath, x.glass)
+        val insideLeft = left + 2f * s
+        val insideTop = bodyTop + 2f * s
+        val insideW = bodyW - 4f * s
+        val insideH = bodyH - 4f * s
+        clipPath(bodyPath) {
+            val water = insideH * fill
+            if (fill > 0f) {
+                val surface = bottom - 2f * s - water
+                drawRect(
+                    Brush.verticalGradient(listOf(x.water, look.primary), startY = surface, endY = bottom),
+                    Offset(insideLeft, surface),
+                    Size(insideW, water + 2f * s),
+                    alpha = 0.92f,
+                )
+                val slosh = sin(time * TWO_PI / 3f) * 3f * s
+                drawOval(x.water, Offset(insideLeft - 0.1f * insideW + slosh, surface - 4f * s), Size(1.2f * insideW, 8f * s))
+            }
+            drawRoundRect(x.shine, Offset(insideLeft + 6f * s, insideTop + 6f * s), Size(5f * s, insideH - 16f * s), CornerRadius(4f * s))
+        }
+        drawPath(bodyPath, look.inkMuted, style = Stroke(width = 2f * s))
+        val lidW = 34f * s
+        val lidH = 8f * s
+        drawRoundRect(
+            x.wood,
+            Offset(cx - lidW / 2f, bodyTop - lidH),
+            Size(lidW, lidH),
+            CornerRadius(3f * s),
+        )
+        drawRect(x.woodHighlight, Offset(cx - lidW / 2f, bodyTop - lidH), Size(lidW, 1f * s))
+    }
+    if (pour.drop < 1f) {
+        val fall = pour.drop
+        val startY = bodyTop - 120f * s
+        val endY = bodyTop - 4f * s + 8f * s
+        val alpha = if (fall < 0.85f) 1f else 1f - (fall - 0.85f) / 0.15f
+        drawOval(
+            look.primary.copy(alpha = alpha.coerceIn(0f, 1f)),
+            Offset(cx - 4f * s, startY + (endY - startY) * fall - 5.5f * s),
+            Size(8f * s, 11f * s),
+        )
+    }
+}
+
+private fun DrawScope.drawLanternOnSill(look: HeroLook, s: Float, lit: Boolean, flicker: Float, time: Float) {
+    val w = 34f * s
+    val h = 48f * s
+    val left = size.width - 0.08f * size.width - w
+    val top = size.height - OBJECT_BOTTOM * s - h
+    if (lit) {
+        val pulse = if (time == 0f) 1f else 1f - 0.25f * ((1f - cos(time * TWO_PI / 4.5f)) / 2f)
+        val radius = 70f * s * (if (time == 0f) 1f else 1f - 0.07f * ((1f - cos(time * TWO_PI / 4.5f)) / 2f))
+        val center = Offset(left + w / 2f, top + 0.48f * h)
+        drawCircle(
+            Brush.radialGradient(0f to look.x.glowHalo, 0.65f to Color.Transparent, center = center, radius = radius),
+            radius,
+            center,
+            alpha = (flicker * pulse).coerceIn(0f, 1f),
+        )
+    }
+    drawLantern(Offset(left, top), w, if (lit) look.x.glow else look.surface2, if (lit) look.glowInk else look.inkMuted)
 }

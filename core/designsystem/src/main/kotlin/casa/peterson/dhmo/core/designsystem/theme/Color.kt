@@ -95,23 +95,31 @@ internal val DarkColors =
     )
 
 /**
- * Colours the Material roles have no slot for: the window's sky, the lamp, the wooden sill and the water. They are
- * decoration, never the only carrier of meaning, so they have no contrast requirement of their own.
+ * Colours the Material roles have no slot for: the window's sky, sun, haze, clouds and skyline, the lamp's glow, the
+ * wooden sill, the rain and the water. They are decoration, never the only carrier of meaning, so they have no
+ * contrast requirement of their own. Values are the design's tokens for each theme.
  */
 @Immutable
 class DhmoExtraColors(
     val skyTop: Color,
     val skyMiddle: Color,
     val skyBottom: Color,
-    val cloud: Color,
+    val sun: Color,
+    val haze: Color,
+    val cloudHigh: Color,
+    val cloudLow: Color,
     val skyline: Color,
     val star: Color,
+    val starfield: Color,
     val water: Color,
     val glass: Color,
+    val shine: Color,
     val glow: Color,
+    val glowHalo: Color,
     val wood: Color,
     val woodHighlight: Color,
     val rain: Color,
+    val shelfHighlight: Color,
     val isNight: Boolean,
 )
 
@@ -120,15 +128,22 @@ internal val LightExtraColors =
         skyTop = Color(0xFF9DBFD3),
         skyMiddle = Color(0xFFC9DCE0),
         skyBottom = Color(0xFFF6D6A8),
-        cloud = Color(0xCCFFFFFF),
-        skyline = Color(0x00000000),
-        star = Color(0x00000000),
+        sun = Color(0xCCFFCD82),
+        haze = Color(0x8CFFF6E2),
+        cloudHigh = Color(0xFFFFF8EA),
+        cloudLow = Color(0xFFEADFC8),
+        skyline = Color(0xFF8FAFBE),
+        star = Color(0xFFF8F7EF),
+        starfield = Color(0xFF26304A),
         water = Color(0xFF9CC7C9),
-        glass = Color(0x33FFFFFF),
+        glass = Color(0x59F8F7EF),
+        shine = Color(0x8CFFFFFF),
         glow = Color(0xFFE8A54B),
-        wood = Color(0xFF6B5646),
-        woodHighlight = Color(0xFF8A7258),
-        rain = Color(0x99F8F7EF),
+        glowHalo = Color(0x8CE8A54B),
+        wood = Color(0xFFB49A74),
+        woodHighlight = Color(0xFFD6C29F),
+        rain = Color(0xCCFFFFFF),
+        shelfHighlight = Color(0xA6FFFFFF),
         isNight = false,
     )
 
@@ -137,15 +152,22 @@ internal val DarkExtraColors =
         skyTop = Color(0xFF2B2F5A),
         skyMiddle = Color(0xFF4A3F6B),
         skyBottom = Color(0xFFC77F6A),
-        cloud = Color(0x556B5F8F),
+        sun = Color(0x47EDE6D3),
+        haze = Color(0x40786EBE),
+        cloudHigh = Color(0xFF6B5F8F),
+        cloudLow = Color(0xFF3A3862),
         skyline = Color(0xFF10132A),
         star = Color(0xFFEDE6D3),
+        starfield = Color(0xFF10132A),
         water = Color(0xFF3E7C86),
-        glass = Color(0x22EDE6D3),
+        glass = Color(0x12EDE6D3),
+        shine = Color(0x38EDE6D3),
         glow = Color(0xFFF2B661),
+        glowHalo = Color(0x99F2B661),
         wood = Color(0xFF6B5646),
         woodHighlight = Color(0xFF8A7258),
         rain = Color(0x99C8D7F0),
+        shelfHighlight = Color(0x29F2B661),
         isNight = true,
     )
 

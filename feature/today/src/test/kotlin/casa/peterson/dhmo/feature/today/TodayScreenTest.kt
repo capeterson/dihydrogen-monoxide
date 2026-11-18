@@ -63,7 +63,7 @@ class TodayScreenTest {
         compose.onNodeWithTag("today_list").performScrollToIndex(1)
         compose.onNodeWithTag("quick_add_${container.id}").performClick()
         compose.runOnIdle { assertThat(added).isEqualTo(250) }
-        compose.onNodeWithTag("today_list").performScrollToIndex(3)
+        compose.onNodeWithTag("today_list").performScrollToIndex(2)
         compose.onNodeWithTag("today_entry_${entry.id}").performTouchInput { swipeLeft() }
         compose.mainClock.advanceTimeBy(1_000)
         compose.runOnIdle { assertThat(deleted).isEqualTo(entry.id) }
@@ -111,14 +111,14 @@ class TodayScreenTest {
         compose.waitUntil(5_000) {
             compose.onAllNodes(androidx.compose.ui.test.hasTestTag("today_list")).fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithTag("today_list").performScrollToIndex(3)
+        compose.onNodeWithTag("today_list").performScrollToIndex(2)
         compose.onNodeWithTag("today_entry_${entry.id}").performTouchInput { swipeLeft() }
         compose.waitUntil(5_000) { runBlocking { intake.get(entry.id)?.deletedAt != null } }
         compose.waitUntil(5_000) { (vm.uiState.value as? TodayUiState.Ready)?.entries?.none { it.id == entry.id } == true }
         compose.onNodeWithText("Undo").performClick()
         compose.waitUntil(5_000) { runBlocking { intake.get(entry.id)?.deletedAt == null } }
         compose.waitUntil(5_000) { (vm.uiState.value as? TodayUiState.Ready)?.entries?.any { it.id == entry.id } == true }
-        compose.onNodeWithTag("today_list").performScrollToIndex(3)
+        compose.onNodeWithTag("today_list").performScrollToIndex(2)
         compose.waitUntil(5_000) {
             compose.onAllNodes(androidx.compose.ui.test.hasTestTag("today_entry_${entry.id}")).fetchSemanticsNodes().isNotEmpty()
         }
