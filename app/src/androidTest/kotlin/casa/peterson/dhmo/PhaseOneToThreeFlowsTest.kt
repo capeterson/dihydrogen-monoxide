@@ -45,8 +45,9 @@ class PhaseOneToThreeFlowsTest {
 
         // First log.
         assertThat(compose.nodes(hasTestTagPrefix("today_entry_"))).isEqualTo(0)
+        compose.onNode(hasTestTag("today_list")).performScrollToNode(hasTestTagPrefix("quick_add_"))
         compose.onAllNodes(hasTestTagPrefix("quick_add_")).onFirst().performClick()
-        compose.waitUntil(TIMEOUT) { compose.scrollToEntry() == 1 }
+        compose.waitForEntry()
 
         // Edit: open the entry, change the amount, save.
         compose.customAction(hasTestTagPrefix("today_entry_"), "Edit")
@@ -60,7 +61,7 @@ class PhaseOneToThreeFlowsTest {
         compose.customAction(hasTestTagPrefix("today_entry_"), "Delete")
         compose.waitForText("Undo")
         compose.onNodeWithText("Undo").performClick()
-        compose.waitUntil(TIMEOUT) { compose.scrollToEntry() == 1 }
+        compose.waitForEntry()
 
         // Day override from the goal chip.
         compose.onNode(hasTestTag("today_list")).performScrollToIndex(0)
@@ -149,6 +150,15 @@ private fun ComposeRule.waitForText(text: String, substring: Boolean = false) {
         waitUntil(10_000) { onAllNodes(hasText(text, substring = substring)).fetchSemanticsNodes().isNotEmpty() }
     } catch (e: androidx.compose.ui.test.ComposeTimeoutException) {
         throw AssertionError("\"$text\" not shown. Screen:\n" + onRoot().printToString(), e)
+    }
+}
+
+/** Waits for exactly one drink in Today's list; on timeout the failure message carries the semantics tree. */
+private fun ComposeRule.waitForEntry() {
+    try {
+        waitUntil(10_000) { scrollToEntry() == 1 }
+    } catch (e: androidx.compose.ui.test.ComposeTimeoutException) {
+        throw AssertionError("No single drink shown. Screen:\n" + onRoot().printToString(), e)
     }
 }
 
