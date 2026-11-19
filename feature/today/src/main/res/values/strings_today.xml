@@ -8,7 +8,6 @@
     <string name="feature_today_invalid_amount">Enter an amount from 1 to 10,000 ml.</string>
     <string name="feature_today_entry_not_editable">This imported entry is read-only.</string>
     <string name="feature_today_entry_missing">This entry is no longer available.</string>
-    <string name="feature_today_quick_add">Quick add</string>
     <string name="feature_today_recent_drinks">Poured today</string>
     <string name="feature_today_goal_met">Jar’s full. That’s the day, done well.</string>
     <string name="feature_today_add_custom">Add custom amount</string>
@@ -46,7 +45,6 @@
     <string name="feature_today_move_up">Move up</string>
     <string name="feature_today_move_down">Move down</string>
     <string name="feature_today_behind_amount">%1$s behind pace</string>
-    <string name="feature_today_behind">Behind pace</string>
     <string name="feature_today_on_track">On track</string>
     <string name="feature_today_ahead">Ahead of pace</string>
     <string name="feature_today_goal_override">Custom goal active</string>

@@ -99,12 +99,12 @@ class PhaseOneToThreeFlowsTest {
         compose.waitForText("Welcome to Dihydrogen Monoxide")
         repeat(MAX_ONBOARDING_STEPS) {
             when {
-                compose.has(hasText("Today")) && compose.has(hasText("Quick add")) -> return
+                compose.has(hasTestTag("today_list")) -> return
 
                 compose.has(hasText("Start tracking")) -> {
                     compose.onNodeWithText("Start tracking").performClick()
                     // Finishing is asynchronous; the button lingers until Today replaces it, so stop looping here.
-                    compose.waitForText("Quick add")
+                    compose.waitForTodayList()
                     return
                 }
 
@@ -130,7 +130,7 @@ class PhaseOneToThreeFlowsTest {
             }
             compose.waitForIdle()
         }
-        compose.waitForText("Quick add")
+        compose.waitForTodayList()
     }
 
     private companion object {
@@ -179,4 +179,13 @@ private fun ComposeRule.scrollToEntry(): Int {
         runCatching { onNode(hasTestTag("today_list")).performScrollToNode(hasTestTagPrefix("today_entry_")) }
     }
     return nodes(hasTestTagPrefix("today_entry_"))
+}
+
+/** Waits for Today's list to be on screen; on timeout the failure message carries the semantics tree. */
+private fun ComposeRule.waitForTodayList() {
+    try {
+        waitUntil(10_000) { has(hasTestTag("today_list")) }
+    } catch (e: androidx.compose.ui.test.ComposeTimeoutException) {
+        throw AssertionError("Today's list not shown. Screen:\n" + onRoot().printToString(), e)
+    }
 }

@@ -20,7 +20,7 @@ private const val SOFT_MAX = 100f
 private const val WONKY = 1f
 
 private fun fraunces(weight: FontWeight) = Font(
-    R.font.fraunces_variable,
+    R.font.core_designsystem_fraunces_variable,
     weight = weight,
     variationSettings =
         FontVariation.Settings(
@@ -32,7 +32,7 @@ private fun fraunces(weight: FontWeight) = Font(
 )
 
 private fun nunito(weight: FontWeight) = Font(
-    R.font.nunito_sans_variable,
+    R.font.core_designsystem_nunito_sans_variable,
     weight = weight,
     variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
 )
@@ -45,7 +45,10 @@ val BodyFontFamily = FontFamily(nunito(FontWeight.Normal), nunito(FontWeight.Sem
 
 /** Monospace for numerals and times, so digits line up. */
 val NumeralFontFamily =
-    FontFamily(Font(R.font.dm_mono_regular, FontWeight.Normal), Font(R.font.dm_mono_medium, FontWeight.Medium))
+    FontFamily(
+        Font(R.font.core_designsystem_dm_mono_regular, FontWeight.Normal),
+        Font(R.font.core_designsystem_dm_mono_medium, FontWeight.Medium),
+    )
 
 private val base = Typography()
 

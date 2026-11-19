@@ -19,8 +19,6 @@
     <string name="feature_profile_clamp_low">Your inputs add up to %1$s, below the %2$s lower limit. Talk to a clinician about the right goal for you.</string>
 
     <!-- Breakdown -->
-    <string name="feature_profile_breakdown_title">How the goal is calculated</string>
-    <string name="feature_profile_breakdown_total">Total %1$s; calculated goal %2$s</string>
     <string name="feature_profile_breakdown_not_applied">Off in Adjustments, not counted</string>
     <string name="feature_profile_drinks_only">This goal covers drinks only. About 20% of the water you need comes from food.</string>
     <string name="feature_profile_component_base_child">Base %1$s (age %2$s)</string>

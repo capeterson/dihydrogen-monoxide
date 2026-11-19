@@ -71,7 +71,7 @@ internal fun StatCard(state: InsightsUiState.Ready, modifier: Modifier) {
                 style = MaterialTheme.typography.displaySmall.copy(fontFamily = NumeralFontFamily, fontWeight = FontWeight.Medium),
             )
             Text(
-                stringResource(R.string.feature_insights_stat_label, daysMet, counted.size),
+                pluralStringResource(R.plurals.feature_insights_stat_label, counted.size, daysMet, counted.size),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -111,7 +111,7 @@ internal fun NightSkyRangeCard(state: InsightsUiState.Ready, locale: Locale, mod
         caption = stringResource(R.string.feature_insights_night_sky_caption),
         days = List(leading) { null } + stars,
         weekdayLabels = DayOfWeek.entries.map { it.getDisplayName(TextStyle.NARROW, locale) },
-        description = stringResource(R.string.feature_insights_night_sky_description, state.days.size),
+        description = pluralStringResource(R.plurals.feature_insights_night_sky_description, state.days.size, state.days.size),
         modifier = modifier,
     )
 }
