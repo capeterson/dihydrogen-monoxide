@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import casa.peterson.dhmo.core.designsystem.component.BirthDateField
 import casa.peterson.dhmo.core.designsystem.component.BodyMeasurementFields
 import casa.peterson.dhmo.core.designsystem.component.TimePickerRow
+import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.model.ActivityLevel
 import casa.peterson.dhmo.core.model.Climate
 import casa.peterson.dhmo.core.model.ComponentKind
@@ -96,7 +98,7 @@ internal fun OnboardingPageContent(
                     VolumeUnit.L to R.string.feature_onboarding_unit_l,
                     VolumeUnit.US_FL_OZ to R.string.feature_onboarding_unit_us,
                     VolumeUnit.IMP_FL_OZ to R.string.feature_onboarding_unit_imp,
-                ).forEach { (unit, label) -> Choice(label, state.units == unit) { change { it.copy(units = unit) } } }
+                ).forEach { (unit, label) -> Choice(label, state.units == unit) { change { it.withUnits(unit) } } }
                 MinuteField(R.string.feature_onboarding_day_start, state.dayStart) { value ->
                     change { it.copy(dayStart = value) }
                 }
@@ -114,16 +116,16 @@ internal fun OnboardingPageContent(
 
             OnboardingPage.PROFILE -> ProfileFields(state, change)
 
-            OnboardingPage.MANUAL -> NumberField(R.string.feature_onboarding_goal_ml, state.manualGoal) { value ->
+            OnboardingPage.MANUAL -> NumberField(manualGoalLabel(state.units), state.manualGoalText()) { value ->
                 change { it.copy(manualGoal = value) }
             }
 
             OnboardingPage.PREVIEW -> {
-                val target = if (state.choice == GoalChoice.MANUAL) state.manualGoal.toIntOrNull() else preview?.calculatedMl
-                if (target !=
-                    null
-                ) {
-                    Text(stringResource(R.string.feature_onboarding_goal_value, target), style = MaterialTheme.typography.headlineSmall)
+                val locale = LocalConfiguration.current.locales[0]
+                val target = if (state.choice == GoalChoice.MANUAL) state.manualGoalMl() else preview?.calculatedMl
+                if (target != null) {
+                    val goalText = VolumeFormatter.format(target, state.units, locale)
+                    Text(stringResource(R.string.feature_onboarding_goal_value, goalText), style = MaterialTheme.typography.headlineSmall)
                 }
                 if (state.choice == GoalChoice.CALCULATED) {
                     preview?.components?.filter { it.applied }?.forEach { component ->
@@ -131,7 +133,7 @@ internal fun OnboardingPageContent(
                             stringResource(
                                 R.string.feature_onboarding_component_value,
                                 stringResource(componentLabel(component.kind)),
-                                component.ml,
+                                VolumeFormatter.format(component.ml, state.units, locale),
                             ),
                         )
                     }
@@ -261,4 +263,11 @@ private fun componentLabel(kind: ComponentKind): Int = when (kind) {
     ComponentKind.ACTIVITY_LEVEL, ComponentKind.ACTIVITY_MINUTES -> R.string.feature_onboarding_component_activity
     ComponentKind.CLIMATE_MANUAL, ComponentKind.CLIMATE_FORECAST -> R.string.feature_onboarding_component_climate
     ComponentKind.ALTITUDE -> R.string.feature_onboarding_component_altitude
+}
+
+@StringRes
+private fun manualGoalLabel(unit: VolumeUnit): Int = when (unit) {
+    VolumeUnit.ML -> R.string.feature_onboarding_goal_ml
+    VolumeUnit.L -> R.string.feature_onboarding_goal_l
+    VolumeUnit.US_FL_OZ, VolumeUnit.IMP_FL_OZ -> R.string.feature_onboarding_goal_oz
 }
