@@ -398,6 +398,7 @@ private fun TotalLine(state: TodayUiState.Ready, locale: Locale, onOpenGoal: () 
         },
         style = MaterialTheme.typography.bodyLarge.copy(fontFamily = NumeralFontFamily),
         modifier = Modifier
+            .testTag("today_goal")
             .clickable(onClickLabel = goalLabel, role = Role.Button, onClick = onOpenGoal)
             .semantics(mergeDescendants = true) {},
     )

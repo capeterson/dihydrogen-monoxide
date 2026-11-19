@@ -65,7 +65,7 @@ class PhaseOneToThreeFlowsTest {
 
         // Day override from the goal chip.
         compose.onNode(hasTestTag("today_list")).performScrollToIndex(0)
-        compose.onNode(hasContentDescription("Daily goal", substring = true)).performClick()
+        compose.onNode(hasTestTag("today_goal")).performClick()
         compose.waitForText("Set today’s goal")
         compose.onNodeWithText("Set today’s goal").performClick()
         compose.onNode(hasSetTextAction() and hasText("Goal (ml)")).performTextReplacement("3000")
