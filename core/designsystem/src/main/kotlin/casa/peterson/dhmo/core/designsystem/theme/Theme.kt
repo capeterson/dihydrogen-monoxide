@@ -2,8 +2,9 @@ package casa.peterson.dhmo.core.designsystem.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -31,7 +32,15 @@ fun DhmoTheme(darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean 
         }
     CompositionLocalProvider(LocalDhmoExtraColors provides if (darkTheme) DarkExtraColors else LightExtraColors) {
         MaterialTheme(colorScheme = colorScheme, typography = DhmoTypography, shapes = DhmoShapes) {
-            Box(Modifier.paperGrain(darkTheme)) { content() }
+            // The root surface paints the theme's background and sets the default content colour. Without it,
+            // screens drawn outside a Scaffold (onboarding) fall back to the window's colour and black text.
+            Surface(
+                modifier = Modifier.fillMaxSize().paperGrain(darkTheme),
+                color = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+            ) {
+                content()
+            }
         }
     }
 }

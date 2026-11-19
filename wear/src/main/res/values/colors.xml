@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#2D6A76</color>
+
+    <!-- The app's Night palette (core/designsystem theme/Color.kt DarkColors). The watch has no theme toggle and tiles
+         are always dark, so the tile uses these roles. :wear does not depend on :core:designsystem (it is Compose). -->
+    <color name="wear_background">#161A2C</color>
+    <color name="wear_on_background">#EDE6D3</color>
+    <color name="wear_on_surface_variant">#A8A9C2</color>
+    <color name="wear_primary">#82C6CC</color>
+    <color name="wear_on_primary">#161A2C</color>
+    <color name="wear_surface_variant">#2A3050</color>
 </resources>
