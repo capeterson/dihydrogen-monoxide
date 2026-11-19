@@ -48,7 +48,7 @@ class GoalLifecycleTest {
         FakeWeatherRepository(),
         FakeHealthConnectController(),
     )
-    private val snapshot = SnapshotDailyGoalUseCase(input, GoalCalculator(), GoalPolicyV1, goals, settings, reminders, clock)
+    private val snapshot = SnapshotDailyGoalUseCase(input, GoalCalculator(GoalPolicyV1), GoalPolicyV1, goals, settings, reminders, clock)
 
     @Test
     fun backfillCreatesOnlyMissingDaysAfterTheLastSnapshot() = runTest {

@@ -143,10 +143,12 @@ A Room `@DatabaseView` or materialised `DailyTotal(date, totalMl, effectiveMl, e
 ```
 baseline =
   if age < 14: age-band table (EFSA, drinks only)
-  else max( weightKg × perKgFactor(age),  sexAgeFloor )        // weight-scaled, but never below the population AI
+  else clamp( calcWeightKg × perKgFactor(age),  sexAgeFloor,  baseCap )   // policy v2 (TECHNICAL_PLAN §7.6)
 
-perKgFactor(age):  14–30 → 35 ml/kg   31–55 → 33 ml/kg   56–65 → 30 ml/kg   >65 → 28 ml/kg
+perKgFactor(age), drinks only:  14–30 → 28 ml/kg   31–55 → 26   56–65 → 24   >65 → 22   (v1's 35/33/30/28 × 0.8)
+calcWeightKg:  actual weight; above BMI 25 (height known) the adjusted body weight ref + 0.4 × (weight − ref), ref = weight at BMI 25
 sexAgeFloor (drinks):  female ≈ 1,600 ml   male ≈ 2,000 ml    (EFSA total AI 2.0/2.5 L × 0.8)
+baseCap (drinks):      female 2,480 ml     male 3,200 ml      (EFSA adult P95 total intake 3.1/4.0 L × 0.8)
 
 + pregnancy:   +300 ml     (EFSA)
 + lactation:   +700 ml     (EFSA)

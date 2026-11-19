@@ -44,7 +44,7 @@ class SnapshotDailyGoalUseCaseTest {
         weather,
         FakeHealthConnectController(),
     )
-    private val snapshot = SnapshotDailyGoalUseCase(input, GoalCalculator(), GoalPolicyV1, goals, settings, reminders, clock)
+    private val snapshot = SnapshotDailyGoalUseCase(input, GoalCalculator(GoalPolicyV1), GoalPolicyV1, goals, settings, reminders, clock)
 
     @Test
     fun unchangedSnapshotIsNotWrittenOrRescheduled() = runTest {
