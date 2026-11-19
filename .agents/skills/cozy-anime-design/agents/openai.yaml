@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cozy Anime Design"
+  short_description: "Warm, expressive interfaces with gentle character motion"
+  default_prompt: "Use $cozy-anime-design to create a warm, anime-inspired interface with smooth, meaningful animation."
