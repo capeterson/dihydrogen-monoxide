@@ -1,10 +1,7 @@
 package casa.peterson.dhmo.core.testing
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
@@ -40,7 +37,9 @@ fun captureScreenVariants(name: String, suffix: String? = null, content: @Compos
                     val base = LocalDensity.current
                     CompositionLocalProvider(LocalDensity provides Density(base.density, fontScale = variant.fontScale)) {
                         DhmoTheme(darkTheme = variant.darkTheme, dynamicColor = false) {
-                            Surface(modifier = Modifier.fillMaxSize()) { content() }
+                            // No Surface here: DhmoTheme's own root must supply the background, or a screen that
+                            // forgets its own would pass in tests and still look wrong in the app.
+                            content()
                         }
                     }
                 }

@@ -38,6 +38,7 @@ import casa.peterson.dhmo.core.designsystem.theme.DarkColors
 import casa.peterson.dhmo.core.designsystem.theme.LightColors
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.model.Source
+import casa.peterson.dhmo.core.model.settings.ThemeMode
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -64,6 +65,7 @@ internal data class WidgetModel(
     val fraction: Float,
     val defaultLabel: String?,
     val hasDefault: Boolean,
+    val themeMode: ThemeMode,
 )
 
 internal fun entryPoint(context: Context): WidgetEntryPoint =
@@ -72,7 +74,8 @@ internal fun entryPoint(context: Context): WidgetEntryPoint =
 internal suspend fun loadModel(context: Context): WidgetModel {
     val ep = entryPoint(context)
     val today = ep.observeToday()().first()
-    val unit = ep.settings().current().units
+    val settings = ep.settings().current()
+    val unit = settings.units
     val locale = Locale.getDefault()
     val default = ep.containers().getAll().minByOrNull { it.sortOrder }
     val goal = today.goal?.targetMl
@@ -82,10 +85,18 @@ internal suspend fun loadModel(context: Context): WidgetModel {
         fraction = if (goal == null || goal <= 0) 0f else (today.totalMl.toFloat() / goal).coerceIn(0f, 1f),
         defaultLabel = default?.let { "+" + VolumeFormatter.format(it.volumeMl, unit, locale) },
         hasDefault = default != null,
+        themeMode = settings.theme.mode,
     )
 }
 
 private const val PERCENT = 100
+
+/** The app's palette, following the app's own theme choice; only "follow system" lets the launcher decide. */
+internal fun widgetColors(mode: ThemeMode) = when (mode) {
+    ThemeMode.SYSTEM -> ColorProviders(light = LightColors, dark = DarkColors)
+    ThemeMode.LIGHT -> ColorProviders(light = LightColors, dark = LightColors)
+    ThemeMode.DARK -> ColorProviders(light = DarkColors, dark = DarkColors)
+}
 
 /** Today's progress with a one-tap button for the default container. Compact (2x1) and large (4x2) layouts. */
 class TodayWidget : GlanceAppWidget() {
@@ -95,7 +106,7 @@ class TodayWidget : GlanceAppWidget() {
         val model = loadModel(context)
         val open = ComponentName(context.packageName, MAIN_ACTIVITY)
         provideContent {
-            GlanceTheme(colors = ColorProviders(light = LightColors, dark = DarkColors)) {
+            GlanceTheme(colors = widgetColors(model.themeMode)) {
                 WidgetContent(model, androidx.glance.LocalSize.current.height >= LARGE.height, open)
             }
         }
