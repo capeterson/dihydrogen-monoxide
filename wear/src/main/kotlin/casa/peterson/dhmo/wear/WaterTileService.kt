@@ -2,10 +2,10 @@ package casa.peterson.dhmo.wear
 
 import android.content.Context
 import androidx.concurrent.futures.SuspendToFutureAdapter
-import androidx.wear.protolayout.ActionBuilders
-import androidx.wear.protolayout.DeviceParametersBuilders.DeviceParameters
 import androidx.core.content.ContextCompat
+import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.ColorBuilders.argb
+import androidx.wear.protolayout.DeviceParametersBuilders.DeviceParameters
 import androidx.wear.protolayout.DimensionBuilders.dp
 import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.LayoutElementBuilders

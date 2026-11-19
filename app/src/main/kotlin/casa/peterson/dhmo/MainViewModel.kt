@@ -9,9 +9,9 @@ import casa.peterson.dhmo.core.model.settings.ThemeSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
@@ -23,7 +23,8 @@ enum class StartState { Loading, Onboarding, Main }
 @HiltViewModel
 class MainViewModel
 @Inject
-constructor(deviceState: DeviceStateRepository, settings: SettingsRepository, widgets: WidgetUpdater) : ViewModel() {
+constructor(deviceState: DeviceStateRepository, settings: SettingsRepository, widgets: WidgetUpdater) :
+    ViewModel() {
     /** Read once, so finishing onboarding does not rebuild the nav host. */
     val startState: StateFlow<StartState> =
         deviceState.state
