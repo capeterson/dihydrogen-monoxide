@@ -1450,6 +1450,8 @@ All modules install in `SingletonComponent`. View models are `@HiltViewModel`. T
 - **EFSA (2010)**, *Scientific Opinion on Dietary Reference Values for water*, EFSA Journal 8(3):1459. Adequate intakes (AI) of **total** water: 6–12 months 800–1,000 ml; 1–2 years 1,100–1,200 ml; 2–3 years 1,300 ml; 4–8 years 1,600 ml; 9–13 years 2,100 ml (boys) and 1,900 ml (girls); 14 years and over 2,500 ml (male) and 2,000 ml (female); pregnancy +300 ml; lactation +700 ml.
 - **US National Academies (2004)**, *Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate*: about 20% of total water comes from food. This is the basis for the ×0.8 "drinks only" factor.
 - **ACSM (2007)**, *Exercise and Fluid Replacement* position stand: basis for the per-minute exercise allowance.
+- **NICE CG174**, *Intravenous fluid therapy in adults in hospital*: for obese patients, base the prescription on ideal body weight; adults rarely need more than about 3 L a day. Basis for the adjusted body weight in v2 (§7.6).
+- **EFSA (2010)** adult total water intakes, 95th percentile: 3.1 L (female) and 4.0 L (male). Basis for the v2 base cap.
 
 The per-kilogram factors and the activity, climate and altitude constants are the product values fixed in PLAN §4.2. They are guidance, not clinical values, and the app says so.
 
@@ -1704,6 +1706,41 @@ Unless stated, toggles are all on, activity is `Level(SEDENTARY)`, climate is `M
 | O7 | Wed 2026-06-10 | none | disabled, 2,500 (value present but not enabled) | 2300, 2300, `CALCULATED` |
 | O8 | Wed 2026-06-10 | none | enabled, 1,800; breakdown `null` | 1800, `null`, `GLOBAL_OVERRIDE` |
 | O9 | Wed 2026-06-10 | none | disabled; breakdown `null` | 2000, `null`, `CALCULATED` |
+
+### 7.6 GoalPolicy v2 (current)
+
+v1's adult base (§7.2) was wrong in two ways:
+
+- **Not drinks-only.** 30–35 ml/kg is a heuristic for *total* daily water, close to clinical maintenance-fluid rules, yet v1 used it as the drinks-only base without the ×0.8 that the child table and the floors use. That overstated every weight-based goal by 25% against the app's own "drinks only" claim.
+- **Linear in total body weight.** Adipose tissue is about 10–20% water and lean tissue about 73%, so water needs do not rise in step with weight. NICE CG174 (IV fluids in adults) bases prescriptions for obese patients on ideal body weight and notes that adults rarely need more than about 3 L of fluid a day. v1 had no cap on the base, so a 120 kg adult got 4.2 L of drinks before any adjustment, and about 4.7 L (≈160 US fl oz) once moderate activity and a warm climate were added.
+
+v2 changes only the adult (14 and over) baseline. The child table, floors, adjustments, clamps and rounding are inherited from v1 unchanged (`object GoalPolicyV2 : GoalPolicy by GoalPolicyV1`).
+
+| Constant | v2 value |
+|---|---|
+| `perKgFactor(age)`, drinks only | 14–30 → **28** ml/kg; 31–55 → **26**; 56–65 → **24**; 66 and over → **22** (v1 × 0.8, rounded down) |
+| `calculationWeightKg(w, h)` | `w` when height is unknown or BMI ≤ 25; otherwise `ref + 0.4 × (w − ref)` with `ref = 25 × (h/100)²` (the standard *adjusted body weight*, using BMI 25 as the reference weight so it needs no sex-specific formula). It is rounded half up to 0.1 kg before `weightBaseMl`. |
+| `baseCapMl` | female **2,480**; male **3,200**; unspecified **2,840**. This is the EFSA (2010) adult 95th-percentile total water intake (3.1 L / 4.0 L) × 0.8. |
+| Baseline | `clamp(weightBaseMl(calculationWeightKg, factor), sexFloorMl, baseCapMl)` |
+
+Breakdown `detail` for `BASE_WEIGHT` and `BASE_GENDER_FLOOR`: `weightKg` is the weight the factor was applied to; `actualWeightKg` is present only when it was adjusted. A capped base stays `BASE_WEIGHT` with `ml = capMl` and adds `weightBaseMl` and `capMl`, so no new `ComponentKind` is needed and older readers keep working.
+
+Known limitation: EFSA's adequate intakes assume moderate activity (PAL 1.6), so the activity-level allowance partly double-counts for "moderate" and "very active". This is unchanged in v2; measured exercise minutes (ACSM) are the better input.
+
+Worked examples (`GoalCalculatorV2Test`; sedentary and temperate unless stated):
+
+| # | Age | Gender | kg | Height | Other | Base | Goal | v1 goal |
+|---|---|---|---|---|---|---|---|---|
+| V01 | 35 | M | 120 | 185 cm | moderate, warm | 2,582 (26 × 99.3 adjusted kg) | **3,350** | 4,700 |
+| V02 | 35 | M | 120 | — | moderate, warm | 3,120 (26 × 120) | **3,850** | 4,700 |
+| V03 | 22 | M | 160 | — | | 3,200 (cap; 4,480 uncapped) | **3,200** | 5,600 |
+| V04 | 30 | M | 70 | 180 cm | | 2,000 (floor; 1,960 by weight) | **2,000** | 2,450 |
+| V05 | 31 | M | 82.4 | 175 cm | | 2,051 (26 × 78.9 adjusted kg) | **2,050** | 2,700 |
+| V06 | 45 | F | 70 | — | | 1,820 | **1,800** | 2,300 |
+| V07 | 28 | F | 100 | — | | 2,480 (cap) | **2,500** | 3,500 |
+| V09 | 25 | Unspecified | 110 | — | | 2,840 (cap) | **2,850** | 3,850 |
+
+For reference, the US National Academies (2004) report average beverage intakes of about 3.0 L for men and 2.2 L for women, in sedentary people in temperate climates. v2's sedentary, temperate baselines fall between the EFSA floor and these values for most adults.
 
 ---
 

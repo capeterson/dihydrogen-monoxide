@@ -35,12 +35,11 @@ internal class BreakdownLabels(private val resources: Resources, val units: Volu
             ComponentKind.BASE_CHILD_TABLE ->
                 string(R.string.feature_profile_component_base_child, amount, detail["ageBand"].orEmpty().replace('-', '–'))
 
-            ComponentKind.BASE_WEIGHT -> string(
-                R.string.feature_profile_component_base_weight,
-                amount,
-                volume(detail.int("factor")),
-                number(detail["weightKg"]),
-            )
+            ComponentKind.BASE_WEIGHT -> if (detail.containsKey("capMl")) {
+                string(R.string.feature_profile_component_base_cap, amount, volume(detail.int("weightBaseMl")))
+            } else {
+                string(R.string.feature_profile_component_base_weight, amount, volume(detail.int("factor")), number(detail["weightKg"]))
+            }
 
             ComponentKind.BASE_GENDER_FLOOR ->
                 string(R.string.feature_profile_component_base_floor, amount, volume(detail.int("weightBaseMl")))
@@ -83,9 +82,23 @@ internal class BreakdownLabels(private val resources: Resources, val units: Volu
     fun detail(component: GoalComponent): String? {
         val d = component.detail
         return when (component.kind) {
-            ComponentKind.BASE_WEIGHT -> string(R.string.feature_profile_detail_base_weight, volume(d.int("factor")), number(d["weightKg"]))
+            ComponentKind.BASE_WEIGHT -> when {
+                d.containsKey("capMl") -> string(R.string.feature_profile_detail_base_cap, volume(d.int("weightBaseMl")))
+
+                d.containsKey("actualWeightKg") -> string(
+                    R.string.feature_profile_detail_base_weight_adjusted,
+                    volume(d.int("factor")),
+                    number(d["weightKg"]),
+                    number(d["actualWeightKg"]),
+                )
+
+                else -> string(R.string.feature_profile_detail_base_weight, volume(d.int("factor")), number(d["weightKg"]))
+            }
+
             ComponentKind.ACTIVITY_MINUTES -> string(R.string.feature_profile_detail_minutes, number(d["minutes"]))
+
             ComponentKind.CLIMATE_FORECAST -> string(R.string.feature_profile_detail_forecast, number(d["maxApparentTempC"]))
+
             else -> null
         }
     }
@@ -95,7 +108,7 @@ internal class BreakdownLabels(private val resources: Resources, val units: Volu
         when (c.kind) {
             ComponentKind.BASE_WEIGHT ->
                 R.string.feature_profile_ingredient_weight to
-                    string(R.string.feature_profile_input_kg, number(c.detail["weightKg"]))
+                    string(R.string.feature_profile_input_kg, number(c.detail["actualWeightKg"] ?: c.detail["weightKg"]))
 
             ComponentKind.BASE_GENDER_FLOOR -> R.string.feature_profile_ingredient_base to string(R.string.feature_profile_input_adult)
 

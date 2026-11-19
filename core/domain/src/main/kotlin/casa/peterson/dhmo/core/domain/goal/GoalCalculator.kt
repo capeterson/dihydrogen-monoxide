@@ -8,8 +8,9 @@ import casa.peterson.dhmo.core.model.GoalComponent
 import casa.peterson.dhmo.core.model.GoalInput
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import java.math.BigDecimal
+import java.math.RoundingMode
 
-class GoalCalculator(private val policy: GoalPolicy = GoalPolicyV1) {
+class GoalCalculator(private val policy: GoalPolicy = CurrentGoalPolicy) {
     fun calculate(input: GoalInput): GoalBreakdown {
         val profile = input.profile
         val age = GoalMath.ageYears(profile.birthDate, input.date)
@@ -48,30 +49,37 @@ class GoalCalculator(private val policy: GoalPolicy = GoalPolicyV1) {
             )
         }
         val factor = policy.perKgFactor(age)
-        val weightBase = GoalMath.weightBaseMl(profile.weightKg, factor)
+        val calcWeightKg = roundToTenth(policy.calculationWeightKg(profile.weightKg, profile.heightCm))
+        val adjusted = calcWeightKg != roundToTenth(profile.weightKg)
+        val weightBase = GoalMath.weightBaseMl(calcWeightKg, factor)
         val floor = policy.genderFloorMl(profile.gender)
-        val weight = num(profile.weightKg)
-        return if (weightBase < floor) {
-            GoalComponent(
+        val cap = policy.baseCapMl(profile.gender)
+        val weightDetail = buildMap {
+            put("weightKg", num(calcWeightKg))
+            put("factor", factor.toString())
+            if (adjusted) put("actualWeightKg", num(profile.weightKg))
+        }
+        return when {
+            weightBase < floor -> GoalComponent(
                 ComponentKind.BASE_GENDER_FLOOR,
                 floor,
                 applied = true,
-                detail = mapOf(
-                    "weightKg" to weight,
-                    "factor" to factor.toString(),
-                    "weightBaseMl" to weightBase.toString(),
-                    "floorMl" to floor.toString(),
-                ),
+                detail = weightDetail + mapOf("weightBaseMl" to weightBase.toString(), "floorMl" to floor.toString()),
             )
-        } else {
-            GoalComponent(
+
+            weightBase > cap -> GoalComponent(
                 ComponentKind.BASE_WEIGHT,
-                weightBase,
+                cap,
                 applied = true,
-                detail = mapOf("weightKg" to weight, "factor" to factor.toString()),
+                detail = weightDetail + mapOf("weightBaseMl" to weightBase.toString(), "capMl" to cap.toString()),
             )
+
+            else -> GoalComponent(ComponentKind.BASE_WEIGHT, weightBase, applied = true, detail = weightDetail)
         }
     }
+
+    /** Tenths of a kilogram, half up, so the weight shown in the breakdown is the one the base was computed from. */
+    private fun roundToTenth(kg: Double): Double = BigDecimal.valueOf(kg).setScale(1, RoundingMode.HALF_UP).toDouble()
 
     private fun activityComponent(input: GoalInput): GoalComponent {
         val applied = input.toggles.activity

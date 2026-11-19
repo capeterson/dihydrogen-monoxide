@@ -1,8 +1,8 @@
 package casa.peterson.dhmo.core.data.di
 
+import casa.peterson.dhmo.core.domain.goal.CurrentGoalPolicy
 import casa.peterson.dhmo.core.domain.goal.GoalCalculator
 import casa.peterson.dhmo.core.domain.goal.GoalPolicy
-import casa.peterson.dhmo.core.domain.goal.GoalPolicyV1
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,7 +14,7 @@ import javax.inject.Singleton
 object DomainModule {
     @Provides
     @Singleton
-    fun goalPolicy(): GoalPolicy = GoalPolicyV1
+    fun goalPolicy(): GoalPolicy = CurrentGoalPolicy
 
     @Provides
     @Singleton

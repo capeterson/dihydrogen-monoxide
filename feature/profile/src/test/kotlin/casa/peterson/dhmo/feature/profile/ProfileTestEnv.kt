@@ -41,7 +41,8 @@ internal class ProfileTestEnv(profile: Profile? = TestData.adultProfile, setting
     val ticker = DayTicker(ApplicationProvider.getApplicationContext<Context>(), clock, zone, this.settings)
     val snapshot: SnapshotDailyGoalUseCase = SnapshotDailyGoalUseCase(
         BuildGoalInputUseCase(profiles, this.settings, activity, weather, FakeHealthConnectController()),
-        GoalCalculator(),
+        // Pinned to v1: these tests check wiring against the TECHNICAL_PLAN §7.5 worked examples.
+        GoalCalculator(GoalPolicyV1),
         GoalPolicyV1,
         goals,
         this.settings,

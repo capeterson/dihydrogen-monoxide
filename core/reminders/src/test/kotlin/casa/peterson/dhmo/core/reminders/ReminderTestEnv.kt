@@ -70,7 +70,8 @@ internal class ReminderTestEnv(reminders: ReminderSettings = ReminderSettings(en
             FakeWeatherRepository(),
             FakeHealthConnectController(),
         ),
-        GoalCalculator(),
+        // Pinned to v1: these tests check wiring against the TECHNICAL_PLAN §7.5 worked examples.
+        GoalCalculator(GoalPolicyV1),
         GoalPolicyV1,
         goals,
         settings,

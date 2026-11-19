@@ -1,4 +1,4 @@
-@file:Suppress("MagicNumber") // this file is the constants table of TECHNICAL_PLAN §7.2
+@file:Suppress("MagicNumber") // this file is the constants table of TECHNICAL_PLAN §7.2 (v1) and §7.6 (v2)
 
 package casa.peterson.dhmo.core.domain.goal
 
@@ -23,9 +23,19 @@ interface GoalPolicy {
     /** Label of the child age band for the age, as used in `detail["ageBand"]`. */
     fun childAgeBand(ageYears: Int): String
 
+    /** Drinks-only ml per kg of [calculationWeightKg] for adults. */
     fun perKgFactor(ageYears: Int): Int
 
+    /**
+     * The weight the per-kg factor is applied to. Equal to [weightKg] unless the policy adjusts it for body
+     * composition (see [GoalPolicyV2]); [heightCm] may be null, in which case no adjustment is possible.
+     */
+    fun calculationWeightKg(weightKg: Double, heightCm: Double?): Double = weightKg
+
     fun genderFloorMl(gender: Gender): Int
+
+    /** Upper bound for the adult baseline (before adjustments); [Int.MAX_VALUE] when the policy has none. */
+    fun baseCapMl(gender: Gender): Int = Int.MAX_VALUE
 
     val pregnancyMl: Int
     val lactationMl: Int
@@ -48,6 +58,16 @@ interface GoalPolicy {
     val childMaxMl: Int
 }
 
+/** The policy new goals are calculated with. Older snapshots keep the version they were written with. */
+val CurrentGoalPolicy: GoalPolicy get() = GoalPolicyV2
+
+/**
+ * Superseded by [GoalPolicyV2]. Kept so the version number of historical snapshots still names real constants.
+ *
+ * Its adult base multiplied 35 ml/kg by total body weight. That figure is a *total* water (clinical maintenance)
+ * heuristic, yet it was used as drinks-only without the ×0.8 the child table and floors use, and it scaled linearly
+ * with weight, so it badly overestimated for large bodies (120 kg → 4.2 L base before any adjustment).
+ */
 object GoalPolicyV1 : GoalPolicy {
     override val version: Int = 1
     override val fallbackTargetMl: Int = 2000
@@ -129,4 +149,45 @@ object GoalPolicyV1 : GoalPolicy {
     override val adultMaxMl: Int = 6000
     override val childMinMl: Int = 600
     override val childMaxMl: Int = 3000
+}
+
+/**
+ * TECHNICAL_PLAN §7.6. Same structure and adjustments as [GoalPolicyV1]; only the adult (14+) baseline changes:
+ *
+ * 1. **Drinks only.** The per-kg factors are v1's × 0.8 (rounded down to whole ml), the same "about 20% of water
+ *    comes from food" factor (US National Academies 2004) v1 already applied to the child table and the floors.
+ * 2. **Adjusted body weight.** Adipose tissue holds far less water than lean tissue, so water needs do not grow in
+ *    step with total weight. When height is known and BMI is above 25, the factor is applied to
+ *    `ref + 0.4 × (weight − ref)`, where `ref` is the weight at BMI 25 for that height. This follows the clinical
+ *    practice of basing fluid and nutrition prescriptions on ideal or adjusted body weight for people with obesity
+ *    (for example NICE CG174).
+ * 3. **Upper reference cap.** The baseline never exceeds the 95th percentile of EFSA (2010) adult total water
+ *    intakes (female 3.1 L, male 4.0 L) × 0.8. EFSA's values assume moderate temperature and moderate activity
+ *    (PAL 1.6); heat and exercise are added on top by the separate adjustments.
+ */
+object GoalPolicyV2 : GoalPolicy by GoalPolicyV1 {
+    override val version: Int = 2
+
+    override fun perKgFactor(ageYears: Int): Int = when {
+        ageYears <= 30 -> 28
+        ageYears <= 55 -> 26
+        ageYears <= 65 -> 24
+        else -> 22
+    }
+
+    const val REFERENCE_BMI: Double = 25.0
+    const val ADJUSTED_WEIGHT_FRACTION: Double = 0.4
+
+    override fun calculationWeightKg(weightKg: Double, heightCm: Double?): Double {
+        if (heightCm == null || heightCm <= 0.0) return weightKg
+        val heightM = heightCm / 100.0
+        val reference = REFERENCE_BMI * heightM * heightM
+        return if (weightKg <= reference) weightKg else reference + ADJUSTED_WEIGHT_FRACTION * (weightKg - reference)
+    }
+
+    override fun baseCapMl(gender: Gender): Int = when (gender) {
+        Gender.FEMALE -> 2480
+        Gender.MALE -> 3200
+        Gender.NON_BINARY, Gender.UNSPECIFIED -> 2840
+    }
 }

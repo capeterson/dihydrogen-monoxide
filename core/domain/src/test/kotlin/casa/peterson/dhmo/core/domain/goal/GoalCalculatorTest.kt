@@ -31,7 +31,7 @@ import org.junit.Test
 /** Worked examples G01-G38 of TECHNICAL_PLAN §7.5. */
 class GoalCalculatorTest {
     private val date = LocalDate.of(2026, 6, 10)
-    private val calculator = GoalCalculator()
+    private val calculator = GoalCalculator(GoalPolicyV1)
 
     private data class Adj(val kind: ComponentKind, val ml: Int, val applied: Boolean = true)
 

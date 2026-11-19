@@ -125,5 +125,31 @@ class BreakdownLabelTest {
         assertThat(german.label(component).nbsp()).isEqualTo("Base 2.719 ml (33 ml × 82,4 kg)")
     }
 
+    @Test
+    fun cappedBaseSaysSo() {
+        val capped = GoalComponent(
+            ComponentKind.BASE_WEIGHT,
+            3200,
+            true,
+            mapOf("weightKg" to "160", "factor" to "28", "weightBaseMl" to "4480", "capMl" to "3200"),
+        )
+        assertThat(ml.label(capped).nbsp()).isEqualTo("Base 3,200 ml (upper reference intake; weight-based value was 4,480 ml)")
+        assertThat(ml.detail(capped)?.nbsp()).isEqualTo("Capped at the upper reference intake; weight-based value was 4,480 ml")
+    }
+
+    @Test
+    fun adjustedWeightIsExplained() {
+        val adjusted = GoalComponent(
+            ComponentKind.BASE_WEIGHT,
+            2582,
+            true,
+            mapOf("weightKg" to "99.3", "factor" to "26", "actualWeightKg" to "120"),
+        )
+        assertThat(ml.label(adjusted).nbsp()).isEqualTo("Base 2,582 ml (26 ml × 99.3 kg)")
+        assertThat(ml.detail(adjusted)?.nbsp())
+            .isEqualTo("26 ml × 99.3 kg (adjusted from 120 kg, since body fat holds little water)")
+        assertThat(ml.inputs(listOf(adjusted)).single().second.nbsp()).isEqualTo("120 kg")
+    }
+
     private fun String.nbsp() = replace(' ', ' ')
 }

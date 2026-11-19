@@ -23,6 +23,7 @@
     <string name="feature_profile_drinks_only">This goal covers drinks only. About 20% of the water you need comes from food.</string>
     <string name="feature_profile_component_base_child">Base %1$s (age %2$s)</string>
     <string name="feature_profile_component_base_weight">Base %1$s (%2$s × %3$s kg)</string>
+    <string name="feature_profile_component_base_cap">Base %1$s (upper reference intake; weight-based value was %2$s)</string>
     <string name="feature_profile_component_base_floor">Base %1$s (minimum recommended intake; weight-based value was %2$s)</string>
     <string name="feature_profile_component_pregnancy">+%1$s pregnancy</string>
     <string name="feature_profile_component_lactation">+%1$s breastfeeding</string>
@@ -144,6 +145,8 @@
     <string name="feature_profile_ingredient_altitude">Altitude</string>
     <string name="feature_profile_recipe_caption">How %1$s is stirred together</string>
     <string name="feature_profile_detail_base_weight">%1$s × %2$s kg</string>
+    <string name="feature_profile_detail_base_weight_adjusted">%1$s × %2$s kg (adjusted from %3$s kg, since body fat holds little water)</string>
+    <string name="feature_profile_detail_base_cap">Capped at the upper reference intake; weight-based value was %1$s</string>
     <string name="feature_profile_detail_minutes">%1$s min of exercise</string>
     <string name="feature_profile_detail_forecast">Feels like %1$s °C</string>
     <string name="feature_profile_input_kg">%1$s kg</string>
