@@ -1,5 +1,8 @@
 package casa.peterson.dhmo.core.designsystem.component
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -47,6 +50,35 @@ class WindowHeroSemanticsTest {
     fun exposesTheFractionAsProgress() {
         show(0.25f)
         composeRule.onNodeWithContentDescription("25 percent of goal").assert(hasProgress(0.25f))
+    }
+
+    @Test
+    fun eventClockPlaysFreshTokensAndSkipsRestoredOrDisabledEvents() {
+        val event = mutableLongStateOf(17L)
+        val enabled = mutableStateOf(true)
+        lateinit var phase: State<Float>
+        composeRule.mainClock.autoAdvance = false
+        composeRule.setContent { phase = rememberEventPhase(event.longValue, SIP_DURATION, enabled.value) }
+        composeRule.mainClock.advanceTimeBy(160)
+        assertThat(phase.value).isEqualTo(1f)
+
+        composeRule.runOnIdle { event.longValue++ }
+        composeRule.waitForIdle()
+        composeRule.mainClock.advanceTimeBy(160)
+        assertThat(phase.value).isGreaterThan(0f)
+        assertThat(phase.value).isLessThan(1f)
+
+        composeRule.runOnIdle { enabled.value = false }
+        composeRule.waitForIdle()
+        composeRule.mainClock.advanceTimeByFrame()
+        assertThat(phase.value).isEqualTo(1f)
+        composeRule.runOnIdle { event.longValue++ }
+        composeRule.waitForIdle()
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.runOnIdle { enabled.value = true }
+        composeRule.waitForIdle()
+        composeRule.mainClock.advanceTimeBy(160)
+        assertThat(phase.value).isEqualTo(1f)
     }
 
     @Test

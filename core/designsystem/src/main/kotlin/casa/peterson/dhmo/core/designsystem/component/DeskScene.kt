@@ -44,7 +44,7 @@ private val SteamPeriods = listOf(3f, 3.8f, 2.6f)
 fun DeskScene(modifier: Modifier = Modifier, animated: Boolean = false) {
     val extras = LocalDhmoExtraColors.current
     val colors = MaterialTheme.colorScheme
-    val time by rememberAmbientTime(animated && !rememberReducedMotion())
+    val time by rememberAmbientTime(rememberCozyMotionEnabled(animated))
     Box(modifier.width(112.dp).height(76.dp)) {
         Canvas(Modifier.width(112.dp).height(76.dp)) {
             val s = size.width / 112f

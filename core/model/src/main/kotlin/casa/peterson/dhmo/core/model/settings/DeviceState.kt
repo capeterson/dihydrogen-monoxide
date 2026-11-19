@@ -10,6 +10,8 @@ data class DeviceState(
     val reminderRuntime: ReminderRuntime = ReminderRuntime(),
     val backupRuntime: BackupRuntime = BackupRuntime(),
     val weatherRuntime: WeatherRuntime = WeatherRuntime(),
+    /** Device-local: a goal celebration is a one-time moment, never replayed after undo or process recreation. */
+    val lastCelebratedGoalDay: Long? = null,
 )
 
 @Serializable

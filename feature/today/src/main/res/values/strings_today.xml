@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_today_day">Day</string>
+    <string name="feature_today_night">Night</string>
+    <string name="feature_today_switch_day">Switch to day mode</string>
+    <string name="feature_today_switch_night">Switch to night mode</string>
     <string name="feature_today_today_title">Today</string>
     <string name="feature_today_edit_entry_title">Edit entry</string>
     <string name="feature_today_containers_title">Containers</string>
