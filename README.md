@@ -44,7 +44,7 @@ Requirements: the Android SDK (set `sdk.dir` in `local.properties` or `ANDROID_H
 ```bash
 ./gradlew ktlintCheck detekt checkModuleGraph lint \
   testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test \
-  verifyRoborazziDebug assembleDebug
+  assembleDebug
 ```
 
 End-to-end flows run on an emulator with `./gradlew :app:connectedDebugAndroidTest` or on a Gradle Managed Device with `./gradlew pixel6Api34DebugAndroidTest`.

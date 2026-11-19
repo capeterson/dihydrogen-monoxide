@@ -1,0 +1,39 @@
+package casa.peterson.dhmo.feature.history
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
+import casa.peterson.dhmo.core.model.Source
+import casa.peterson.dhmo.core.model.settings.VolumeUnit
+import casa.peterson.dhmo.core.testing.TestData
+import casa.peterson.dhmo.core.testing.renderScreenVariants
+import java.time.Instant
+import java.time.LocalDate
+import org.junit.Test
+import org.junit.runner.RunWith
+
+@RunWith(AndroidJUnit4::class)
+class HistoryRenderTest {
+    @Test
+    fun historyStates() {
+        renderScreenVariants("History") { HistorySample() }
+    }
+}
+
+@Composable
+private fun HistorySample() {
+    val date = LocalDate.of(2026, 3, 9)
+    val manual = TestData.entry(Instant.parse("2026-03-09T12:00:00Z"), 500)
+    val imported = TestData.entry(Instant.parse("2026-03-09T08:00:00Z"), 250, source = Source.HEALTH_CONNECT_IMPORT)
+    Scaffold(topBar = { DhmoTopBar("History") }) { padding ->
+        Column(Modifier.padding(padding)) {
+            HistoryDayHeader(HistoryItem.DayHeader(date, 750, 2000, true), VolumeUnit.ML) { }
+            HistoryEntryRow(manual, VolumeUnit.ML, null, {}, {}, {})
+            HistoryEntryRow(imported, VolumeUnit.ML, "Other Water", {}, {}, {})
+        }
+    }
+}
