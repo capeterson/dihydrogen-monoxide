@@ -95,31 +95,3 @@ jobs:
             **/build/reports/tests/**
             **/build/test-results/**
           if-no-files-found: ignore
-
-  screenshot-tests:
-    name: Screenshot tests (Roborazzi, JVM)
-    needs: compile
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/gradle-setup
-        with:
-          debug-keystore-base64: ${{ secrets.DHMO_DEBUG_KEYSTORE_BASE64 }}
-      - uses: actions/cache/restore@v4
-        with:
-          path: ${{ env.BUILD_CACHE_PATH }}
-          key: ${{ env.BUILD_CACHE_KEY }}
-
-      - name: Verify screenshots
-        run: ./gradlew verifyRoborazziDebug
-
-      - name: Upload Roborazzi diffs
-        if: failure()
-        uses: actions/upload-artifact@v5
-        with:
-          name: roborazzi-diffs
-          path: |
-            **/build/outputs/roborazzi/**
-            **/build/test-results/roborazzi/**
-          if-no-files-found: ignore

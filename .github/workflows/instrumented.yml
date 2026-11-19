@@ -46,7 +46,7 @@ jobs:
         run: |
           set -o pipefail
           for module in :app :core:database; do
-            ./gradlew "$module:pixel6Api34DebugAndroidTest" -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect --info 2>&1 | tee -a managed-device.log
+            ./gradlew "$module:pixel6Api34DebugAndroidTest" -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect 2>&1 | tee -a managed-device.log
           done
         shell: bash
 
