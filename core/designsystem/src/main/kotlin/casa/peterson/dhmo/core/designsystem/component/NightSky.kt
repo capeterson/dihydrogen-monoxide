@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
@@ -128,6 +130,7 @@ fun NightSkyPanel(title: String, caption: String, modifier: Modifier = Modifier,
 /**
  * The Night Sky card: each day of the range is a star, [weekdayLabels] run along the top, and [days] fill the grid
  * a week to a row (a null entry is a day without data). It reads as one image to TalkBack, described by [description].
+ * [starReveal] optionally resolves the decorative stars in sequence; semantics always describe the current data.
  */
 @Composable
 fun NightSkyCard(
@@ -137,6 +140,7 @@ fun NightSkyCard(
     weekdayLabels: List<String>,
     description: String,
     modifier: Modifier = Modifier,
+    starReveal: State<Float>? = null,
 ) {
     val extras = LocalDhmoExtraColors.current
     NightSkyPanel(title, caption, modifier) {
@@ -155,9 +159,14 @@ fun NightSkyCard(
         val rows = (days.size + columns - 1) / columns
         Canvas(Modifier.fillMaxWidth().height(CellHeight * rows).clearAndSetSemantics { contentDescription = description }) {
             val cell = size.width / columns
+            val phase = starReveal?.value ?: 1f
             days.forEachIndexed { index, day ->
                 val center = Offset((index % columns + 0.5f) * cell, (index / columns + 0.5f) * CellHeight.toPx())
-                drawSkyCell(extras, center, minOf(cell, CellHeight.toPx()), day, density)
+                val start = (index % columns) * 0.05f
+                val reveal = smoothStep(interval(phase, start, start + 0.7f))
+                scale(0.6f + 0.4f * reveal, center) {
+                    drawSkyCell(extras, center, minOf(cell, CellHeight.toPx()), day, density)
+                }
             }
         }
     }

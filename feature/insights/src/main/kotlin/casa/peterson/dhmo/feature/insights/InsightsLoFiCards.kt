@@ -1,5 +1,9 @@
 package casa.peterson.dhmo.feature.insights
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -33,6 +43,7 @@ import casa.peterson.dhmo.core.designsystem.component.LanternRow
 import casa.peterson.dhmo.core.designsystem.component.NightSkyCard
 import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.component.StarDay
+import casa.peterson.dhmo.core.designsystem.component.rememberCozyMotionEnabled
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
 import casa.peterson.dhmo.core.designsystem.theme.LocalDhmoExtraColors
 import casa.peterson.dhmo.core.designsystem.theme.NumeralFontFamily
@@ -84,6 +95,57 @@ internal fun StatCard(state: InsightsUiState.Ready, modifier: Modifier) {
 /** Every day of the range as a star on the dark Night Sky card: fuller days are bigger and brighter, met goals glow. */
 @Composable
 internal fun NightSkyRangeCard(state: InsightsUiState.Ready, locale: Locale, modifier: Modifier) {
+    val title = stringResource(R.string.feature_insights_night_sky)
+    val caption = stringResource(R.string.feature_insights_night_sky_caption)
+    val description = pluralStringResource(R.plurals.feature_insights_night_sky_description, state.days.size, state.days.size)
+    val motion = rememberCozyMotionEnabled(animated = true)
+    if (!motion) {
+        NightSkyRangeContents(state, locale, modifier, title, caption, description)
+        return
+    }
+    val reveal = remember { Animatable(1f) }
+    var previousSelection by remember { mutableStateOf(state.selection) }
+    LaunchedEffect(state.selection) {
+        if (state.selection != previousSelection) {
+            previousSelection = state.selection
+            reveal.snapTo(0f)
+            reveal.animateTo(1f, tween(420, easing = LinearEasing))
+        }
+    }
+    // Keep outgoing data for the crossfade; changes to data within the same selection do not restart it.
+    val snapshots = remember { LinkedHashMap<RangeSelection, InsightsUiState.Ready>() }
+    snapshots[state.selection] = state
+    if (snapshots.size > 8) snapshots.remove(snapshots.keys.first())
+    Crossfade(
+        targetState = state.selection,
+        modifier = modifier.clearAndSetSemantics { contentDescription = "$title. $caption. $description" },
+        animationSpec = tween(420),
+        label = "nightSkyRange",
+    ) { selection ->
+        snapshots[selection]?.let { snapshot ->
+            NightSkyRangeContents(
+                snapshot,
+                locale,
+                Modifier,
+                title,
+                caption,
+                description,
+                if (selection == state.selection) reveal.asState() else null,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NightSkyRangeContents(
+    state: InsightsUiState.Ready,
+    locale: Locale,
+    modifier: Modifier,
+    title: String,
+    caption: String,
+    description: String,
+    starReveal: State<Float>? = null,
+) {
     val leading = state.selection.from.dayOfWeek.value - DayOfWeek.MONDAY.value
     val stars = state.days.map { day ->
         val goal = day.goalMl
@@ -107,12 +169,13 @@ internal fun NightSkyRangeCard(state: InsightsUiState.Ready, locale: Locale, mod
         }
     }
     NightSkyCard(
-        title = stringResource(R.string.feature_insights_night_sky),
-        caption = stringResource(R.string.feature_insights_night_sky_caption),
+        title = title,
+        caption = caption,
         days = List(leading) { null } + stars,
         weekdayLabels = DayOfWeek.entries.map { it.getDisplayName(TextStyle.NARROW, locale) },
-        description = pluralStringResource(R.plurals.feature_insights_night_sky_description, state.days.size, state.days.size),
+        description = description,
         modifier = modifier,
+        starReveal = starReveal,
     )
 }
 

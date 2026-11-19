@@ -77,12 +77,14 @@ What replaced them is `renderScreenVariants(name) { … }` in `:core:testing`. E
 
 A Gradle Managed Device (GMD) named `pixel6Api34` (Pixel 6, API 34, `aosp-atd` image) is declared by the Android convention plugins. Gradle creates, boots and tears down the emulator itself. This needs hardware virtualisation: KVM on Linux, Hypervisor.framework on macOS, WHPX on Windows.
 
+On a machine with a working host GPU, prefer hardware rendering:
+
 ```bash
 ./gradlew pixel6Api34DebugAndroidTest \
-  -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+  -Pandroid.testoptions.manageddevices.emulator.gpu=host
 ```
 
-`swiftshader_indirect` gives software rendering, which works on headless machines and CI; leave it off locally if you have a GPU. Reports: `<module>/build/outputs/androidTest-results/managedDevice/` and `<module>/build/reports/androidTests/managedDevice/`.
+Use `-Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect` instead on headless CI or when host rendering is unavailable. Verify the renderer when measuring performance; software rendering can substantially distort frame timings. Reports: `<module>/build/outputs/androidTest-results/managedDevice/` and `<module>/build/reports/androidTests/managedDevice/`.
 
 Instrumented sources exist in `:app` and `:core:database` (Room `MigrationTestHelper` tests against the exported schemas in `core/database/schemas/`).
 
@@ -96,7 +98,7 @@ With an emulator or a USB device connected (`adb devices` lists it):
 # Create and start an emulator once
 $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd -n api34 \
   -k "system-images;android-34;google_apis;x86_64" -d pixel_6
-$ANDROID_HOME/emulator/emulator -avd api34 -no-snapshot -no-audio &
+$ANDROID_HOME/emulator/emulator -avd api34 -gpu host -no-snapshot -no-audio &
 adb wait-for-device
 
 ./gradlew connectedDebugAndroidTest

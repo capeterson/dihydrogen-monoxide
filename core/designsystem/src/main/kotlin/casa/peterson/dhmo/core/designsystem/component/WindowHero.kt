@@ -4,6 +4,7 @@ package casa.peterson.dhmo.core.designsystem.component
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -56,6 +58,7 @@ import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sin
+import kotlinx.coroutines.flow.first
 
 /*
  * The arched window from the lo-fi design, drawn in the design's own units: everything is laid out for a window 230 wide
@@ -166,12 +169,13 @@ fun WindowHero(
 ) {
     val fraction = jarFraction(progress)
     val enabled = rememberCozyMotionEnabled(animated)
-    val sip by rememberEventPhase(sipEvent, SIP_DURATION, enabled)
-    val goal by rememberEventPhase(goalEvent, GOAL_DURATION, enabled)
-    val level by rememberJarLevel(fraction, sipEvent, enabled)
+    val sip = rememberEventPhase(sipEvent, SIP_DURATION, enabled)
+    val goal = rememberEventPhase(goalEvent, GOAL_DURATION, enabled)
+    val spiritSip = rememberSpiritSipPhase(sipEvent, goalEvent, goal, enabled)
+    val level = rememberJarLevel(fraction, sipEvent, enabled)
     val extras = LocalDhmoExtraColors.current
     val colors = MaterialTheme.colorScheme
-    val time by rememberAmbientTime(enabled)
+    val time = rememberAmbientTime(enabled)
     val lit = fraction >= 1f
     val look = HeroLook(extras, colors.primary, colors.tertiary, colors.onSurfaceVariant, colors.surfaceVariant, colors.secondary)
     Column(
@@ -185,7 +189,7 @@ fun WindowHero(
     ) {
         val scene: @Composable (HeroLook) -> Unit = { palette ->
             Canvas(Modifier.width(width).height(width * HEIGHT_PER_WIDTH)) {
-                drawHero(palette, raining, lit, level, time, sip, goal)
+                drawHero(palette, raining, lit, level.value, time.value, sip.value, spiritSip.value, goal.value)
             }
         }
         if (enabled) {
@@ -197,14 +201,23 @@ fun WindowHero(
     }
 }
 
-private fun DrawScope.drawHero(look: HeroLook, raining: Boolean, lit: Boolean, level: Float, time: Float, sip: Float, goal: Float) {
+private fun DrawScope.drawHero(
+    look: HeroLook,
+    raining: Boolean,
+    lit: Boolean,
+    level: Float,
+    time: Float,
+    sip: Float,
+    spiritSip: Float,
+    goal: Float,
+) {
     val s = size.width / DESIGN_WIDTH
     drawWindow(look, s, raining && !lit, time)
-    val warmth = if (lit) pulse(goal, 0.02f, 0.32f, 1f) else 0f
+    val warmth = if (lit) pulse(goal, 0f, 0.22f, 1f) else 0f
     if (warmth > 0f) {
-        val source = Offset(0.78f * size.width, 0.79f * size.height)
-        val radius = size.width * 0.85f
-        drawCircle(Brush.radialGradient(listOf(look.x.glow, Color.Transparent), source, radius), radius, source, 0.27f * warmth)
+        val source = Offset(0.65f * size.width, 0.73f * size.height)
+        val radius = size.width * 1.05f
+        drawCircle(Brush.radialGradient(listOf(look.x.glow, Color.Transparent), source, radius), radius, source, 0.48f * warmth)
     }
     drawSill(look, s)
     drawPlantOnSill(look, s, time)
@@ -212,10 +225,16 @@ private fun DrawScope.drawHero(look: HeroLook, raining: Boolean, lit: Boolean, l
     drawLanternOnSill(look, s, lit, time)
     scale(s, Offset.Zero) {
         translate(155f, 272f) {
-            val goalHop = lit && goal < 1f && abs(goal * GOAL_DURATION - sip * SIP_DURATION) < 96f
-            drawWaterSpirit(time, sip, goalHop, look.x.isNight)
+            val goalSip = goal * GOAL_DURATION / SIP_DURATION
+            val celebrating = lit && goalSip < 1f
+            drawWaterSpirit(time, if (celebrating) goalSip else spiritSip, celebrating, look.x.isNight)
         }
-        if (lit) drawGoalFireflies(goal)
+        if (lit) {
+            drawGoalFireflies(goal)
+            translate(7f, -18f) {
+                drawGoalFireflies(interval(goal, 0.08f, 1f))
+            }
+        }
     }
 }
 
@@ -228,6 +247,29 @@ private data class HeroLook(
     val surface2: Color,
     val glowInk: Color,
 )
+
+/** A sip during the milestone waits for the goal hop to land, without delaying its pour or goal effects. */
+@Composable
+private fun rememberSpiritSipPhase(sipEvent: Long, goalEvent: Long, goal: State<Float>, enabled: Boolean): State<Float> {
+    if (!enabled) return rememberUpdatedState(1f)
+    val phase = remember { Animatable(1f) }
+    var previousSip by remember { mutableLongStateOf(sipEvent) }
+    var previousGoal by remember { mutableLongStateOf(goalEvent) }
+    LaunchedEffect(sipEvent, goalEvent) {
+        val newSip = sipEvent != 0L && sipEvent != previousSip
+        val newGoal = goalEvent != 0L && goalEvent != previousGoal
+        previousSip = sipEvent
+        previousGoal = goalEvent
+        if (newGoal) {
+            phase.snapTo(1f)
+        } else if (newSip) {
+            snapshotFlow { goal.value * GOAL_DURATION >= SIP_DURATION }.first { it }
+            phase.snapTo(0f)
+            phase.animateTo(1f, tween(SIP_DURATION, easing = LinearEasing))
+        }
+    }
+    return phase.asState()
+}
 
 /** Only an explicitly confirmed sip eases the level upward. Edits, restores and undo draw their actual level. */
 @Composable
@@ -503,19 +545,7 @@ private fun DrawScope.drawJarOnSill(look: HeroLook, s: Float, fill: Float, sip: 
             }
         }
     }
-    if (sip < IMPACT) {
-        val fall = interval(sip, 0f, IMPACT)
-        val xDrift = 3f * s * (1f - fall)
-        val distance = 79f * s
-        val y = bodyTop - 8f * s - distance * (1f - fall * fall)
-        val alpha = smoothStep(interval(fall, 0f, 0.17f)) * (1f - smoothStep(interval(fall, 0.91f, 1f)))
-        translate(cx + xDrift, y) {
-            scale(s * (1f - 0.14f * fall), s * (0.74f + 0.52f * fall), Offset.Zero) {
-                drawPath(SipDrop, look.primary, alpha)
-                drawLine(Color.White.copy(alpha = 0.72f * alpha), Offset(-1.9f, -1.3f), Offset(-1.9f, 0.4f), 1.1f, StrokeCap.Round)
-            }
-        }
-    }
+    drawPitcherPour(look, s, cx, bodyTop, sip)
     if (afterImpact > 0f && afterImpact < 0.42f) {
         val t = afterImpact / 0.42f
         for (side in -1..1 step 2) {
@@ -525,7 +555,45 @@ private fun DrawScope.drawJarOnSill(look: HeroLook, s: Float, fill: Float, sip: 
     }
 }
 
-private val SipDrop by lazy { PathParser().parsePathString("M0-8C-1-4-4.5-1-4.5 2.5a4.5 4.5 0 1 0 9 0C4.5-1 1-4 0-8Z").toPath() }
+private val PitcherBody = PathParser().parsePathString(
+    "M-28-22 Q-30-26-25-27 L-9-27 Q-6-26-5-22 L0-20 L-6-17 L-8-3 Q-9 1-15 1 L-27 1 Q-33 0-33-6 Z",
+).toPath()
+private val PitcherHandle = PathParser().parsePathString("M-29-22 C-42-26-42-7-32-7").toPath()
+
+/** The spout is the pivot and stream origin, so the stream stays attached throughout the pour. */
+private fun DrawScope.drawPitcherPour(look: HeroLook, s: Float, cx: Float, bodyTop: Float, sip: Float) {
+    val visibility = pulse(sip, 0f, 0.12f, 0.92f)
+    if (visibility <= 0f) return
+    val spout = Offset(cx - 17f * s, bodyTop - 45f * s)
+    val tilt = 28f * pulse(sip, 0.08f, 0.27f, 0.78f)
+    translate(spout.x, spout.y) {
+        scale(s, s, Offset.Zero) {
+            rotate(tilt, Offset.Zero) {
+                translate(0f, 20f) {
+                    drawPath(PitcherHandle, look.x.wood.copy(alpha = visibility), style = Stroke(3f, cap = StrokeCap.Round))
+                    drawPath(PitcherBody, look.x.woodHighlight.copy(alpha = visibility))
+                    drawPath(PitcherBody, look.inkMuted.copy(alpha = visibility), style = Stroke(1.5f))
+                    drawLine(Color.White.copy(alpha = 0.45f * visibility), Offset(-27f, -19f), Offset(-27f, -7f), 1.5f, StrokeCap.Round)
+                }
+            }
+        }
+    }
+    val stream = pulse(sip, 0.16f, 0.30f, 0.76f)
+    if (stream > 0f) {
+        val length = smoothStep(interval(sip, 0.16f, IMPACT))
+        var previous = spout
+        // A quadratic arc sampled along its length; every segment shares its neighbour's endpoint.
+        for (segment in 1..12) {
+            val t = length * segment / 12f
+            val point = Offset(
+                spout.x + 17f * s * t,
+                spout.y + 45f * s * t * t,
+            )
+            drawLine(look.x.water.copy(alpha = 0.88f * stream), previous, point, 3f * s, StrokeCap.Round)
+            previous = point
+        }
+    }
+}
 
 private fun DrawScope.drawSipRings(cx: Float, surface: Float, s: Float, afterImpact: Float) {
     repeat(2) { ring ->
