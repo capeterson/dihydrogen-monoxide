@@ -37,6 +37,8 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - uses: ./.github/actions/gradle-setup
+        with:
+          debug-keystore-base64: ${{ secrets.DHMO_DEBUG_KEYSTORE_BASE64 }}
 
       - name: Run instrumented tests on the managed device
         # One module at a time: each managed device boots its own ~2.5 GB emulator, and two at once exhausted the

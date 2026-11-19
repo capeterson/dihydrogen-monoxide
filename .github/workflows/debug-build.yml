@@ -29,6 +29,9 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: ./.github/actions/gradle-setup
+        with:
+          debug-keystore-base64: ${{ secrets.DHMO_DEBUG_KEYSTORE_BASE64 }}
+          require-debug-key: true
 
       - name: Assemble debug APKs
         run: ./gradlew assembleDebug
@@ -39,6 +42,13 @@ jobs:
           mkdir -p dist
           shopt -s nullglob
           for apk in app/build/outputs/apk/debug/*.apk wear/build/outputs/apk/debug/*.apk; do
+            # Never publish an APK signed with an accidentally regenerated/default key.
+            certificates="$("$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --print-certs "$apk")"
+            digest="$(printf '%s\n' "$certificates" | sed -n 's/^.*certificate SHA-256 digest: //p')"
+            if [[ "$digest" != "$DEBUG_CERT_SHA256" ]]; then
+              echo "::error::Unexpected signing certificate for $apk"
+              exit 1
+            fi
             module="${apk%%/*}"
             cp "$apk" "dist/dhmo-${module}-debug-${GITHUB_RUN_NUMBER}-${short_sha}.apk"
           done

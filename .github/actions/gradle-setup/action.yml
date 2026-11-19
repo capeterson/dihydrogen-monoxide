@@ -1,6 +1,14 @@
 name: Gradle setup
 description: JDK, Gradle caching and a worker count that matches the runner's CPUs.
 
+inputs:
+  debug-keystore-base64:
+    description: Persistent debug signing key (unavailable on fork pull requests).
+    required: false
+  require-debug-key:
+    description: Refuse to build distributable debug APKs without the persistent key.
+    default: 'false'
+
 runs:
   using: composite
   steps:
@@ -9,6 +17,11 @@ runs:
         distribution: temurin
         # Matches gradle/gradle-daemon-jvm.properties (Temurin 25), so Gradle uses it instead of downloading one.
         java-version: 25
+
+    - uses: ./.github/actions/debug-signing
+      with:
+        keystore-base64: ${{ inputs.debug-keystore-base64 }}
+        require-key: ${{ inputs.require-debug-key }}
 
     - uses: gradle/actions/setup-gradle@v5
 

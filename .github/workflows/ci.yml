@@ -25,6 +25,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/gradle-setup
+        with:
+          debug-keystore-base64: ${{ secrets.DHMO_DEBUG_KEYSTORE_BASE64 }}
 
       - name: Compile everything (app, unit tests, androidTest)
         run: >
@@ -44,6 +46,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/gradle-setup
+        with:
+          debug-keystore-base64: ${{ secrets.DHMO_DEBUG_KEYSTORE_BASE64 }}
       - uses: actions/cache/restore@v4
         with:
           path: ${{ env.BUILD_CACHE_PATH }}
@@ -72,6 +76,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/gradle-setup
+        with:
+          debug-keystore-base64: ${{ secrets.DHMO_DEBUG_KEYSTORE_BASE64 }}
       - uses: actions/cache/restore@v4
         with:
           path: ${{ env.BUILD_CACHE_PATH }}
@@ -98,6 +104,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/gradle-setup
+        with:
+          debug-keystore-base64: ${{ secrets.DHMO_DEBUG_KEYSTORE_BASE64 }}
       - uses: actions/cache/restore@v4
         with:
           path: ${{ env.BUILD_CACHE_PATH }}

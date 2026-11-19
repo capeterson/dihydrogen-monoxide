@@ -12,6 +12,31 @@ The upload keystore lives only in 1Password. Nothing secret is in the repository
    backup sign-in only works for builds signed with a registered key). Debug builds need their own client entry (`.debug`
    package and debug keystore SHA-1).
 
+## Persistent debug signing for GitHub APKs
+
+The debug publication workflow needs the repository Actions secret `DHMO_DEBUG_KEYSTORE_BASE64`. It restores the same
+keystore to `~/.android/debug.keystore` on every runner, so the phone and watch APKs share a signing identity across builds.
+Gradle's cache does not persist this file. Without an explicit key, fresh runners generate different debug keys and Android
+rejects updates with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, shown as a generic installation failure on the phone.
+
+Choose one debug keystore and keep it backed up. To use this machine's existing standard Android debug key:
+
+```bash
+keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey
+base64 -w 0 "$HOME/.android/debug.keystore" | gh secret set DHMO_DEBUG_KEYSTORE_BASE64 --repo capeterson/dihydrogen-monoxide
+```
+
+The keystore must contain the private key `androiddebugkey` with the standard debug store/key password `android`. This is
+separate from the production upload key above. Never regenerate or overwrite it during a build. Keep secret values out of
+logs and Git; only the public certificate fingerprint is printed. The workflow fails if the secret is absent or invalid and
+checks every APK's certificate before publication, including the watch APK.
+
+The previously published debug builds used ephemeral keys. Moving an installed copy to the persistent key requires one
+uninstall/reinstall with a data backup and restore; the APK contains only the old certificate, so its private signing key
+cannot be recovered from the download. Android permissions may need granting again. Once this workflow and secret are
+configured, subsequent debug APKs can update in place. The same key must also sign any local APK used to update those
+GitHub builds. Register its SHA-1 separately for the debug package's Google OAuth client, if used.
+
 ## Each release
 
 ```bash

@@ -1,0 +1,35 @@
+name: Debug signing
+description: Restore the same debug key for all trusted builds; never generate a publishing key.
+inputs:
+  keystore-base64:
+    description: Persistent standard Android debug keystore, encoded as base64.
+    required: false
+  require-key:
+    description: Fail instead of using an ephemeral test key when the secret is unavailable.
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Restore persistent debug signing key
+      shell: bash
+      env:
+        DEBUG_KEYSTORE_BASE64: ${{ inputs.keystore-base64 }}
+        REQUIRE_DEBUG_KEY: ${{ inputs.require-key }}
+      run: |
+        set -euo pipefail
+        if [[ -z "$DEBUG_KEYSTORE_BASE64" ]]; then
+          if [[ "$REQUIRE_DEBUG_KEY" == true ]]; then
+            echo "::error::Set DHMO_DEBUG_KEYSTORE_BASE64 to the persistent debug keystore (see docs/RELEASE.md). Refusing to publish APKs with a new signing key."
+            exit 1
+          fi
+          echo "::notice::Debug signing secret unavailable (for example, a fork PR); test-only APKs will use a disposable key."
+          exit 0
+        fi
+        umask 077
+        mkdir -p "$HOME/.android"
+        printf '%s' "$DEBUG_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+        keytool -exportcert -keystore "$HOME/.android/debug.keystore" \
+          -storepass android -alias androiddebugkey > "$RUNNER_TEMP/debug-signing-cert.der"
+        digest="$(sha256sum "$RUNNER_TEMP/debug-signing-cert.der" | cut -d ' ' -f 1)"
+        echo "DEBUG_CERT_SHA256=$digest" >> "$GITHUB_ENV"
+        echo "Persistent debug certificate SHA-256: $digest"
