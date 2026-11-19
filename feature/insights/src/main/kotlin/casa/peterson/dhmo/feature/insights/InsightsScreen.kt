@@ -163,7 +163,7 @@ internal fun ReadyContent(state: InsightsUiState.Ready, actions: InsightsActions
         }
         if (range != InsightsRange.DAY) item { StatCard(state, cards) }
         if (range == InsightsRange.WEEK || range == InsightsRange.MONTH || range == InsightsRange.CUSTOM) {
-            item { NightSkyRangeCard(state, locale, cards) }
+            item(key = "night_sky") { NightSkyRangeCard(state, locale, cards) }
         }
         item { ChartCard(state, locale, cards) }
         if (range != InsightsRange.DAY) {

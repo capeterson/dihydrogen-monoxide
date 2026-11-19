@@ -9,7 +9,7 @@ The product plan is [`docs/PLAN.md`](docs/PLAN.md); the engineering plan is [`do
 | Area | Behaviour |
 |---|---|
 | Onboarding | Disclaimer, units and day start, a calculated or self-set goal, optional reminders. |
-| Today | Progress ring, quick-add buttons for your containers, custom amounts, edit and delete with Undo. With TalkBack, each drink offers **Edit** and **Delete** actions instead of swiping. Reminder notifications can log a drink without opening the app. |
+| Today | Progress ring, quick-add buttons for your containers, custom amounts, edit and delete with Undo. Confirmed drinks animate the window scene; the first goal crossing of a hydration day adds a longer celebration. Animations respect system and app motion settings. With TalkBack, each drink offers **Edit** and **Delete** actions instead of swiping. Reminder notifications can log a drink without opening the app. |
 | Goal | A calculated goal with its breakdown, a fixed goal (optionally per weekday), or a goal for just today. Adjustments can be switched off one by one. The goal is guidance, not medical advice. |
 | Reminders | Pace-aware: a reminder fires only when you are behind the expected curve, inside your waking hours, no more often than your chosen interval. Notifications can log a drink or snooze. |
 | History | Every drink grouped by day, with editing and Undo. |

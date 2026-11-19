@@ -52,7 +52,11 @@ fun WeeklyGarden(growth: List<Float>, modifier: Modifier = Modifier, animated: B
             key(day) {
                 val fraction = jarFraction(growth.getOrNull(day) ?: 0f)
                 val target = if (fraction == 1f) OPEN_FLOWER else fraction
-                if (enabled) animateFloatAsState(target, tween(820), label = "plantGrowth") else rememberUpdatedState(target)
+                if (enabled) {
+                    animateFloatAsState(target, tween(820, delayMillis = day * 35), label = "plantGrowth")
+                } else {
+                    rememberUpdatedState(target)
+                }
             }
         }
     Canvas(modifier.fillMaxWidth().height(112.dp)) {
@@ -97,23 +101,26 @@ private fun DrawScope.drawPlot(day: Int, growth: Float, time: Float, night: Bool
     val breeze = sin(time * 1.2f + day * 0.68f) - sin(day * 0.68f)
     val lean = (day % 3 - 1) * 3.2f + 1.7f * breeze
     rotate(lean, Offset.Zero) {
-        val stem = Path().apply {
-            moveTo(0f, 0f)
-            cubicTo(1.8f, -h * 0.28f, -1.8f, -h * 0.62f, 0f, -h)
-        }
-        drawPath(stem, if (night) GardenSage else StemInk, style = Stroke(1.85f, cap = StrokeCap.Round))
-        val spread = 0.4f + 0.62f * height
-        drawGardenLeaf(-h * 0.31f, left = true, spread)
-        drawGardenLeaf(-h * 0.57f, left = false, spread * 0.97f)
-        val upper = interval(growth, 0.22f, 0.57f)
-        if (upper > 0f) drawGardenLeaf(-h * 0.74f, left = true, spread * 0.8f * upper)
-        // A bud stays closed until this day actually reaches the goal.
-        drawOval(GardenSage, Offset(-2.3f, -h - 4f), Size(4.6f, 6f))
-        val bloom = smoothStep(interval(growth, 1f, OPEN_FLOWER))
-        if (bloom > 0f) {
-            translate(0f, -h - 2f) {
-                rotate(-12f * (1f - bloom), Offset.Zero) {
-                    scale(bloom, Offset.Zero) { drawBlossom(day) }
+        // Ease the whole sprout out of the soil instead of popping in at its minimum height.
+        scale(smoothStep(interval(growth, 0f, 0.15f)), Offset.Zero) {
+            val stem = Path().apply {
+                moveTo(0f, 0f)
+                cubicTo(1.8f, -h * 0.28f, -1.8f, -h * 0.62f, 0f, -h)
+            }
+            drawPath(stem, if (night) GardenSage else StemInk, style = Stroke(1.85f, cap = StrokeCap.Round))
+            val spread = 0.4f + 0.62f * height
+            drawGardenLeaf(-h * 0.31f, left = true, spread)
+            drawGardenLeaf(-h * 0.57f, left = false, spread * 0.97f)
+            val upper = interval(growth, 0.22f, 0.57f)
+            if (upper > 0f) drawGardenLeaf(-h * 0.74f, left = true, spread * 0.8f * upper)
+            // A bud stays closed until this day actually reaches the goal.
+            drawOval(GardenSage, Offset(-2.3f, -h - 4f), Size(4.6f, 6f))
+            val bloom = smoothStep(interval(growth, 1f, OPEN_FLOWER))
+            if (bloom > 0f) {
+                translate(0f, -h - 2f) {
+                    rotate(-12f * (1f - bloom), Offset.Zero) {
+                        scale(bloom, Offset.Zero) { drawBlossom(day) }
+                    }
                 }
             }
         }
