@@ -9,7 +9,6 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
         pluginManager.apply("dhmo.android.library")
         pluginManager.apply("dhmo.android.compose")
         pluginManager.apply("dhmo.android.hilt")
-        pluginManager.apply("dhmo.android.roborazzi")
         pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
 
         dependencies {
@@ -20,6 +19,8 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             add("implementation", project(":core:common"))
             add("implementation", project(":core:designsystem"))
             add("testImplementation", project(":core:testing"))
+            add("testImplementation", libs.library("androidx.compose.ui.test.junit4"))
+            add("testImplementation", libs.library("androidx.test.espresso.core"))
 
             add("implementation", libs.library("androidx.navigation.compose"))
             add("implementation", libs.library("androidx.hilt.navigation.compose"))

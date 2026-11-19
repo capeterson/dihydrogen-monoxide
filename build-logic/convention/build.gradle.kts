@@ -32,7 +32,6 @@ dependencies {
     compileOnly(libs.hilt.gradlePlugin)
     compileOnly(libs.detekt.gradlePlugin)
     compileOnly(libs.ktlint.gradlePlugin)
-    compileOnly(libs.roborazzi.gradlePlugin)
 }
 
 gradlePlugin {
@@ -60,10 +59,6 @@ gradlePlugin {
         register("androidFeature") {
             id = "dhmo.android.feature"
             implementationClass = "casa.peterson.dhmo.convention.AndroidFeatureConventionPlugin"
-        }
-        register("androidRoborazzi") {
-            id = "dhmo.android.roborazzi"
-            implementationClass = "casa.peterson.dhmo.convention.AndroidRoborazziConventionPlugin"
         }
         register("androidTest") {
             id = "dhmo.android.test"

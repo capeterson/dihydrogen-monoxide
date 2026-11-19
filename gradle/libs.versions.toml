@@ -36,7 +36,6 @@ okhttp = "5.5.1"
 play-services-auth = "22.0.0"
 play-services-location = "21.4.0"
 robolectric = "4.18"
-roborazzi = "1.79.0"
 truth = "1.4.5"
 turbine = "1.2.1"
 vico = "3.3.1"
@@ -127,9 +126,11 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "android
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
-roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }
-roborazzi-junit-rule = { module = "io.github.takahirom.roborazzi:roborazzi-junit-rule", version.ref = "roborazzi" }
+# The Android framework jar Robolectric runs against for sdk=37. Robolectric would otherwise download it from Maven
+# Central inside every test JVM, so a network blip fails tests. Gradle resolves and caches it instead (see
+# AndroidTestConventionPlugin). When Robolectric or `sdk=` changes, the version is in Robolectric's DefaultSdkProvider
+# (or the failing test's "Failed to fetch" message in offline mode); `./gradlew testDebugUnitTest` says so if it is wrong.
+robolectric-android-all = { module = "org.robolectric:android-all-instrumented", version = "17-robolectric-16653203-i7" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
@@ -142,7 +143,6 @@ room-gradlePlugin = { module = "androidx.room:room-gradle-plugin", version.ref =
 hilt-gradlePlugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hilt" }
 detekt-gradlePlugin = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
-roborazzi-gradlePlugin = { module = "io.github.takahirom.roborazzi:roborazzi-gradle-plugin", version.ref = "roborazzi" }
 
 androidx-wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "wear-tiles" }
 androidx-wear-tiles-testing = { module = "androidx.wear.tiles:tiles-testing", version.ref = "wear-tiles" }
@@ -164,7 +164,6 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 room = { id = "androidx.room", version.ref = "androidx-room" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
-roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 # Convention plugins (no version: they come from the included build)
 dhmo-android-application = { id = "dhmo.android.application" }
 dhmo-android-library = { id = "dhmo.android.library" }
@@ -172,5 +171,4 @@ dhmo-android-compose = { id = "dhmo.android.compose" }
 dhmo-android-feature = { id = "dhmo.android.feature" }
 dhmo-android-hilt = { id = "dhmo.android.hilt" }
 dhmo-android-room = { id = "dhmo.android.room" }
-dhmo-android-roborazzi = { id = "dhmo.android.roborazzi" }
 dhmo-jvm-library = { id = "dhmo.jvm.library" }

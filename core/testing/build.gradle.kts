@@ -5,7 +5,7 @@ plugins {
 }
 
 // Used only as testImplementation / androidTestImplementation of other modules, so the test libraries are exposed as api.
-// Robolectric and Roborazzi are compileOnly: they must never reach an instrumented (device) test classpath.
+// Robolectric is compileOnly: it must never reach an instrumented (device) test classpath.
 dependencies {
     api(platform(libs.androidx.compose.bom))
     api(projects.core.data)
@@ -22,8 +22,5 @@ dependencies {
     api(libs.androidx.test.core)
     api(libs.androidx.test.ext.junit)
     api(libs.androidx.compose.ui.test.junit4)
-    compileOnly(libs.roborazzi)
-    compileOnly(libs.roborazzi.compose)
-    compileOnly(libs.roborazzi.junit.rule)
     api(libs.hilt.android.testing)
 }

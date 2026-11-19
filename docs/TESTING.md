@@ -6,7 +6,7 @@ How to run every test layer of Dihydrogen Monoxide locally and in CI, and what m
 
 | Tool | Version | Notes |
 |---|---|---|
-| JDK | **25** (Temurin), provisioned by Gradle | `gradle/gradle-daemon-jvm.properties` pins the Gradle daemon to Temurin 25; unit and screenshot tests run on the same JDK. If no matching JDK is installed, Gradle downloads one into `~/.gradle/jdks` (foojay resolver), so any JDK 17+ on the `PATH` is enough to start `./gradlew`. Pinning the vendor makes local and CI builds identical. detekt is `2.0.0-alpha.6`, the first detekt that runs on JDK 25 (1.23.x embeds a Kotlin 2.0 compiler that rejects it); move to 2.0.0 stable when it ships. Bytecode still targets Java 17. CI installs Temurin 25. To move to a newer JDK, run `./gradlew updateDaemonJvm --jvm-version=<n> --jvm-vendor=adoptium` and change `JDK_VERSION` in `build-logic`. |
+| JDK | **25** (Temurin), provisioned by Gradle | `gradle/gradle-daemon-jvm.properties` pins the Gradle daemon to Temurin 25; unit tests run on the same JDK. If no matching JDK is installed, Gradle downloads one into `~/.gradle/jdks` (foojay resolver), so any JDK 17+ on the `PATH` is enough to start `./gradlew`. Pinning the vendor makes local and CI builds identical. detekt is `2.0.0-alpha.6`, the first detekt that runs on JDK 25 (1.23.x embeds a Kotlin 2.0 compiler that rejects it); move to 2.0.0 stable when it ships. Bytecode still targets Java 17. CI installs Temurin 25. To move to a newer JDK, run `./gradlew updateDaemonJvm --jvm-version=<n> --jvm-vendor=adoptium` and change `JDK_VERSION` in `build-logic`. |
 | Gradle | via `./gradlew` (9.9.1) | Never use a system Gradle. |
 | Android SDK | see below | Point `ANDROID_HOME` at it, or write `sdk.dir=/path/to/sdk` in `local.properties` (gitignored). |
 
@@ -20,7 +20,7 @@ SDKM=$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager
 
 yes | $SDKM --licenses
 
-# Required for building and for all JVM / Robolectric / screenshot tests
+# Required for building and for all JVM / Robolectric tests
 $SDKM "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"
 
 # Only for instrumented tests on a local emulator (section 6)
@@ -33,7 +33,7 @@ $SDKM "system-images;android-34;aosp_atd;x86_64"
 
 On Apple Silicon or ARM Linux, replace `x86_64` with `arm64-v8a`.
 
-Robolectric downloads its own Android framework jars (`android-all-instrumented`) from Maven Central on first use, so the JVM tests need network access once.
+Robolectric's Android framework jar (`android-all-instrumented`) is an ordinary Gradle dependency (`robolectricAndroidAll` in `AndroidTestConventionPlugin`, version in `libs.versions.toml`), cached and checksum-verified by Gradle. The test JVMs run Robolectric with `robolectric.offline=true`, so a test never downloads anything. After a Robolectric upgrade or a change of `sdk=`, update that one catalog version.
 
 ## 2. Pure JVM unit tests
 
@@ -63,19 +63,15 @@ DAOs and the `daily_total` view (in-memory Room), DataStore serializers, reposit
 
 Each Android module pins `sdk=37` in `src/test/resources/robolectric.properties`, so no `@Config(sdk = …)` is needed. Reports: `<module>/build/reports/tests/testDebugUnitTest/index.html`.
 
-## 4. Screenshot tests (Roborazzi, JVM)
+## 4. Render tests (JVM)
 
-Each screen's main states are captured in light, dark and large-font (font scale 2.0) variants on Robolectric, with no emulator. Reference PNGs are committed under `<module>/src/test/screenshots/`.
+There are no screenshot (pixel-comparison) tests. They were removed because they failed on every intended visual change without ever catching a regression, committed hundreds of megabytes of PNGs, and needed Robolectric native graphics, which intermittently returned blank frames (the retry loops and a JVM per test class that hid that cost most of CI's time).
+
+What replaced them is `renderScreenVariants(name) { … }` in `:core:testing`. Each `*RenderTest` composes a stateless `…Content(uiState, callbacks)` screen with fixed state in the two combinations that break layouts (light theme at normal font size, dark theme at font scale 2.0) and fails if composition, measure or layout throws or nothing ends up on screen. Behaviour belongs in view-model and interaction tests; layout and look are reviewed by running the app.
 
 ```bash
-./gradlew verifyRoborazziDebug     # compare against references (what CI runs)
-./gradlew compareRoborazziDebug    # write diff images to <module>/build/outputs/roborazzi
-./gradlew recordRoborazziDebug     # overwrite references after an intended UI change
+./gradlew :feature:today:testDebugUnitTest --tests '*RenderTest'
 ```
-
-Plain `testDebugUnitTest` does not compare or record images: without one of the Roborazzi tasks, `captureRoboImage` is a no-op.
-
-Record references on Linux, because font rendering differs between operating systems; images recorded on macOS or Windows will fail `verifyRoborazziDebug` in CI. Run `./gradlew recordRoborazziDebug` and commit the changed PNGs with your change.
 
 ## 5. Gradle Managed Devices
 
@@ -125,12 +121,12 @@ This is what must pass before a pull request is opened:
 ```bash
 ./gradlew ktlintCheck detekt checkModuleGraph lint \
   testDebugUnitTest :core:common:test :core:model:test :core:domain:test :core:backup:test :core:wear:test \
-  verifyRoborazziDebug assembleDebug
+  assembleDebug
 ```
 
 ## 8a. Memory use
 
-The defaults in `gradle.properties` are sized for an 8 GB machine that also runs an emulator. A clean build of the unit-test and Roborazzi layer peaks at about 3 GB of Java memory in total (measured: 4.2 GB with the earlier 4 GB heap and a separate Kotlin daemon); the whole gate including lint and a release build peaks at about 3.9 GB.
+The defaults in `gradle.properties` are sized for an 8 GB machine that also runs an emulator. A clean build of the unit-test layer peaks at about 3 GB of Java memory in total (measured: 4.2 GB with the earlier 4 GB heap and a separate Kotlin daemon); the whole gate including lint and a release build peaks at about 3.9 GB.
 
 - One JVM does both the Gradle work and the Kotlin compiles (`kotlin.compiler.execution.strategy=in-process`), with `-XX:+UseSerialGC` and a shrinking heap. The daemon exits after 5 idle minutes; run `./gradlew --stop` to free it sooner.
 - Unit-test JVMs get a 1 GB heap and at most 2 run at once. Machine-local overrides in `~/.gradle/gradle.properties`: `dhmo.test.maxHeap` (for example `2g`) and `dhmo.test.parallelism` (for example `4`). Test workers were not the peak; the Gradle JVM was.
@@ -141,7 +137,7 @@ The defaults in `gradle.properties` are sized for an 8 GB machine that also runs
 
 | Workflow | Trigger | What it runs |
 |---|---|---|
-| `.github/workflows/ci.yml` | pushes to `main` and pull requests | A `compile` job builds the app, unit-test and androidTest sources and shares Gradle's build cache; then `static-and-lint` (ktlint, detekt, module-graph check, Android lint), `unit-tests` (JVM and Robolectric) and `screenshot-tests` (Roborazzi verification) run in parallel. Gradle workers match the runner's CPU count. Test reports, Roborazzi diffs and lint HTML are uploaded as artifacts when a job fails. |
+| `.github/workflows/ci.yml` | pushes to `main` and pull requests | A `compile` job builds the app, unit-test and androidTest sources and shares Gradle's build cache; then `static-and-lint` (ktlint, detekt, module-graph check, Android lint) and `unit-tests` (JVM and Robolectric, including the render tests) run in parallel. Gradle workers match the runner's CPU count. Test reports and lint HTML are uploaded as artifacts when a job fails. |
 | `.github/workflows/instrumented.yml` | pull requests to `main`, and manual dispatch | KVM is enabled on the `ubuntu-latest` runner with a udev rule, then the Gradle Managed Device task `pixel6Api34DebugAndroidTest` (Pixel 6, API 34, `aosp-atd`) runs. Android test reports are uploaded on failure. |
 
 To download a failing run's reports: open the run in the Actions tab and look under *Artifacts*.
