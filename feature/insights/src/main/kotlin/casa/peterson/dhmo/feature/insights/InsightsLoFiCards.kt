@@ -58,6 +58,8 @@ import kotlin.math.roundToInt
 private const val LANTERN_COUNT = 7
 private const val BUCKET_HOURS = 3
 private const val BUCKETS = 24 / BUCKET_HOURS
+private const val SKY_TRANSITION_MILLIS = 420
+private const val MAX_SKY_SNAPSHOTS = 8
 private val CandleAreaHeight = 140.dp
 
 /** The headline: how many days reached the goal as a big monospaced percentage, with the streak as a row of lanterns. */
@@ -109,17 +111,17 @@ internal fun NightSkyRangeCard(state: InsightsUiState.Ready, locale: Locale, mod
         if (state.selection != previousSelection) {
             previousSelection = state.selection
             reveal.snapTo(0f)
-            reveal.animateTo(1f, tween(420, easing = LinearEasing))
+            reveal.animateTo(1f, tween(SKY_TRANSITION_MILLIS, easing = LinearEasing))
         }
     }
     // Keep outgoing data for the crossfade; changes to data within the same selection do not restart it.
     val snapshots = remember { LinkedHashMap<RangeSelection, InsightsUiState.Ready>() }
     snapshots[state.selection] = state
-    if (snapshots.size > 8) snapshots.remove(snapshots.keys.first())
+    if (snapshots.size > MAX_SKY_SNAPSHOTS) snapshots.remove(snapshots.keys.first())
     Crossfade(
         targetState = state.selection,
         modifier = modifier.clearAndSetSemantics { contentDescription = "$title. $caption. $description" },
-        animationSpec = tween(420),
+        animationSpec = tween(SKY_TRANSITION_MILLIS),
         label = "nightSkyRange",
     ) { selection ->
         snapshots[selection]?.let { snapshot ->
