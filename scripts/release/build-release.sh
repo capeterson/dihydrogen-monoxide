@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 VAULT="${OP_VAULT:-Private}"
-ITEM="${OP_ITEM:-DHMO Android upload key}"
+ITEM="${OP_ITEM:-DHMO Android production signing key}"
 
 command -v op >/dev/null || { echo "Install the 1Password CLI first" >&2; exit 1; }
 op whoami >/dev/null 2>&1 || { echo "op is not signed in" >&2; exit 1; }

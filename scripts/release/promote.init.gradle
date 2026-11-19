@@ -1,0 +1,14 @@
+// Applied outside the selected source tree so older debug tags can also be promoted.
+// Only release packaging metadata changes; compilation uses that tag's exact sources.
+gradle.beforeProject { project ->
+    project.pluginManager.withPlugin('com.android.application') {
+        project.extensions.getByName('androidComponents').finalizeDsl { android ->
+            android.defaultConfig.versionName = project.providers.gradleProperty('dhmo.versionName').get()
+            android.defaultConfig.versionCode = project.providers.gradleProperty('dhmo.versionCode').get().toInteger()
+            def release = android.buildTypes.getByName('release')
+            release.debuggable = false
+            // Production signing is performed in a separate job after the build completes.
+            release.signingConfig = null
+        }
+    }
+}

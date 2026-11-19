@@ -53,6 +53,9 @@ jobs:
           path: ${{ env.BUILD_CACHE_PATH }}
           key: ${{ env.BUILD_CACHE_KEY }}
 
+      - name: Promotion validation tests
+        run: python3 -m unittest discover -s scripts/release -p test_promotion.py
+
       - name: Static analysis
         run: ./gradlew ktlintCheck detekt checkModuleGraph --continue
 

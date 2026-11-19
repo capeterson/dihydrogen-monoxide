@@ -1,0 +1,156 @@
+name: Promote debug build
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_tag:
+        description: Published debug release to rebuild (for example debug-5-791409c)
+        required: true
+        type: string
+      version:
+        description: Production version and release name (for example 1.0.0)
+        required: true
+        type: string
+      version_code:
+        description: Android version code (positive integer, higher than previous production releases)
+        required: true
+        type: number
+
+concurrency:
+  group: production-promotion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      sha: ${{ steps.source.outputs.sha }}
+      tag: ${{ steps.source.outputs.tag }}
+      version: ${{ steps.source.outputs.version }}
+      version_code: ${{ steps.source.outputs.version_code }}
+      source: ${{ steps.source.outputs.source }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: workflow
+          persist-credentials: false
+
+      - name: Resolve the selected debug release
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_DEBUG_TAG: ${{ inputs.debug_tag }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_VERSION_CODE: ${{ inputs.version_code }}
+        run: python3 workflow/scripts/release/resolve-promotion.py
+
+      - name: Check out the exact debug build source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.source.outputs.sha }}
+          path: source
+          persist-credentials: false
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Build unsigned production APKs
+        working-directory: source
+        env:
+          RELEASE_VERSION: ${{ steps.source.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ steps.source.outputs.version_code }}
+          RELEASE_TAG: ${{ steps.source.outputs.tag }}
+        run: |
+          ./gradlew --no-configuration-cache --max-workers=4 \
+            --init-script "$GITHUB_WORKSPACE/workflow/scripts/release/promote.init.gradle" \
+            :app:assembleRelease :wear:assembleRelease \
+            -Pdhmo.versionName="$RELEASE_VERSION" -Pdhmo.versionCode="$RELEASE_VERSION_CODE" \
+            -Pdhmo.build.tag="$RELEASE_TAG" -Pdhmo.build.timeMs="$(date +%s)000"
+
+      - name: Collect unsigned production APKs
+        env:
+          RELEASE_VERSION: ${{ steps.source.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir unsigned
+          for module in app wear; do
+            apks=(source/"$module"/build/outputs/apk/release/*.apk)
+            [[ ${#apks[@]} == 1 && -f "${apks[0]}" ]]
+            cp "${apks[0]}" "unsigned/dhmo-${module}-${RELEASE_VERSION}-unsigned.apk"
+          done
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: unsigned-production-${{ github.run_id }}
+          path: unsigned/*.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      # Only the trusted workflow tree runs here; source Gradle code never sees production secrets.
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Install signing tools
+        run: sdkmanager 'build-tools;37.0.0'
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: unsigned-production-${{ github.run_id }}
+          path: unsigned
+
+      - name: Sign and verify production APKs
+        env:
+          DHMO_PRODUCTION_KEYSTORE_BASE64: ${{ secrets.DHMO_PRODUCTION_KEYSTORE_BASE64 }}
+          DHMO_PRODUCTION_KEYSTORE_PASSWORD: ${{ secrets.DHMO_PRODUCTION_KEYSTORE_PASSWORD }}
+          DHMO_PRODUCTION_KEY_ALIAS: ${{ secrets.DHMO_PRODUCTION_KEY_ALIAS }}
+          DHMO_PRODUCTION_KEY_PASSWORD: ${{ secrets.DHMO_PRODUCTION_KEY_PASSWORD }}
+          DHMO_PRODUCTION_CERT_SHA256: ${{ vars.DHMO_PRODUCTION_CERT_SHA256 }}
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ needs.build.outputs.version_code }}
+          SOURCE_DEBUG_TAG: ${{ needs.build.outputs.source }}
+          SOURCE_SHA: ${{ needs.build.outputs.sha }}
+        run: python3 scripts/release/sign-production.py
+
+      - name: Publish full release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
+          RELEASE_VERSION_CODE: ${{ needs.build.outputs.version_code }}
+          SOURCE_DEBUG_TAG: ${{ needs.build.outputs.source }}
+          SOURCE_SHA: ${{ needs.build.outputs.sha }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/release-notes.md" <<EOF
+          Production build promoted from ${SOURCE_DEBUG_TAG}.
+          Source commit: ${SOURCE_SHA}
+          Android version code: ${RELEASE_VERSION_CODE}
+
+          Rebuilt as a non-debuggable production app and signed with the persistent production key.
+          EOF
+          gh release create "$RELEASE_TAG" dist/*.apk dist/promotion.json \
+            --repo "$GITHUB_REPOSITORY" --target "$SOURCE_SHA" --title "$RELEASE_VERSION" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" --prerelease=false --latest

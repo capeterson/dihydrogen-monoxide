@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-time: create the upload keystore and store it in 1Password. Nothing is written to the repository and the
+# One-time: create the production keystore and store it in 1Password. Nothing is written to the repository and the
 # keystore never stays on disk: it exists only inside 1Password (as a Document) after this script exits.
 #
 # Needs the 1Password CLI (`op`) signed in, e.g. via the desktop app integration
@@ -9,8 +9,8 @@
 set -euo pipefail
 
 VAULT="${OP_VAULT:-Private}"
-ITEM="${OP_ITEM:-DHMO Android upload key}"
-ALIAS="${DHMO_KEY_ALIAS:-dhmo-upload}"
+ITEM="${OP_ITEM:-DHMO Android production signing key}"
+ALIAS="${DHMO_KEY_ALIAS:-dhmo-production}"
 
 command -v op >/dev/null || { echo "Install the 1Password CLI first: https://developer.1password.com/docs/cli/get-started" >&2; exit 1; }
 command -v keytool >/dev/null || { echo "keytool (a JDK) is required" >&2; exit 1; }
@@ -40,7 +40,7 @@ op item create --vault "$VAULT" --category "Secure Note" --title "$ITEM" \
   "keystore password[password]=$store_pass" \
   "key password[password]=$key_pass" \
   "key alias[text]=$ALIAS" \
-  "notes[text]=Android upload key for casa.peterson.dhmo (phone and Wear OS builds must share it). Losing this means no more updates for installed apps." \
+  "notes[text]=Production Android signing key for casa.peterson.dhmo (phone and Wear OS builds must share it). Losing this means no more updates for installed apps." \
   --format json >/dev/null
 op document create "$work/upload.jks" --vault "$VAULT" --title "$ITEM (keystore file)" >/dev/null
 
