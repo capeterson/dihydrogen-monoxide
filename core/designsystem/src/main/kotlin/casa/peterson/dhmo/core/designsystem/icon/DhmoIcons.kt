@@ -30,4 +30,28 @@ object DhmoIcons {
     @DrawableRes val Calendar: Int = R.drawable.core_designsystem_ic_calendar
 
     @DrawableRes val Notifications: Int = R.drawable.core_designsystem_ic_notifications
+
+    @DrawableRes val Glass: Int = R.drawable.core_designsystem_ic_glass
+
+    @DrawableRes val Mug: Int = R.drawable.core_designsystem_ic_mug
+
+    @DrawableRes val Bottle: Int = R.drawable.core_designsystem_ic_bottle
+
+    @DrawableRes val Flask: Int = R.drawable.core_designsystem_ic_flask
+
+    @DrawableRes val Scale: Int = R.drawable.core_designsystem_ic_scale
+
+    @DrawableRes val Bolt: Int = R.drawable.core_designsystem_ic_bolt
+
+    @DrawableRes val Sun: Int = R.drawable.core_designsystem_ic_sun
+
+    @DrawableRes val Lantern: Int = R.drawable.core_designsystem_ic_lantern
+
+    @DrawableRes val NavToday: Int = R.drawable.core_designsystem_ic_nav_today
+
+    @DrawableRes val NavHistory: Int = R.drawable.core_designsystem_ic_nav_history
+
+    @DrawableRes val NavInsights: Int = R.drawable.core_designsystem_ic_nav_insights
+
+    @DrawableRes val NavSettings: Int = R.drawable.core_designsystem_ic_nav_settings
 }

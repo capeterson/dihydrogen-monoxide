@@ -62,12 +62,13 @@ class TodayViewModelTest {
         vm.uiState.test {
             var ready = awaitItem()
             while (ready !is TodayUiState.Ready) ready = awaitItem()
-            vm.onQuickAdd(ready.containers.first())
+            val container = ready.containers.first()
+            vm.onQuickAdd(container)
             while ((ready as TodayUiState.Ready).entries.isEmpty()) ready = awaitItem()
             val id = ready.entries.single().id
             vm.effects.test {
                 vm.onDelete(id)
-                assertThat(awaitItem()).isEqualTo(TodayEffect.EntryDeleted(id))
+                assertThat(awaitItem()).isEqualTo(TodayEffect.EntryDeleted(id, container.volumeMl, container.name))
                 vm.onUndoDelete(id)
                 assertThat(intake.get(id)?.deletedAt).isNull()
                 cancelAndIgnoreRemainingEvents()

@@ -27,7 +27,7 @@ data class AppSettings(
 @Serializable
 data class ThemeSettings(
     val mode: ThemeMode = ThemeMode.SYSTEM, // SYSTEM, LIGHT, DARK
-    val dynamicColor: Boolean = true, // Android 12+; ignored below
+    val dynamicColor: Boolean = false, // opt-in, Android 12+; the lo-fi palette is the default
 )
 
 @Serializable enum class ThemeMode { SYSTEM, LIGHT, DARK }

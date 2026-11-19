@@ -20,7 +20,6 @@ import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.EmptyState
 import casa.peterson.dhmo.core.designsystem.component.GoalChip
 import casa.peterson.dhmo.core.designsystem.component.HeatmapGrid
-import casa.peterson.dhmo.core.designsystem.component.ProgressRing
 import casa.peterson.dhmo.core.designsystem.component.QuickAddButton
 import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.component.SettingsRow

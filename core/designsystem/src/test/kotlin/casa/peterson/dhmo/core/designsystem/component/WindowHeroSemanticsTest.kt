@@ -14,11 +14,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class ProgressRingSemanticsTest {
+class WindowHeroSemanticsTest {
     @get:Rule val composeRule = createComposeRule()
 
     private fun show(progress: Float) {
-        composeRule.setContent { DhmoTheme(dynamicColor = false) { ProgressRing(progress = progress) } }
+        composeRule.setContent { DhmoTheme(dynamicColor = false) { WindowHero(progress = progress) } }
     }
 
     private fun hasProgress(expected: Float) = SemanticsMatcher("progress is $expected") {
@@ -51,11 +51,11 @@ class ProgressRingSemanticsTest {
 
     @Test
     fun clampsInvalidProgress() {
-        assertThat(ringFraction(-1f)).isEqualTo(0f)
-        assertThat(ringFraction(Float.NaN)).isEqualTo(0f)
-        assertThat(ringFraction(3f)).isEqualTo(1f)
-        assertThat(ringPercent(-1f)).isEqualTo(0)
-        assertThat(ringPercent(Float.NaN)).isEqualTo(0)
-        assertThat(ringPercent(0.995f)).isEqualTo(100)
+        assertThat(jarFraction(-1f)).isEqualTo(0f)
+        assertThat(jarFraction(Float.NaN)).isEqualTo(0f)
+        assertThat(jarFraction(3f)).isEqualTo(1f)
+        assertThat(jarPercent(-1f)).isEqualTo(0)
+        assertThat(jarPercent(Float.NaN)).isEqualTo(0)
+        assertThat(jarPercent(0.995f)).isEqualTo(100)
     }
 }

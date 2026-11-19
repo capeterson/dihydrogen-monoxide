@@ -44,7 +44,9 @@ import casa.peterson.dhmo.core.designsystem.component.DhmoScreen
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.EmptyState
 import casa.peterson.dhmo.core.designsystem.component.HeatmapGrid
+import casa.peterson.dhmo.core.designsystem.component.InsightCard
 import casa.peterson.dhmo.core.designsystem.component.SectionCard
+import casa.peterson.dhmo.core.designsystem.component.SegmentedPill
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.stats.DayResult
@@ -159,7 +161,15 @@ internal fun ReadyContent(state: InsightsUiState.Ready, actions: InsightsActions
         if (range == InsightsRange.WEEK && state.insights.isNotEmpty()) {
             item { FeedCard(state.insights.take(FEED_SIZE), state.units, locale, actions.onInsight, cards) }
         }
+        if (range != InsightsRange.DAY) item { StatCard(state, cards) }
+        if (range == InsightsRange.WEEK || range == InsightsRange.MONTH || range == InsightsRange.CUSTOM) {
+            item { NightSkyRangeCard(state, locale, cards) }
+        }
         item { ChartCard(state, locale, cards) }
+        if (range != InsightsRange.DAY) {
+            item { ThroughTheDayCard(state, locale, cards) }
+            item { PeakTimeInsight(state, locale, cards) }
+        }
         if (!state.selection.from.isAfter(state.today) && !state.selection.to.isBefore(state.today) && range != InsightsRange.DAY) {
             item {
                 Text(
@@ -185,10 +195,13 @@ internal fun ReadyContent(state: InsightsUiState.Ready, actions: InsightsActions
 
 @Composable
 internal fun RangeTabs(selected: InsightsRange, onSelect: (InsightsRange) -> Unit) {
-    PrimaryScrollableTabRow(selectedTabIndex = selected.ordinal, edgePadding = 8.dp) {
-        InsightsRange.entries.forEach { range ->
-            Tab(selected = range == selected, onClick = { onSelect(range) }, text = { Text(stringResource(rangeLabel(range))) })
-        }
+    val ranges = InsightsRange.entries
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp)) {
+        SegmentedPill(
+            options = ranges.map { stringResource(rangeLabel(it)) },
+            selected = selected.ordinal,
+            onSelect = { onSelect(ranges[it]) },
+        )
     }
 }
 
@@ -217,12 +230,13 @@ internal fun PeriodHeader(state: InsightsUiState.Ready, actions: InsightsActions
 @Composable
 internal fun FeedCard(insights: List<Insight>, units: VolumeUnit, locale: Locale, onInsight: (Insight) -> Unit, modifier: Modifier) {
     val resources = LocalResources.current
-    SectionCard(modifier, title = stringResource(R.string.feature_insights_card_feed)) {
-        insights.forEachIndexed { index, insight ->
-            if (index > 0) HorizontalDivider()
-            Text(
-                InsightText.format(insight, resources, units, locale),
-                modifier = Modifier.fillMaxWidth().clickable(role = Role.Button) { onInsight(insight) }.padding(vertical = 12.dp),
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        insights.forEach { insight ->
+            InsightCard(
+                title = InsightText.format(insight, resources, units, locale),
+                body = null,
+                icon = DhmoIcons.History,
+                onClick = { onInsight(insight) },
             )
         }
     }

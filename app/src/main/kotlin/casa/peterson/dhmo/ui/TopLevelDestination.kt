@@ -11,8 +11,8 @@ import casa.peterson.dhmo.feature.today.navigation.TodayRoute
 
 /** The four bottom bar / rail destinations (TECHNICAL_PLAN §13.5). */
 enum class TopLevelDestination(val route: Any, @StringRes val label: Int, @DrawableRes val icon: Int) {
-    Today(TodayRoute, R.string.nav_today, DhmoIcons.WaterDrop),
-    History(HistoryRoute, R.string.nav_history, DhmoIcons.History),
-    Insights(InsightsRoute(), R.string.nav_insights, DhmoIcons.BarChart),
-    Settings(SettingsRoute, R.string.nav_settings, DhmoIcons.Settings),
+    Today(TodayRoute, R.string.nav_today, DhmoIcons.NavToday),
+    History(HistoryRoute, R.string.nav_history, DhmoIcons.NavHistory),
+    Insights(InsightsRoute(), R.string.nav_insights, DhmoIcons.NavInsights),
+    Settings(SettingsRoute, R.string.nav_settings, DhmoIcons.NavSettings),
 }

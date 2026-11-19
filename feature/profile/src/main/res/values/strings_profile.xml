@@ -19,8 +19,6 @@
     <string name="feature_profile_clamp_low">Your inputs add up to %1$s, below the %2$s lower limit. Talk to a clinician about the right goal for you.</string>
 
     <!-- Breakdown -->
-    <string name="feature_profile_breakdown_title">How the goal is calculated</string>
-    <string name="feature_profile_breakdown_total">Total %1$s; calculated goal %2$s</string>
     <string name="feature_profile_breakdown_not_applied">Off in Adjustments, not counted</string>
     <string name="feature_profile_drinks_only">This goal covers drinks only. About 20% of the water you need comes from food.</string>
     <string name="feature_profile_component_base_child">Base %1$s (age %2$s)</string>
@@ -132,4 +130,24 @@
     <string name="feature_profile_source_nasem">US National Academies (2004). Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate. Basis for counting about 80% of total water as drinks.</string>
     <string name="feature_profile_source_acsm">American College of Sports Medicine (2007). Exercise and Fluid Replacement, position stand. Basis for the per-minute exercise allowance.</string>
     <string name="feature_profile_limits">Calculated goals are kept between %1$s and %2$s for adults and %3$s and %4$s for children under 14.</string>
+    <string name="feature_profile_recipe_title">The recipe</string>
+    <string name="feature_profile_makes">Makes</string>
+    <string name="feature_profile_what_went_in">What went in</string>
+    <string name="feature_profile_warm_day">A warm day is coming, so the jar is a little taller.</string>
+    <string name="feature_profile_ingredient_base">Base</string>
+    <string name="feature_profile_ingredient_weight">Weight</string>
+    <string name="feature_profile_ingredient_pregnancy">Pregnancy</string>
+    <string name="feature_profile_ingredient_lactation">Nursing</string>
+    <string name="feature_profile_ingredient_active">Active</string>
+    <string name="feature_profile_ingredient_forecast">Forecast</string>
+    <string name="feature_profile_ingredient_climate">Climate</string>
+    <string name="feature_profile_ingredient_altitude">Altitude</string>
+    <string name="feature_profile_recipe_caption">How %1$s is stirred together</string>
+    <string name="feature_profile_detail_base_weight">%1$s × %2$s kg</string>
+    <string name="feature_profile_detail_minutes">%1$s min of exercise</string>
+    <string name="feature_profile_detail_forecast">Feels like %1$s °C</string>
+    <string name="feature_profile_input_kg">%1$s kg</string>
+    <string name="feature_profile_input_adult">adult</string>
+    <string name="feature_profile_input_minutes">%1$s min</string>
+    <string name="feature_profile_input_celsius">%1$s °C</string>
 </resources>

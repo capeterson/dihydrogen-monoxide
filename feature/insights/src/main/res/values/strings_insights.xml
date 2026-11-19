@@ -48,7 +48,6 @@
     <string name="feature_insights_day_total">Total / goal</string>
     <string name="feature_insights_legend_goal">Goal</string>
     <string name="feature_insights_legend_rolling7">7-day average</string>
-    <string name="feature_insights_legend_rolling30">30-day average</string>
     <string name="feature_insights_legend_expected">Expected pace</string>
 
     <!-- Metric cards -->
@@ -89,7 +88,6 @@
     <string name="feature_insights_card_day_of_week">Day of the week</string>
     <string name="feature_insights_weakest">Lowest: %1$s</string>
     <string name="feature_insights_no_data">No data</string>
-    <string name="feature_insights_card_feed">Insights</string>
 
     <!-- Custom range picker -->
     <string name="feature_insights_picker_from">From</string>
@@ -146,4 +144,25 @@
     <string name="feature_insights_strength_strong">strong</string>
     <string name="feature_insights_strength_moderate">moderate</string>
     <string name="feature_insights_strength_weak">weak</string>
+    <plurals name="feature_insights_stat_label">
+        <item quantity="one">%1$d of %2$d day at goal</item>
+        <item quantity="other">%1$d of %2$d days at goal</item>
+    </plurals>
+    <string name="feature_insights_lanterns_none">No lanterns lit yet. Today is a good day to start.</string>
+    <plurals name="feature_insights_lanterns_lit">
+        <item quantity="one">%d lantern lit in a row.</item>
+        <item quantity="other">%d lanterns lit in a row.</item>
+    </plurals>
+    <string name="feature_insights_night_sky">Night sky</string>
+    <string name="feature_insights_night_sky_caption">Brighter, bigger stars are fuller days. A halo means the goal was met.</string>
+    <plurals name="feature_insights_night_sky_description">
+        <item quantity="one">%d day drawn as a star. Larger, brighter stars with a glow mark days you met your goal.</item>
+        <item quantity="other">%d days drawn as stars. Larger, brighter stars with a glow mark days you met your goal.</item>
+    </plurals>
+    <string name="feature_insights_through_the_day">Through the day</string>
+    <string name="feature_insights_through_the_day_caption">Millilitres per three-hour stretch, on an average day</string>
+    <string name="feature_insights_through_the_day_description">Your average day in three-hour stretches. The tallest is around %1$s.</string>
+    <string name="feature_insights_goal_pace">goal pace</string>
+    <string name="feature_insights_peak_title">You drink most around %1$s</string>
+    <string name="feature_insights_peak_body">That is where the tallest candle stands. Keep a glass by the lamp.</string>
 </resources>
