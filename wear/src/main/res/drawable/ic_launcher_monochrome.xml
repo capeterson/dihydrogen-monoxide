@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Glass, spirit and flower remain distinct when the launcher supplies one tint. -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M31,55 Q54,49 77,55 L71,80 Q54,88 37,80 Z M32,56 Q54,63 76,56 M35,66 Q44,63 54,66 Q64,69 74,66 M38,53 C34,44 44,36 48,29 C49,36 56,36 62,39 C70,43 73,48 70,54" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:pathData="M50,49 Q54,53 58,49" />
+    <group
+        android:pivotX="64"
+        android:pivotY="34"
+        android:scaleX="0.8"
+        android:scaleY="0.8"
+        android:translateX="3"
+        android:translateY="-1">
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2.2"
+            android:strokeLineCap="round"
+            android:pathData="M61,33 C55,31 54,25 58,23 C62,21 65,26 65,28 C67,22 73,23 74,27 C75,31 70,34 68,34 C75,34 77,39 74,42 C71,45 66,42 65,39 C64,45 59,46 56,43 C53,40 57,35 61,33" />
+        <path android:fillColor="#FFFFFFFF"
+            android:pathData="M62,33 a2.5,2.5 0,1 0,5 0 a2.5,2.5 0,1 0,-5 0" />
+    </group>
+    <path android:fillColor="#FFFFFFFF"
+        android:pathData="M46,44 a1.8,2.5 0,1 0,3.6 0 a1.8,2.5 0,1 0,-3.6 0 M59,44 a1.8,2.5 0,1 0,3.6 0 a1.8,2.5 0,1 0,-3.6 0" />
+</vector>

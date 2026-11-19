@@ -52,3 +52,12 @@ End-to-end flows run on an emulator with `./gradlew :app:connectedDebugAndroidTe
 ## Project layout
 
 `app` (shell and navigation), `wear` (the watch app), `feature/*` (one module per screen group), `core/*` (model, domain rules, database, settings, data layer, backup format, the watch protocol, reminders, design system), `sync/*` (the watch link, and Health Connect and Drive in later phases) and `widget`. Allowed dependencies between modules are enforced by `./gradlew checkModuleGraph`.
+
+## Design references
+
+The reusable [cozy anime design skill](.agents/skills/cozy-anime-design/SKILL.md)
+is checked in for future agent sessions, including day/night references, motion
+contracts, playable studies and the Terra evaluation results. Invoke
+`$cozy-anime-design` when working on this visual language.
+The approved launcher artwork, export script and mask preview live in
+[`artwork/launcher`](artwork/launcher/README.md).
