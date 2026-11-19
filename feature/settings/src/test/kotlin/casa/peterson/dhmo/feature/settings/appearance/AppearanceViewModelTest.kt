@@ -22,9 +22,12 @@ class AppearanceViewModelTest {
         model.theme.launchIn(backgroundScope)
         model.setMode(ThemeMode.DARK)
         model.setDynamicColor(true)
+        model.setAnimationsEnabled(false)
         advanceUntilIdle()
         assertThat(settings.current().theme.mode).isEqualTo(ThemeMode.DARK)
         assertThat(settings.current().theme.dynamicColor).isTrue()
         assertThat(model.theme.value.mode).isEqualTo(ThemeMode.DARK)
+        assertThat(settings.current().theme.animationsEnabled).isFalse()
+        assertThat(model.theme.value.animationsEnabled).isFalse()
     }
 }

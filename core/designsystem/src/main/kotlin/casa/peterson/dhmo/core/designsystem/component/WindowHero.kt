@@ -2,14 +2,8 @@
 
 package casa.peterson.dhmo.core.designsystem.component
 
-import android.provider.Settings
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -22,8 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,9 +36,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -71,7 +66,7 @@ import kotlin.math.sin
 private const val DESIGN_WIDTH = 230f
 private const val HEIGHT_PER_WIDTH = 1.25f
 private const val PERCENT = 100f
-private const val FILL_MILLIS = 1_100
+private const val FILL_MILLIS = 590
 private val DefaultWidth = 230.dp
 
 private const val FRAME = 7f
@@ -149,31 +144,10 @@ internal fun jarFraction(progress: Float): Float = if (progress.isNaN()) 0f else
 /** The whole percent announced to TalkBack. Not capped, so 120 percent of the goal is reported as such. */
 internal fun jarPercent(progress: Float): Int = if (progress.isNaN()) 0 else (progress.coerceAtLeast(0f) * PERCENT).roundToInt()
 
-/** True when the user has turned system animations off (animator scale zero); ambient motion then stays still. */
-@Composable
-fun rememberReducedMotion(): Boolean {
-    val resolver = LocalContext.current.contentResolver
-    return remember(resolver) { Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f }
-}
-
-/** Seconds since the screen appeared while [enabled]; a constant 0 otherwise, so still frames are deterministic. */
-@Composable
-internal fun rememberAmbientTime(enabled: Boolean): State<Float> {
-    if (!enabled) return remember { mutableFloatStateOf(0f) }
-    return rememberInfiniteTransition(label = "ambient").animateFloat(
-        initialValue = 0f,
-        targetValue = 3_600f,
-        animationSpec = infiniteRepeatable(tween(3_600_000, easing = LinearEasing)),
-        label = "time",
-    )
-}
-
 /**
- * Today's hero: the arched window with a jar on the sill, a potted plant and a paper lantern. The jar fills as
- * [progress] (a fraction of the goal, 1.0 is the goal) grows, with a droplet falling in and a wobble when it increases,
- * and the lantern lights, flickers on and then pulses when the goal is reached. The sky is the golden-hour or dusk
- * gradient of the theme; [raining] streaks and beads the glass when the user is behind pace. With [animated] the
- * clouds drift, rain falls and the water sloshes (never when system animations are off). [content] sits under the sill.
+ * A water spirit keeps watch beside the jar. Change [sipEvent] after a confirmed log to play the landing drop,
+ * ripples and hop; change [goalEvent] for a first goal crossing to release the fireflies. Zero and the event values
+ * on first composition are silent. [progress] always drives the jar and lantern, even with motion disabled.
  *
  * TalkBack announces "N percent of goal" for the whole hero (the visible [content] is not read separately).
  */
@@ -186,16 +160,19 @@ fun WindowHero(
     animated: Boolean = false,
     description: String =
         pluralStringResource(R.plurals.core_designsystem_progress_ring_description, jarPercent(progress), jarPercent(progress)),
+    sipEvent: Long = 0L,
+    goalEvent: Long = 0L,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val fraction = jarFraction(progress)
-    val level by animateFloatAsState(fraction, tween(FILL_MILLIS), label = "jarFill")
+    val enabled = rememberCozyMotionEnabled(animated)
+    val sip by rememberEventPhase(sipEvent, SIP_DURATION, enabled)
+    val goal by rememberEventPhase(goalEvent, GOAL_DURATION, enabled)
+    val level by rememberJarLevel(fraction, sipEvent, enabled)
     val extras = LocalDhmoExtraColors.current
     val colors = MaterialTheme.colorScheme
-    val time by rememberAmbientTime(animated && !rememberReducedMotion())
-    val pour = rememberPour(fraction)
+    val time by rememberAmbientTime(enabled)
     val lit = fraction >= 1f
-    val flicker = rememberFlicker(lit)
     val look = HeroLook(extras, colors.primary, colors.tertiary, colors.onSurfaceVariant, colors.surfaceVariant, colors.secondary)
     Column(
         modifier =
@@ -206,20 +183,44 @@ fun WindowHero(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Canvas(Modifier.width(width).height(width * HEIGHT_PER_WIDTH)) {
-            val s = size.width / DESIGN_WIDTH
-            drawWindow(look, s, raining && !lit, time)
-            drawSill(look, s)
-            drawPlantOnSill(look, s)
-            drawJarOnSill(look, s, level, pour, time)
-            drawLanternOnSill(look, s, lit, flicker, time)
+        val scene: @Composable (HeroLook) -> Unit = { palette ->
+            Canvas(Modifier.width(width).height(width * HEIGHT_PER_WIDTH)) {
+                drawHero(palette, raining, lit, level, time, sip, goal)
+            }
+        }
+        if (enabled) {
+            Crossfade(targetState = look, animationSpec = tween(520), label = "windowLight", content = scene)
+        } else {
+            scene(look)
         }
         content()
     }
 }
 
+private fun DrawScope.drawHero(look: HeroLook, raining: Boolean, lit: Boolean, level: Float, time: Float, sip: Float, goal: Float) {
+    val s = size.width / DESIGN_WIDTH
+    drawWindow(look, s, raining && !lit, time)
+    val warmth = if (lit) pulse(goal, 0.02f, 0.32f, 1f) else 0f
+    if (warmth > 0f) {
+        val source = Offset(0.78f * size.width, 0.79f * size.height)
+        val radius = size.width * 0.85f
+        drawCircle(Brush.radialGradient(listOf(look.x.glow, Color.Transparent), source, radius), radius, source, 0.27f * warmth)
+    }
+    drawSill(look, s)
+    drawPlantOnSill(look, s, time)
+    drawJarOnSill(look, s, level, sip, time)
+    drawLanternOnSill(look, s, lit, time)
+    scale(s, Offset.Zero) {
+        translate(155f, 272f) {
+            val goalHop = lit && goal < 1f && abs(goal * GOAL_DURATION - sip * SIP_DURATION) < 96f
+            drawWaterSpirit(time, sip, goalHop, look.x.isNight)
+        }
+        if (lit) drawGoalFireflies(goal)
+    }
+}
+
 /** The theme colours the hero draws with. */
-private class HeroLook(
+private data class HeroLook(
     val x: DhmoExtraColors,
     val primary: Color,
     val leaf: Color,
@@ -228,50 +229,22 @@ private class HeroLook(
     val glowInk: Color,
 )
 
-private class Pour(val drop: Float, val wobble: Float)
-
+/** Only an explicitly confirmed sip eases the level upward. Edits, restores and undo draw their actual level. */
 @Composable
-private fun rememberPour(fraction: Float): Pour {
-    val drop = remember { Animatable(1f) }
-    val wobble = remember { Animatable(1f) }
-    var last by remember { mutableFloatStateOf(fraction) }
-    LaunchedEffect(fraction) {
-        val grew = fraction > last
-        last = fraction
-        if (grew) {
-            drop.snapTo(0f)
-            wobble.snapTo(0f)
-            drop.animateTo(1f, tween(750, easing = LinearEasing))
-            wobble.animateTo(1f, tween(900))
-        }
-    }
-    return Pour(drop.value, wobble.value)
-}
-
-@Composable
-private fun rememberFlicker(lit: Boolean): Float {
-    val flicker = remember { Animatable(if (lit) 1f else 0f) }
-    LaunchedEffect(lit) {
-        if (lit) {
-            flicker.snapTo(0f)
-            flicker.animateTo(
-                1f,
-                keyframes {
-                    durationMillis = 1_200
-                    0f at 0
-                    0.9f at 144
-                    0.25f at 288
-                    1f at 456
-                    0.4f at 624
-                    1f at 864
-                    1f at 1_200
-                },
-            )
+private fun rememberJarLevel(fraction: Float, event: Long, enabled: Boolean): State<Float> {
+    if (!enabled) return rememberUpdatedState(fraction)
+    val level = remember { Animatable(fraction) }
+    var lastEvent by remember { mutableLongStateOf(event) }
+    LaunchedEffect(fraction, event) {
+        val newSip = event != 0L && event != lastEvent
+        lastEvent = event
+        if (newSip && fraction > level.value) {
+            level.animateTo(fraction, tween(FILL_MILLIS, delayMillis = (SIP_DURATION * IMPACT).toInt()))
         } else {
-            flicker.snapTo(0f)
+            level.snapTo(fraction)
         }
     }
-    return flicker.value
+    return level.asState()
 }
 
 /** The glass outline at [inset] design units inside the frame: an elliptical arch on top, [corner] at the bottom. */
@@ -463,19 +436,27 @@ private fun DrawScope.drawSill(look: HeroLook, s: Float) {
     )
 }
 
-private fun DrawScope.drawPlantOnSill(look: HeroLook, s: Float) {
-    drawPlant(Offset(0.07f * size.width, size.height - (OBJECT_BOTTOM + 56f) * s), 38f * s, look.leaf, look.x.wood, look.x.woodHighlight)
+private fun DrawScope.drawPlantOnSill(look: HeroLook, s: Float, time: Float) {
+    drawPlant(
+        Offset(0.07f * size.width, size.height - (OBJECT_BOTTOM + 56f) * s),
+        38f * s,
+        look.leaf,
+        look.x.wood,
+        look.x.woodHighlight,
+        sway = sin(time * 1.08f) * 2.8f,
+    )
 }
 
-private fun DrawScope.drawJarOnSill(look: HeroLook, s: Float, fill: Float, pour: Pour, time: Float) {
+private fun DrawScope.drawJarOnSill(look: HeroLook, s: Float, fill: Float, sip: Float, time: Float) {
     val x = look.x
-    val cx = size.width / 2f
+    val cx = 102f * s
     val bottom = size.height - OBJECT_BOTTOM * s
     val bodyW = 56f * s
     val bodyH = 68f * s
     val bodyTop = bottom - bodyH
     val left = cx - bodyW / 2f
-    val tilt = -3f * sin(pour.wobble * TWO_PI * 1.25f) * (1f - pour.wobble)
+    val afterImpact = interval(sip, IMPACT, 1f)
+    val tilt = -2.7f * sin(afterImpact * TWO_PI * 1.6f) * (1f - afterImpact) * (1f - afterImpact)
     rotate(tilt, Offset(cx, bottom)) {
         val body =
             RoundRect(
@@ -504,36 +485,66 @@ private fun DrawScope.drawJarOnSill(look: HeroLook, s: Float, fill: Float, pour:
                     Size(insideW, water + 2f * s),
                     alpha = 0.92f,
                 )
-                val slosh = sin(time * TWO_PI / 3f) * 3f * s
-                drawOval(x.water, Offset(insideLeft - 0.1f * insideW + slosh, surface - 4f * s), Size(1.2f * insideW, 8f * s))
+                val slosh = sin(time * TWO_PI / 3.8f) * 1.4f * s
+                val wave = sin(afterImpact * TWO_PI * 2f) * (1f - afterImpact) * 4f * s
+                drawOval(x.water, Offset(insideLeft - 0.1f * insideW + slosh, surface - 3f * s + wave), Size(1.2f * insideW, 7f * s))
+                drawSipRings(cx, surface, s, afterImpact)
             }
             drawRoundRect(x.shine, Offset(insideLeft + 6f * s, insideTop + 6f * s), Size(5f * s, insideH - 16f * s), CornerRadius(4f * s))
         }
         drawPath(bodyPath, look.inkMuted, style = Stroke(width = 2f * s))
         val lidW = 34f * s
         val lidH = 8f * s
-        drawRoundRect(
-            x.wood,
-            Offset(cx - lidW / 2f, bodyTop - lidH),
-            Size(lidW, lidH),
-            CornerRadius(3f * s),
-        )
-        drawRect(x.woodHighlight, Offset(cx - lidW / 2f, bodyTop - lidH), Size(lidW, 1f * s))
+        val lift = pulse(sip, 0f, 0.23f, 0.73f)
+        translate(-23f * s * lift, -8f * s * lift) {
+            rotate(-17f * lift, Offset(cx, bodyTop)) {
+                drawRoundRect(x.wood, Offset(cx - lidW / 2f, bodyTop - lidH), Size(lidW, lidH), CornerRadius(3f * s))
+                drawRect(x.woodHighlight, Offset(cx - lidW / 2f, bodyTop - lidH), Size(lidW, s))
+            }
+        }
     }
-    if (pour.drop < 1f) {
-        val fall = pour.drop
-        val startY = bodyTop - 120f * s
-        val endY = bodyTop - 4f * s + 8f * s
-        val alpha = if (fall < 0.85f) 1f else 1f - (fall - 0.85f) / 0.15f
-        drawOval(
-            look.primary.copy(alpha = alpha.coerceIn(0f, 1f)),
-            Offset(cx - 4f * s, startY + (endY - startY) * fall - 5.5f * s),
-            Size(8f * s, 11f * s),
-        )
+    if (sip < IMPACT) {
+        val fall = interval(sip, 0f, IMPACT)
+        val xDrift = 3f * s * (1f - fall)
+        val distance = 79f * s
+        val y = bodyTop - 8f * s - distance * (1f - fall * fall)
+        val alpha = smoothStep(interval(fall, 0f, 0.17f)) * (1f - smoothStep(interval(fall, 0.91f, 1f)))
+        translate(cx + xDrift, y) {
+            scale(s * (1f - 0.14f * fall), s * (0.74f + 0.52f * fall), Offset.Zero) {
+                drawPath(SipDrop, look.primary, alpha)
+                drawLine(Color.White.copy(alpha = 0.72f * alpha), Offset(-1.9f, -1.3f), Offset(-1.9f, 0.4f), 1.1f, StrokeCap.Round)
+            }
+        }
+    }
+    if (afterImpact > 0f && afterImpact < 0.42f) {
+        val t = afterImpact / 0.42f
+        for (side in -1..1 step 2) {
+            val drop = Offset(cx + side * (4f + t * 13f) * s, bodyTop - (7f + 11f * 4f * t * (1f - t)) * s)
+            drawCircle(x.water, (1.9f - 0.8f * t) * s, drop, alpha = pulse(t, 0f, 0.12f, 1f))
+        }
     }
 }
 
-private fun DrawScope.drawLanternOnSill(look: HeroLook, s: Float, lit: Boolean, flicker: Float, time: Float) {
+private val SipDrop by lazy { PathParser().parsePathString("M0-8C-1-4-4.5-1-4.5 2.5a4.5 4.5 0 1 0 9 0C4.5-1 1-4 0-8Z").toPath() }
+
+private fun DrawScope.drawSipRings(cx: Float, surface: Float, s: Float, afterImpact: Float) {
+    repeat(2) { ring ->
+        val t = interval(afterImpact, ring * 0.16f, 0.73f + ring * 0.16f)
+        if (t > 0f && t < 1f) {
+            val radius = (2f + 23f * (1f - (1f - t) * (1f - t))) * s
+            val depth = radius * 0.19f
+            drawOval(
+                Color(0xFFEBF2D9),
+                Offset(cx - radius, surface - depth + 1.5f * s),
+                Size(radius * 2f, depth * 2f),
+                alpha = 0.84f * pulse(t, 0f, 0.12f, 1f),
+                style = Stroke(1.15f * s),
+            )
+        }
+    }
+}
+
+private fun DrawScope.drawLanternOnSill(look: HeroLook, s: Float, lit: Boolean, time: Float) {
     val w = 34f * s
     val h = 48f * s
     val left = size.width - 0.08f * size.width - w
@@ -546,7 +557,7 @@ private fun DrawScope.drawLanternOnSill(look: HeroLook, s: Float, lit: Boolean, 
             Brush.radialGradient(0f to look.x.glowHalo, 0.65f to Color.Transparent, center = center, radius = radius),
             radius,
             center,
-            alpha = (flicker * pulse).coerceIn(0f, 1f),
+            alpha = pulse,
         )
     }
     drawLantern(Offset(left, top), w, if (lit) look.x.glow else look.surface2, if (lit) look.glowInk else look.inkMuted)

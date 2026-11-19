@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -24,6 +25,8 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import casa.peterson.dhmo.core.designsystem.theme.LocalDhmoExtraColors
+import kotlin.math.cos
+import kotlin.math.sin
 
 private fun svgPath(d: String): Path = PathParser().parsePathString(d).toPath()
 
@@ -72,13 +75,15 @@ internal fun DrawScope.drawStar(center: Offset, diameter: Float, color: Color) {
 }
 
 /** The windowsill plant: three leaves in a pot. [width] is the artboard width (38 units). */
-internal fun DrawScope.drawPlant(topLeft: Offset, width: Float, leaf: Color, pot: Color, rim: Color) {
+internal fun DrawScope.drawPlant(topLeft: Offset, width: Float, leaf: Color, pot: Color, rim: Color, sway: Float = 0f) {
     val s = width / 38f
     translate(topLeft.x, topLeft.y) {
         scale(s, s, Offset.Zero) {
-            drawPath(PlantLeafC, leaf.copy(alpha = 0.7f))
-            drawPath(PlantLeafB, leaf.copy(alpha = 0.85f))
-            drawPath(PlantLeafA, leaf)
+            rotate(sway, Offset(19f, 36f)) {
+                drawPath(PlantLeafC, leaf.copy(alpha = 0.7f))
+                drawPath(PlantLeafB, leaf.copy(alpha = 0.85f))
+                drawPath(PlantLeafA, leaf)
+            }
             drawPath(PlantPot, pot)
             drawRoundRect(rim, Offset(8f, 38f), Size(22f, 4f), CornerRadius(2f))
         }
@@ -87,19 +92,28 @@ internal fun DrawScope.drawPlant(topLeft: Offset, width: Float, leaf: Color, pot
 
 /** A sleeping cat on a sill, the empty state's mascot. */
 @Composable
-fun SleepingCat(modifier: Modifier = Modifier, width: Dp = 132.dp) {
+fun SleepingCat(modifier: Modifier = Modifier, width: Dp = 132.dp, animated: Boolean = false) {
     val extras = LocalDhmoExtraColors.current
     val body = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f)
     val dark = MaterialTheme.colorScheme.surface
     val zColor = MaterialTheme.colorScheme.secondary
+    val time by rememberAmbientTime(rememberCozyMotionEnabled(animated))
     Canvas(modifier.width(width).aspectRatio(140f / 80f)) {
         scale(size.width / 140f, Offset.Zero) {
             drawRoundRect(extras.wood.copy(alpha = 0.8f), Offset(4f, 70f), Size(132f, 6f), CornerRadius(1.5f))
-            drawPath(CatTail, body, style = Stroke(width = 5f, cap = StrokeCap.Round))
-            drawPath(CatBody, body)
-            drawPath(CatEars, body)
-            drawPath(CatEye, dark, style = Stroke(width = 1.4f, cap = StrokeCap.Round))
-            drawPath(CatZs, zColor, style = Stroke(width = 1.2f, cap = StrokeCap.Round))
+            val stretch = pulse(time, 0.3f, 1.25f, 2.5f)
+            val breath = (1f - cos(time * 1.52f)) * 0.009f
+            scale(1f + 0.035f * stretch, 1f + breath - 0.055f * stretch, Offset(73f, 69f)) {
+                rotate(-24f * stretch + 2.5f * sin(time * 1.1f), Offset(21f, 65f)) {
+                    drawPath(CatTail, body, style = Stroke(width = 5f, cap = StrokeCap.Round))
+                }
+                drawPath(CatBody, body)
+                rotate(-6f * stretch, Offset(113f, 40f)) { drawPath(CatEars, body) }
+                drawPath(CatEye, dark, style = Stroke(width = 1.4f, cap = StrokeCap.Round))
+            }
+            translate(0f, -2f * sin(time * 0.76f)) {
+                drawPath(CatZs, zColor, style = Stroke(width = 1.2f, cap = StrokeCap.Round))
+            }
         }
     }
 }

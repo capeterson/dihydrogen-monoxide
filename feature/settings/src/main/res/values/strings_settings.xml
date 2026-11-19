@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="feature_settings_little_animations">Little animations</string>
+    <string name="feature_settings_little_animations_summary">A happy hop, soft ripples, and a room that feels alive. System reduced motion is always respected.</string>
     <string name="feature_settings_settings_title">Settings</string>
     <string name="feature_settings_units_settings_title">Units and day start</string>
     <string name="feature_settings_appearance_title">Appearance</string>

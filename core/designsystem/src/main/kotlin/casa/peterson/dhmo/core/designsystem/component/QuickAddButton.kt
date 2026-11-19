@@ -2,6 +2,7 @@ package casa.peterson.dhmo.core.designsystem.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,10 @@ import casa.peterson.dhmo.core.model.settings.VolumeUnit
 /** The minimum touch target for every interactive element (Material and WCAG guidance). */
 val MinTouchTarget = 48.dp
 
+private const val COASTER_PRESS_WIDTH = 0.025f
+private const val COASTER_PRESS_HEIGHT = 0.055f
+private const val COASTER_PRESS_TILT = -1.2f
+
 /** A coaster: a round-topped paper disc with a dashed edge, the design's `.coaster`. */
 private val CoasterShape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp, bottomEnd = 28.dp, bottomStart = 28.dp)
 
@@ -69,8 +74,12 @@ fun QuickAddButton(
         }
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (pressed) 0.95f else 1f, label = "coasterScale")
-    val tilt by animateFloatAsState(if (pressed) -1f else 0f, label = "coasterTilt")
+    val motion = rememberCozyMotionEnabled(animated = true)
+    val dip by animateFloatAsState(
+        targetValue = if (pressed && motion) 1f else 0f,
+        animationSpec = spring(dampingRatio = 0.69f, stiffness = 560f),
+        label = "coasterPress",
+    )
     val edge = MaterialTheme.colorScheme.outline
     Surface(
         onClick = onClick,
@@ -78,9 +87,10 @@ fun QuickAddButton(
             modifier
                 .defaultMinSize(minWidth = MinTouchTarget, minHeight = MinTouchTarget)
                 .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    rotationZ = tilt
+                    val press = if (motion) dip else 0f
+                    scaleX = 1f - COASTER_PRESS_WIDTH * press
+                    scaleY = 1f - COASTER_PRESS_HEIGHT * press
+                    rotationZ = COASTER_PRESS_TILT * press
                 }
                 .drawBehind {
                     val stroke = Stroke(1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx())))

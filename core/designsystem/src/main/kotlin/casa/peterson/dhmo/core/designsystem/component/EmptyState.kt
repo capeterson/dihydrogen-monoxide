@@ -30,6 +30,7 @@ fun EmptyState(
     @DrawableRes icon: Int? = null,
     @DrawableRes actionIcon: Int? = null,
     actionLabel: String? = null,
+    animated: Boolean = false,
     onAction: (() -> Unit)? = null,
 ) {
     Column(
@@ -38,7 +39,7 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (icon == null) {
-            SleepingCat()
+            SleepingCat(animated = animated)
         } else {
             Icon(
                 painter = painterResource(icon),

@@ -45,6 +45,7 @@ data class HistoryUiState(
     val anomalies: Set<LocalDate> = emptySet(),
     val totals: Map<LocalDate, DailyTotal> = emptyMap(),
     val goals: Map<LocalDate, Int> = emptyMap(),
+    val today: LocalDate? = null,
 )
 
 sealed interface HistoryEffect {
@@ -72,7 +73,7 @@ class HistoryViewModel @Inject constructor(
         val completed = totals.filter { it.date < today }.sortedBy { it.date }.map {
             DayStat(it.date, it.totalMl, goalMap[it.date], it.entryCount)
         }
-        HistoryUiState(current.units, anomalies(completed).map { it.date }.toSet(), totals.associateBy { it.date }, goalMap)
+        HistoryUiState(current.units, anomalies(completed).map { it.date }.toSet(), totals.associateBy { it.date }, goalMap, today)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), HistoryUiState())
 
     /**

@@ -48,6 +48,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -70,6 +71,7 @@ import casa.peterson.dhmo.core.designsystem.component.VolumeInputSheet
 import casa.peterson.dhmo.core.designsystem.component.WindowHero
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
 import casa.peterson.dhmo.core.designsystem.icon.drawableRes
+import casa.peterson.dhmo.core.designsystem.theme.LocalDhmoExtraColors
 import casa.peterson.dhmo.core.designsystem.theme.NumeralFontFamily
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.pace.PaceStatus
@@ -100,6 +102,8 @@ internal fun TodayScreen(
     val snackbar = remember { SnackbarHostState() }
     val resources = LocalResources.current
     val undo = stringResource(R.string.feature_today_undo)
+    val night = LocalDhmoExtraColors.current.isNight
+    val themeAction = stringResource(if (night) R.string.feature_today_switch_day else R.string.feature_today_switch_night)
     LaunchedEffect(viewModel, resources) {
         viewModel.effects.collect { effect ->
             // Each message gets its own coroutine, so a newer one replaces the current toast instead of queueing behind it.
@@ -118,7 +122,23 @@ internal fun TodayScreen(
         }
     }
     Scaffold(topBar = {
-        DhmoTopBar(stringResource(R.string.feature_today_today_title))
+        DhmoTopBar(stringResource(R.string.feature_today_today_title), actions = {
+            TextButton(
+                onClick = { viewModel.setNightMode(!night) },
+                enabled = state is TodayUiState.Ready,
+                modifier = Modifier.testTag("today_theme_toggle").semantics { contentDescription = themeAction },
+            ) {
+                Icon(
+                    painterResource(if (night) DhmoIcons.Lantern else DhmoIcons.Sun),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    stringResource(if (night) R.string.feature_today_night else R.string.feature_today_day),
+                    Modifier.padding(start = 6.dp),
+                )
+            }
+        })
     }, snackbarHost = { PaperSnackbarHost(snackbar) }) { padding ->
         when (val current = state) {
             TodayUiState.Loading -> Unit
@@ -228,7 +248,7 @@ internal fun TodayContent(
     val hero: @Composable () -> Unit = { HeroSection(state, hour, animated, landscape, onOpenGoal, onOpenReminders, onBatteryHelp) }
     val coasters: @Composable () -> Unit = { CoasterSection(state, onQuickAdd, onCustom = { custom = true }, onContainers) }
     val notebook: @Composable () -> Unit = {
-        NotebookSection(state, onQuickAdd, onCustom = { custom = true }, onDelete, onEdit, onOpenHistoryDay)
+        NotebookSection(state, onQuickAdd, onCustom = { custom = true }, onDelete, onEdit, onOpenHistoryDay, animated)
     }
     if (landscape) {
         // A short, wide screen: the window and total on the left, what to pour and what was poured on the right.
@@ -291,6 +311,8 @@ private fun HeroSection(
             width = if (landscape) LandscapeHeroWidth else PortraitHeroWidth,
             raining = state.pace?.status == PaceStatus.BEHIND,
             animated = animated,
+            sipEvent = state.sipEvent,
+            goalEvent = state.goalEvent,
         )
         TotalLine(state, locale, onOpenGoal)
         if (state.goalMode != GoalMode.CALCULATED) Text(stringResource(R.string.feature_today_goal_override))
@@ -361,6 +383,7 @@ private fun NotebookSection(
     onDelete: (UUID) -> Unit,
     onEdit: (UUID) -> Unit,
     onOpenHistoryDay: (LocalDate) -> Unit,
+    animated: Boolean,
 ) {
     NotebookCard(
         title = stringResource(R.string.feature_today_recent_drinks),
@@ -373,6 +396,7 @@ private fun NotebookSection(
                 actionLabel = stringResource(R.string.feature_today_pour_a_glass),
                 actionIcon = DhmoIcons.Glass,
                 onAction = { state.containers.firstOrNull()?.let(onQuickAdd) ?: onCustom() },
+                animated = animated,
             )
         } else {
             state.entries.forEachIndexed { index, entry ->

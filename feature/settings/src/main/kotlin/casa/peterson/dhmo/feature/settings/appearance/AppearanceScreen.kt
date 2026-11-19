@@ -35,6 +35,7 @@ internal fun AppearanceScreen(onBack: () -> Unit, viewModel: AppearanceViewModel
         onBack = onBack,
         onMode = viewModel::setMode,
         onDynamicColor = viewModel::setDynamicColor,
+        onAnimations = viewModel::setAnimationsEnabled,
     )
 }
 
@@ -45,6 +46,7 @@ internal fun AppearanceContent(
     onBack: () -> Unit,
     onMode: (ThemeMode) -> Unit,
     onDynamicColor: (Boolean) -> Unit,
+    onAnimations: (Boolean) -> Unit = {},
 ) {
     DhmoScreen(topBar = { DhmoTopBar(stringResource(R.string.feature_settings_appearance_title), onNavigateBack = onBack) }) { padding ->
         Column(
@@ -57,6 +59,14 @@ internal fun AppearanceContent(
                         ChoiceRow(stringResource(themeLabel(mode)), selected = mode == theme.mode, onSelect = { onMode(mode) })
                     }
                 }
+            }
+            SectionCard {
+                SwitchRow(
+                    stringResource(R.string.feature_settings_little_animations),
+                    checked = theme.animationsEnabled,
+                    onCheckedChange = onAnimations,
+                    summary = stringResource(R.string.feature_settings_little_animations_summary),
+                )
             }
             SectionCard {
                 SwitchRow(

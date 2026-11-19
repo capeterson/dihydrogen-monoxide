@@ -7,7 +7,9 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -38,9 +41,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
+import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.component.SettingsRow
 import casa.peterson.dhmo.core.designsystem.component.SwitchRow
 import casa.peterson.dhmo.core.designsystem.component.TimePickerRow
+import casa.peterson.dhmo.core.designsystem.component.WaterSpirit
+import casa.peterson.dhmo.core.designsystem.component.gentleNoteArrival
 import casa.peterson.dhmo.core.model.settings.PaceCurveType
 import java.time.Instant
 import java.time.ZoneId
@@ -111,6 +117,7 @@ internal fun RemindersScreen(onBack: () -> Unit, onOpenCurve: () -> Unit, viewMo
                 else -> calendar.launch(Manifest.permission.READ_CALENDAR)
             }
         },
+        animated = true,
     )
 }
 
@@ -144,10 +151,20 @@ internal fun RemindersContent(
     onEscalation: (Boolean) -> Unit,
     onSummary: (Boolean) -> Unit,
     onCalendar: (Boolean) -> Unit,
+    animated: Boolean = false,
 ) {
     var numberDialog by remember { mutableStateOf<NumberDialog?>(null) }
     Scaffold(topBar = { DhmoTopBar(stringResource(R.string.feature_reminders_reminders_title), onNavigateBack = onBack) }) { padding ->
         Column(Modifier.padding(padding).verticalScroll(rememberScrollState())) {
+            SectionCard(Modifier.padding(16.dp).gentleNoteArrival(animated)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    WaterSpirit(animated = animated)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(stringResource(R.string.feature_reminders_gentle_title), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.feature_reminders_gentle_message), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
             if (!notificationsAllowed) {
                 Text(
                     stringResource(R.string.feature_reminders_permission_off),

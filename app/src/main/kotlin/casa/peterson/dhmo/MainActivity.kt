@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -17,6 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import casa.peterson.dhmo.core.data.repository.HealthConnectController
 import casa.peterson.dhmo.core.data.repository.WeatherController
+import casa.peterson.dhmo.core.designsystem.component.LocalCozyAnimationsEnabled
 import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
 import casa.peterson.dhmo.core.model.settings.ThemeMode
 import casa.peterson.dhmo.core.weather.LocationRefresher
@@ -64,7 +66,9 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
             DhmoTheme(darkTheme = darkTheme, dynamicColor = theme.dynamicColor) {
-                if (startState != StartState.Loading) DhmoApp(startState = startState, launchDeepLink = launchDeepLink)
+                CompositionLocalProvider(LocalCozyAnimationsEnabled provides theme.animationsEnabled) {
+                    if (startState != StartState.Loading) DhmoApp(startState = startState, launchDeepLink = launchDeepLink)
+                }
             }
         }
     }

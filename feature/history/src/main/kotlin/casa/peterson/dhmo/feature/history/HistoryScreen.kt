@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,7 +40,9 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import casa.peterson.dhmo.core.designsystem.component.DayResultBadge
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
 import casa.peterson.dhmo.core.designsystem.component.EmptyState
+import casa.peterson.dhmo.core.designsystem.component.SectionCard
 import casa.peterson.dhmo.core.designsystem.component.VolumeText
+import casa.peterson.dhmo.core.designsystem.component.WeeklyGarden
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
 import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.stats.DayResult
@@ -50,6 +53,7 @@ import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.time.format.TextStyle
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 
@@ -63,13 +67,18 @@ internal fun HistoryScreen(onOpenDay: (LocalDate) -> Unit, onEditEntry: (UUID) -
         DhmoTopBar(stringResource(R.string.feature_history_history_title))
     }, snackbarHost = { SnackbarHost(snackbar) }) { padding ->
         if (entries.itemCount == 0 && entries.loadState.refresh is LoadState.NotLoading) {
-            EmptyState(
-                stringResource(R.string.feature_history_empty_title),
-                stringResource(R.string.feature_history_empty_message),
-                modifier = Modifier.padding(padding),
-            )
+            Column(Modifier.fillMaxSize().padding(padding)) {
+                state.today?.let { HistoryGarden(state, it) }
+                EmptyState(
+                    stringResource(R.string.feature_history_empty_title),
+                    stringResource(R.string.feature_history_empty_message),
+                    modifier = Modifier.weight(1f),
+                    animated = true,
+                )
+            }
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
+                state.today?.let { today -> item(key = "weekly_garden") { HistoryGarden(state, today) } }
                 if (entries.loadState.refresh is LoadState.Loading) {
                     item {
                         val label = stringResource(R.string.feature_history_loading)
@@ -96,6 +105,44 @@ internal fun HistoryScreen(onOpenDay: (LocalDate) -> Unit, onEditEntry: (UUID) -
         }
     }
 }
+
+/** Actual hydration-day totals grow the garden; empty days stay calm soil rather than failed plants. */
+@Composable
+internal fun HistoryGarden(state: HistoryUiState, today: LocalDate, animated: Boolean = true) {
+    val locale = LocalConfiguration.current.locales[0]
+    val days = remember(today) { List(GARDEN_DAYS) { today.minusDays((GARDEN_DAYS - 1 - it).toLong()) } }
+    val growth = days.map { day -> gardenGrowth(state.totals[day]?.totalMl ?: 0, state.goals[day]) }
+    SectionCard(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), title = stringResource(R.string.feature_history_garden_title)) {
+        Text(stringResource(R.string.feature_history_garden_message), style = MaterialTheme.typography.bodySmall)
+        WeeklyGarden(growth, animated = animated)
+        Row(Modifier.fillMaxWidth()) {
+            days.forEach { day ->
+                val volume = VolumeFormatter.format(state.totals[day]?.totalMl ?: 0, state.units, locale)
+                val label = stringResource(
+                    R.string.feature_history_garden_day,
+                    day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)),
+                    volume,
+                )
+                Text(
+                    day.dayOfWeek.getDisplayName(TextStyle.SHORT, locale),
+                    Modifier.weight(1f).semantics { contentDescription = label },
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+internal fun gardenGrowth(totalMl: Int, goalMl: Int?): Float = when {
+    totalMl <= 0 -> 0f
+    goalMl == null || goalMl <= 0 -> UNTARGETED_GROWTH
+    else -> (totalMl.toFloat() / goalMl).coerceIn(MIN_GROWTH, 1f)
+}
+
+private const val GARDEN_DAYS = 7
+private const val MIN_GROWTH = 0.15f
+private const val UNTARGETED_GROWTH = 0.4f
 
 @Composable
 internal fun HistoryEffects(effects: Flow<HistoryEffect>, snackbar: SnackbarHostState, onUndo: (UUID) -> Unit) {

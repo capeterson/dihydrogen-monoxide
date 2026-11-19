@@ -7,12 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import casa.peterson.dhmo.core.designsystem.component.DhmoTopBar
+import casa.peterson.dhmo.core.model.DailyTotal
 import casa.peterson.dhmo.core.model.Source
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import casa.peterson.dhmo.core.testing.TestData
 import casa.peterson.dhmo.core.testing.renderScreenVariants
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -21,6 +23,22 @@ class HistoryRenderTest {
     @Test
     fun historyStates() {
         renderScreenVariants("History") { HistorySample() }
+    }
+
+    @Test
+    fun weeklyGardenShowsSoilSproutsAndBlooms() {
+        val today = LocalDate.of(2026, 3, 9)
+        val amounts = listOf(0, 750, 1500, 2000, 250, 1250, 1750)
+        val days = List(7) { today.minusDays((6 - it).toLong()) }
+        val state = HistoryUiState(
+            totals = days.zip(amounts).filter { it.second > 0 }.associate { (day, amount) ->
+                val at = day.atStartOfDay().toInstant(ZoneOffset.UTC)
+                day to DailyTotal(day, amount, 1, at, at)
+            },
+            goals = days.associateWith { 2000 },
+            today = today,
+        )
+        renderScreenVariants("HistoryGarden") { HistoryGarden(state, today, animated = false) }
     }
 }
 

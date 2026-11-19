@@ -22,6 +22,8 @@ internal class AppearanceViewModel @Inject constructor(private val settings: Set
 
     fun setDynamicColor(enabled: Boolean) = update { copy(dynamicColor = enabled) }
 
+    fun setAnimationsEnabled(enabled: Boolean) = update { copy(animationsEnabled = enabled) }
+
     private fun update(transform: ThemeSettings.() -> ThemeSettings) {
         viewModelScope.launch { settings.update { it.copy(theme = it.theme.transform()) } }
     }
