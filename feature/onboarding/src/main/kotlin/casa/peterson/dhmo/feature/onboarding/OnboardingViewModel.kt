@@ -10,6 +10,7 @@ import casa.peterson.dhmo.core.data.repository.ProfileRepository
 import casa.peterson.dhmo.core.data.repository.SettingsRepository
 import casa.peterson.dhmo.core.data.usecase.onboarding.CompleteOnboardingUseCase
 import casa.peterson.dhmo.core.domain.body.BodyInputs
+import casa.peterson.dhmo.core.domain.format.VolumeFormatter
 import casa.peterson.dhmo.core.domain.goal.GoalCalculator
 import casa.peterson.dhmo.core.domain.time.hydrationDay
 import casa.peterson.dhmo.core.model.ActivityInput
@@ -37,6 +38,28 @@ import kotlinx.coroutines.launch
 
 internal enum class GoalChoice { CALCULATED, MANUAL }
 
+private const val DEFAULT_MANUAL_GOAL_ML = 2000
+
+internal fun volumeFieldText(ml: Int, unit: VolumeUnit): String =
+    java.math.BigDecimal.valueOf(VolumeFormatter.fromMl(ml, unit)).setScale(2, java.math.RoundingMode.HALF_UP)
+        .stripTrailingZeros().toPlainString()
+
+/** The typed manual goal in [OnboardingState.units], as text for the field. */
+internal fun OnboardingState.manualGoalText(): String = manualGoal ?: volumeFieldText(DEFAULT_MANUAL_GOAL_ML, units)
+
+/** The manual goal in whole millilitres, or null when it is not a number. */
+internal fun OnboardingState.manualGoalMl(): Int? {
+    val value = manualGoalText().trim().replace(',', '.').toDoubleOrNull()
+    if (value == null || !value.isFinite() || value < 0.0) return null
+    return runCatching { VolumeFormatter.toMl(value, units) }.getOrNull()
+}
+
+/** Switches [units], re-expressing any typed manual goal so it keeps the same volume. */
+internal fun OnboardingState.withUnits(unit: VolumeUnit): OnboardingState {
+    val ml = manualGoalMl()
+    return copy(units = unit, manualGoal = if (manualGoal != null && ml != null) volumeFieldText(ml, unit) else manualGoal)
+}
+
 internal data class OnboardingState(
     val loading: Boolean = true,
     val returning: Boolean = false,
@@ -54,7 +77,8 @@ internal data class OnboardingState(
     val pregnant: Boolean = false,
     val lactating: Boolean = false,
     val altitude: Boolean = false,
-    val manualGoal: String = "2000",
+    /** What the user typed, in [units]; null until they edit it (then [DEFAULT_MANUAL_GOAL_ML] in [units]). */
+    val manualGoal: String? = null,
     val notificationsGranted: Boolean = false,
     val remindersEnabled: Boolean = false,
     val wake: Int = 420,
@@ -107,7 +131,7 @@ internal class OnboardingViewModel @Inject constructor(
                 pregnant = saved["pregnant"] ?: false,
                 lactating = saved["lactating"] ?: false,
                 altitude = saved["altitude"] ?: false,
-                manualGoal = saved["manualGoal"] ?: "2000",
+                manualGoal = saved["manualGoal"],
                 wake = saved["wake"] ?: current.reminders.wakeMinutes,
                 sleep = saved["sleep"] ?: current.reminders.sleepMinutes,
                 remindersEnabled = saved["remindersEnabled"] ?: current.reminders.enabled,
@@ -197,7 +221,7 @@ internal class OnboardingViewModel @Inject constructor(
 
     /** Writes the state directly: [change] clears the error flag, which would hide the message at once. */
     fun validProfile(): Boolean = (profile() != null).also { if (!it) mutableState.value = state.value.copy(error = true) }
-    fun validManualGoal(): Boolean = (state.value.manualGoal.toIntOrNull() in 250..10000).also {
+    fun validManualGoal(): Boolean = (state.value.manualGoalMl() in 250..10000).also {
         if (!it) {
             mutableState.value =
                 state.value.copy(error = true)
@@ -235,7 +259,7 @@ internal class OnboardingViewModel @Inject constructor(
                         } else {
                             null
                         },
-                        if (s.choice == GoalChoice.MANUAL) s.manualGoal.toIntOrNull() else null,
+                        if (s.choice == GoalChoice.MANUAL) s.manualGoalMl() else null,
                     )
                 }
                 onDone()

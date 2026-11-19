@@ -65,6 +65,14 @@ class OnboardingViewModelTest {
         OnboardingViewModel(settings, device, profiles, containers, complete, calculator, clock, zone, saved)
 
     @Test
+    fun manualGoalFollowsSelectedUnits() {
+        val oz = OnboardingState(units = VolumeUnit.US_FL_OZ)
+        assertThat(oz.manualGoalText()).isEqualTo("67.63")
+        assertThat(OnboardingState(manualGoal = "1000").withUnits(VolumeUnit.L).manualGoalText()).isEqualTo("1")
+        assertThat(OnboardingState(units = VolumeUnit.L, manualGoal = "1.5").manualGoalMl()).isEqualTo(1500)
+    }
+
+    @Test
     fun manualPathPersistsGoalAndCompletion() = runTest {
         val vm = viewModel()
         vm.change { it.copy(condition = true, choice = GoalChoice.MANUAL, manualGoal = "1800") }
