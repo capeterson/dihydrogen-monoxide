@@ -2,7 +2,7 @@
 <resources>
     <string name="feature_onboarding_welcome_title">Welcome to Dihydrogen Monoxide</string>
     <string name="feature_onboarding_welcome_back">Welcome back</string>
-    <string name="feature_onboarding_welcome_body">Track your water, set a goal, and build a routine that works for you.</string>
+    <string name="feature_onboarding_welcome_body">Track your water, set a goal, and build a routine that works for you. This app is not medical advice; follow your clinician’s guidance on fluid intake.</string>
     <string name="feature_onboarding_back_body">Your existing data is on this device. Let’s check your reminder preferences.</string>
     <string name="feature_onboarding_disclaimer_title">Before you begin</string>
     <string name="feature_onboarding_disclaimer_body">This app provides general guidance, not medical advice. If you have heart or kidney disease, a prescribed fluid restriction, or another condition affecting fluid intake, follow your clinician’s advice.</string>
@@ -50,7 +50,9 @@
     <string name="feature_onboarding_done_body">You can change these choices whenever you like.</string>
     <string name="feature_onboarding_continue">Continue</string>
     <string name="feature_onboarding_back">Back</string>
-    <string name="feature_onboarding_finish">Start tracking</string>
+    <string name="feature_onboarding_finish">Get Started</string>
+    <string name="feature_onboarding_skip_setup">Skip setup · 40 US fl oz per day</string>
+    <string name="feature_onboarding_recover_goal">Your previous setup details were not saved. Please choose your goal again.</string>
     <string name="feature_onboarding_error">Check your information and try again.</string>
     <string name="feature_onboarding_loading">Loading…</string>
     <string name="feature_onboarding_unit_ml">Millilitres</string>

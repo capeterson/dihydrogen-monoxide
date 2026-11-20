@@ -33,7 +33,7 @@ class CompleteOnboardingUseCase @Inject constructor(
         }
         containers.seedDefaultsIfEmpty(settings.current().units)
         snapshot(today)
-        deviceState.update { it.copy(onboarding = it.onboarding.copy(completed = true, lastStep = null)) }
+        deviceState.update { it.copy(onboarding = it.onboarding.copy(completed = true, lastStep = null, draft = null)) }
     }
 
     private companion object {

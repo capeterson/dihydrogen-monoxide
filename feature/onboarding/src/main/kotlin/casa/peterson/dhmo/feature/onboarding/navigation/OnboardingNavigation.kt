@@ -72,7 +72,12 @@ private fun Page(
         viewModel.persistStep(OnboardingPage.REMINDERS.name)
         nav.navigate(ReminderSetupRoute)
     }
-    LaunchedEffect(page, state.loading) {
+    LaunchedEffect(page, state.loading, state.recoverGoal) {
+        if (!state.loading && state.recoverGoal && page != OnboardingPage.GOAL_MODE) {
+            viewModel.persistStep(OnboardingPage.GOAL_MODE.name)
+            nav.navigate(GoalModeRoute) { popUpTo<OnboardingGraph> { inclusive = false } }
+            return@LaunchedEffect
+        }
         if (!state.loading && page == OnboardingPage.REMINDERS) {
             val granted = Build.VERSION.SDK_INT < 33 ||
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
@@ -169,5 +174,6 @@ private fun Page(
             viewModel.change { it.copy(notificationsGranted = false, remindersEnabled = false) }
             advance(OnboardingPage.REMINDERS)
         },
+        skipSetup = { viewModel.skip(onFinished) },
     )
 }

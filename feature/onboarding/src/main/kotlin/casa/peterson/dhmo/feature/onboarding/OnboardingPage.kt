@@ -51,6 +51,7 @@ internal fun OnboardingPageContent(
     back: () -> Unit,
     allowNotifications: () -> Unit,
     skipNotifications: () -> Unit,
+    skipSetup: () -> Unit,
 ) {
     val title = when (page) {
         OnboardingPage.WELCOME ->
@@ -94,10 +95,10 @@ internal fun OnboardingPageContent(
 
             OnboardingPage.UNITS -> {
                 listOf(
-                    VolumeUnit.ML to R.string.feature_onboarding_unit_ml,
-                    VolumeUnit.L to R.string.feature_onboarding_unit_l,
                     VolumeUnit.US_FL_OZ to R.string.feature_onboarding_unit_us,
                     VolumeUnit.IMP_FL_OZ to R.string.feature_onboarding_unit_imp,
+                    VolumeUnit.ML to R.string.feature_onboarding_unit_ml,
+                    VolumeUnit.L to R.string.feature_onboarding_unit_l,
                 ).forEach { (unit, label) -> Choice(label, state.units == unit) { change { it.withUnits(unit) } } }
                 MinuteField(R.string.feature_onboarding_day_start, state.dayStart) { value ->
                     change { it.copy(dayStart = value) }
@@ -106,6 +107,7 @@ internal fun OnboardingPageContent(
 
             OnboardingPage.GOAL_MODE -> {
                 if (state.condition) Text(stringResource(R.string.feature_onboarding_goal_mode_body))
+                if (state.recoverGoal) Text(stringResource(R.string.feature_onboarding_recover_goal))
                 Choice(R.string.feature_onboarding_calculated, state.choice == GoalChoice.CALCULATED) {
                     change { it.copy(choice = GoalChoice.CALCULATED) }
                 }
@@ -177,6 +179,11 @@ internal fun OnboardingPageContent(
                         },
                     ),
                 )
+            }
+        }
+        if (page == OnboardingPage.WELCOME && !state.returning) {
+            TextButton(onClick = skipSetup, enabled = !state.loading && !state.busy) {
+                Text(stringResource(R.string.feature_onboarding_skip_setup))
             }
         }
         if (page != OnboardingPage.WELCOME) TextButton(onClick = back) { Text(stringResource(R.string.feature_onboarding_back)) }

@@ -32,6 +32,7 @@ private fun capture(page: OnboardingPage) {
             back = {},
             allowNotifications = {},
             skipNotifications = {},
+            skipSetup = {},
         )
     }
 }

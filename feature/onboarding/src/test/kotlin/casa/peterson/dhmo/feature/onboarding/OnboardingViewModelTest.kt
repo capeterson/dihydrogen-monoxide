@@ -68,14 +68,14 @@ class OnboardingViewModelTest {
     fun manualGoalFollowsSelectedUnits() {
         val oz = OnboardingState(units = VolumeUnit.US_FL_OZ)
         assertThat(oz.manualGoalText()).isEqualTo("67.63")
-        assertThat(OnboardingState(manualGoal = "1000").withUnits(VolumeUnit.L).manualGoalText()).isEqualTo("1")
+        assertThat(OnboardingState(units = VolumeUnit.ML, manualGoal = "1000").withUnits(VolumeUnit.L).manualGoalText()).isEqualTo("1")
         assertThat(OnboardingState(units = VolumeUnit.L, manualGoal = "1.5").manualGoalMl()).isEqualTo(1500)
     }
 
     @Test
     fun manualPathPersistsGoalAndCompletion() = runTest {
         val vm = viewModel()
-        vm.change { it.copy(condition = true, choice = GoalChoice.MANUAL, manualGoal = "1800") }
+        vm.change { it.copy(units = VolumeUnit.ML, condition = true, choice = GoalChoice.MANUAL, manualGoal = "1800") }
         assertThat(vm.validManualGoal()).isTrue()
         var finished = false
         vm.finish { finished = true }
@@ -147,6 +147,43 @@ class OnboardingViewModelTest {
         assertThat(finished).isTrue()
         assertThat(profiles.observeCurrent().first()).isEqualTo(profile)
         assertThat(device.current().onboarding.completed).isTrue()
+    }
+
+    @Test
+    fun skipSetupUsesFortyUsOuncesAndCompletes() = runTest {
+        val vm = viewModel()
+        assertThat(vm.state.value.units).isEqualTo(VolumeUnit.US_FL_OZ)
+        assertThat(vm.state.value.body.units).isEqualTo(BodyUnits.IMPERIAL)
+        var finished = false
+        vm.skip { finished = true }
+        assertThat(finished).isTrue()
+        assertThat(settings.current().units).isEqualTo(VolumeUnit.US_FL_OZ)
+        assertThat(settings.current().goal.globalOverride.targetMl).isEqualTo(1183)
+        assertThat(settings.current().goal.globalOverride.enabled).isTrue()
+        assertThat(device.current().onboarding.completed).isTrue()
+    }
+
+    @Test
+    fun manualGoalSurvivesProcessRestartAndCanFinish() = runTest {
+        val first = viewModel()
+        first.change { it.copy(units = VolumeUnit.US_FL_OZ, choice = GoalChoice.MANUAL, manualGoal = "40") }
+        first.persistStep(OnboardingPage.DONE.name)
+        val restored = viewModel()
+        assertThat(restored.state.value.choice).isEqualTo(GoalChoice.MANUAL)
+        assertThat(restored.state.value.manualGoal).isEqualTo("40")
+        var finished = false
+        restored.finish { finished = true }
+        assertThat(finished).isTrue()
+        assertThat(settings.current().goal.globalOverride.targetMl).isEqualTo(1183)
+        assertThat(device.current().onboarding.draft).isNull()
+    }
+
+    @Test
+    fun oldIncompleteSessionReturnsToGoalSelection() = runTest {
+        device.update { it.copy(onboarding = it.onboarding.copy(lastStep = OnboardingPage.DONE.name)) }
+        val restored = viewModel()
+        assertThat(restored.state.value.resumeStep).isEqualTo(OnboardingPage.GOAL_MODE.name)
+        assertThat(restored.state.value.recoverGoal).isTrue()
     }
 
     @Test

@@ -23,6 +23,7 @@ import casa.peterson.dhmo.core.model.GoalInput
 import casa.peterson.dhmo.core.model.PregnancyStatus
 import casa.peterson.dhmo.core.model.Profile
 import casa.peterson.dhmo.core.model.settings.BodyUnits
+import casa.peterson.dhmo.core.model.settings.OnboardingDraft
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.Clock
@@ -64,7 +65,7 @@ internal data class OnboardingState(
     val loading: Boolean = true,
     val returning: Boolean = false,
     val resumeStep: String? = null,
-    val units: VolumeUnit = VolumeUnit.ML,
+    val units: VolumeUnit = VolumeUnit.US_FL_OZ,
     val dayStart: Int = 0,
     val condition: Boolean = false,
     val choice: GoalChoice = GoalChoice.CALCULATED,
@@ -85,6 +86,7 @@ internal data class OnboardingState(
     val sleep: Int = 1380,
     val error: Boolean = false,
     val busy: Boolean = false,
+    val recoverGoal: Boolean = false,
 )
 
 @HiltViewModel
@@ -109,33 +111,41 @@ internal class OnboardingViewModel @Inject constructor(
             val onboarding = device.current().onboarding
             val profile = profiles.observeCurrent().first()
             val isReturning = profile != null || containers.getAll().isNotEmpty()
+            val draft = onboarding.draft
+            val recoverGoal = !isReturning && draft == null && !saved.contains("choice") &&
+                onboarding.lastStep in setOf("PROFILE", "MANUAL", "PREVIEW", "NOTIFICATION", "REMINDERS", "DONE")
             mutableState.value = OnboardingState(
                 loading = false,
                 returning = isReturning,
-                resumeStep = onboarding.lastStep,
-                units = saved.get<String>("units")?.let(VolumeUnit::valueOf) ?: current.units,
+                resumeStep = if (recoverGoal) OnboardingPage.GOAL_MODE.name else onboarding.lastStep,
+                units = saved.get<String>("units")?.let(VolumeUnit::valueOf)
+                    ?: if (!isReturning && onboarding.lastStep == null) VolumeUnit.US_FL_OZ else current.units,
                 dayStart = saved["dayStart"] ?: current.dayStartMinutes,
                 condition = saved["condition"] ?: onboarding.manualModeRecommended,
-                choice = GoalChoice.valueOf(saved["choice"] ?: if (onboarding.manualModeRecommended) "MANUAL" else "CALCULATED"),
-                birthDate = saved["birthDate"] ?: "",
-                body = BodyInputs(
-                    units = saved.get<String>("bodyUnits")?.let(BodyUnits::valueOf) ?: firstRunBodyUnits(isReturning, current.bodyUnits),
-                    weight = saved["weight"] ?: "",
-                    heightCm = saved["height"] ?: "",
-                    heightFeet = saved["heightFeet"] ?: "",
-                    heightInches = saved["heightInches"] ?: "",
+                choice = GoalChoice.valueOf(
+                    saved["choice"] ?: draft?.choice ?: if (onboarding.manualModeRecommended) "MANUAL" else "CALCULATED",
                 ),
-                gender = Gender.valueOf(saved["gender"] ?: "UNSPECIFIED"),
-                activity = ActivityLevel.valueOf(saved["activity"] ?: "SEDENTARY"),
-                climate = Climate.valueOf(saved["climate"] ?: "TEMPERATE"),
-                pregnant = saved["pregnant"] ?: false,
-                lactating = saved["lactating"] ?: false,
-                altitude = saved["altitude"] ?: false,
-                manualGoal = saved["manualGoal"],
-                wake = saved["wake"] ?: current.reminders.wakeMinutes,
-                sleep = saved["sleep"] ?: current.reminders.sleepMinutes,
-                remindersEnabled = saved["remindersEnabled"] ?: current.reminders.enabled,
-                notificationsGranted = saved["notificationsGranted"] ?: false,
+                birthDate = saved["birthDate"] ?: draft?.birthDate ?: "",
+                body = BodyInputs(
+                    units = saved.get<String>("bodyUnits")?.let(BodyUnits::valueOf)
+                        ?: if (draft != null) current.bodyUnits else firstRunBodyUnits(isReturning, current.bodyUnits),
+                    weight = saved["weight"] ?: draft?.weight ?: "",
+                    heightCm = saved["height"] ?: draft?.height ?: "",
+                    heightFeet = saved["heightFeet"] ?: draft?.heightFeet ?: "",
+                    heightInches = saved["heightInches"] ?: draft?.heightInches ?: "",
+                ),
+                gender = Gender.valueOf(saved["gender"] ?: draft?.gender ?: "UNSPECIFIED"),
+                activity = ActivityLevel.valueOf(saved["activity"] ?: draft?.activity ?: "SEDENTARY"),
+                climate = Climate.valueOf(saved["climate"] ?: draft?.climate ?: "TEMPERATE"),
+                pregnant = saved["pregnant"] ?: draft?.pregnant ?: false,
+                lactating = saved["lactating"] ?: draft?.lactating ?: false,
+                altitude = saved["altitude"] ?: draft?.altitude ?: false,
+                manualGoal = saved["manualGoal"] ?: draft?.manualGoal,
+                wake = saved["wake"] ?: draft?.wake ?: current.reminders.wakeMinutes,
+                sleep = saved["sleep"] ?: draft?.sleep ?: current.reminders.sleepMinutes,
+                remindersEnabled = saved["remindersEnabled"] ?: draft?.remindersEnabled ?: current.reminders.enabled,
+                notificationsGranted = saved["notificationsGranted"] ?: draft?.notificationsGranted ?: false,
+                recoverGoal = recoverGoal,
             )
         }
     }
@@ -147,7 +157,7 @@ internal class OnboardingViewModel @Inject constructor(
     }
 
     fun change(transform: (OnboardingState) -> OnboardingState) {
-        val next = transform(mutableState.value).copy(error = false)
+        val next = transform(mutableState.value).copy(error = false, recoverGoal = false)
         mutableState.value = next
         saved["units"] = next.units.name
         saved["dayStart"] = next.dayStart
@@ -176,7 +186,13 @@ internal class OnboardingViewModel @Inject constructor(
         val s = state.value
         viewModelScope.launch {
             settings.update { it.copy(units = s.units, bodyUnits = s.body.units, dayStartMinutes = s.dayStart) }
-            device.update { it.copy(onboarding = it.onboarding.copy(lastStep = step, manualModeRecommended = s.condition)) }
+            device.update {
+                if (it.onboarding.completed) {
+                    it
+                } else {
+                    it.copy(onboarding = it.onboarding.copy(lastStep = step, manualModeRecommended = s.condition, draft = s.toDraft()))
+                }
+            }
         }
     }
 
@@ -231,6 +247,11 @@ internal class OnboardingViewModel @Inject constructor(
     fun finish(onDone: () -> Unit) {
         val s = state.value
         if (s.busy) return
+        val missingGoal = if (s.choice == GoalChoice.CALCULATED) profile() == null else s.manualGoalMl() !in 250..10000
+        if (!s.returning && missingGoal) {
+            mutableState.value = s.copy(recoverGoal = true, error = false)
+            return
+        }
         mutableState.value = s.copy(busy = true)
         viewModelScope.launch {
             try {
@@ -249,7 +270,7 @@ internal class OnboardingViewModel @Inject constructor(
                 }
                 if (s.returning) {
                     containers.seedDefaultsIfEmpty(s.units)
-                    device.update { it.copy(onboarding = it.onboarding.copy(completed = true, lastStep = null)) }
+                    device.update { it.copy(onboarding = it.onboarding.copy(completed = true, lastStep = null, draft = null)) }
                 } else {
                     complete(
                         if (s.choice ==
@@ -270,10 +291,40 @@ internal class OnboardingViewModel @Inject constructor(
             }
         }
     }
+
+    fun skip(onDone: () -> Unit) {
+        change {
+            it.copy(
+                units = VolumeUnit.US_FL_OZ,
+                body = it.body.copy(units = BodyUnits.IMPERIAL),
+                choice = GoalChoice.MANUAL,
+                manualGoal = "40",
+                remindersEnabled = false,
+            )
+        }
+        finish(onDone)
+    }
 }
 
-/** Imperial is the default only for a first run in the few regions that use it; afterwards the saved choice wins. */
-private fun firstRunBodyUnits(returning: Boolean, saved: BodyUnits): BodyUnits =
-    if (!returning && saved == BodyUnits.METRIC && java.util.Locale.getDefault().country in IMPERIAL_REGIONS) BodyUnits.IMPERIAL else saved
+private fun OnboardingState.toDraft() = OnboardingDraft(
+    choice = choice.name,
+    birthDate = birthDate,
+    weight = body.weight,
+    height = body.heightCm,
+    heightFeet = body.heightFeet,
+    heightInches = body.heightInches,
+    gender = gender.name,
+    activity = activity.name,
+    climate = climate.name,
+    pregnant = pregnant,
+    lactating = lactating,
+    altitude = altitude,
+    manualGoal = manualGoal,
+    remindersEnabled = remindersEnabled,
+    notificationsGranted = notificationsGranted,
+    wake = wake,
+    sleep = sleep,
+)
 
-private val IMPERIAL_REGIONS = setOf("US", "LR", "MM")
+/** New installations use imperial measurements; returning installations keep their saved choice. */
+private fun firstRunBodyUnits(returning: Boolean, saved: BodyUnits): BodyUnits = if (returning) saved else BodyUnits.IMPERIAL
