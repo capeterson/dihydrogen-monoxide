@@ -40,6 +40,7 @@ internal fun SettingsScreen(
     onOpenBackup: () -> Unit,
     onOpenHealthConnect: () -> Unit,
     onOpenWeather: () -> Unit,
+    onOpenUpdates: () -> Unit,
     onOpenAbout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -56,6 +57,7 @@ internal fun SettingsScreen(
             onOpenBackup = onOpenBackup,
             onOpenHealthConnect = onOpenHealthConnect,
             onOpenWeather = onOpenWeather,
+            onOpenUpdates = onOpenUpdates,
             onOpenAbout = onOpenAbout,
         ),
     )
@@ -149,6 +151,13 @@ internal fun SettingsContent(state: SettingsUiState, actions: SettingsActions, m
                 )
             }
             section(R.string.feature_settings_section_about)
+            item {
+                SettingsRow(
+                    stringResource(R.string.feature_settings_updates_title),
+                    summary = stringResource(R.string.feature_settings_updates_row_summary),
+                    onClick = actions.onOpenUpdates,
+                )
+            }
             item {
                 SettingsRow(
                     stringResource(R.string.feature_settings_about_title),

@@ -11,5 +11,6 @@ internal class SettingsActions(
     val onOpenBackup: () -> Unit = {},
     val onOpenHealthConnect: () -> Unit = {},
     val onOpenWeather: () -> Unit = {},
+    val onOpenUpdates: () -> Unit = {},
     val onOpenAbout: () -> Unit = {},
 )

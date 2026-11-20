@@ -23,6 +23,7 @@ import casa.peterson.dhmo.core.designsystem.theme.DhmoTheme
 import casa.peterson.dhmo.core.model.settings.ThemeMode
 import casa.peterson.dhmo.core.weather.LocationRefresher
 import casa.peterson.dhmo.ui.DhmoApp
+import casa.peterson.dhmo.ui.UpdateOfferDialog
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -67,7 +68,10 @@ class MainActivity : ComponentActivity() {
             }
             DhmoTheme(darkTheme = darkTheme, dynamicColor = theme.dynamicColor) {
                 CompositionLocalProvider(LocalCozyAnimationsEnabled provides theme.animationsEnabled) {
-                    if (startState != StartState.Loading) DhmoApp(startState = startState, launchDeepLink = launchDeepLink)
+                    if (startState != StartState.Loading) {
+                        DhmoApp(startState = startState, launchDeepLink = launchDeepLink)
+                        UpdateOfferDialog()
+                    }
                 }
             }
         }

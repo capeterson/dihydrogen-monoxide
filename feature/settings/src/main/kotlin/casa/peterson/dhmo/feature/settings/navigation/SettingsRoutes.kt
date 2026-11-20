@@ -31,5 +31,8 @@ import kotlinx.serialization.Serializable
 /** Include no-log days, weekly freeze. */
 @Serializable data object StatsSettingsRoute
 
+/** GitHub release updates. */
+@Serializable data object UpdatesRoute
+
 /** Version, licences, privacy policy, disclaimer. */
 @Serializable data object AboutRoute
