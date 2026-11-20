@@ -37,6 +37,7 @@ class OnboardingFlowTest {
                     back = { page = OnboardingPage.WELCOME },
                     allowNotifications = {},
                     skipNotifications = {},
+                    skipSetup = {},
                 )
             }
         }

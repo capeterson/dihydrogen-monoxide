@@ -101,8 +101,8 @@ class PhaseOneToThreeFlowsTest {
             when {
                 compose.has(hasTestTag("today_list")) -> return
 
-                compose.has(hasText("Start tracking")) -> {
-                    compose.onNodeWithText("Start tracking").performClick()
+                compose.has(hasText("Get Started")) -> {
+                    compose.onNodeWithText("Get Started").performClick()
                     // Finishing is asynchronous; the button lingers until Today replaces it, so stop looping here.
                     compose.waitForTodayList()
                     return

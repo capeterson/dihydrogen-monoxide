@@ -21,6 +21,29 @@ data class OnboardingState(
     val manualModeRecommended: Boolean = false, // user ticked "I have a condition / fluid restriction"
     val notificationRationaleShown: Boolean = false,
     val lastStep: String? = null, // route name, to resume after process death
+    val draft: OnboardingDraft? = null,
+)
+
+/** Device-local setup inputs, retained until onboarding is completed. */
+@Serializable
+data class OnboardingDraft(
+    val choice: String = "CALCULATED",
+    val birthDate: String = "",
+    val weight: String = "",
+    val height: String = "",
+    val heightFeet: String = "",
+    val heightInches: String = "",
+    val gender: String = "UNSPECIFIED",
+    val activity: String = "SEDENTARY",
+    val climate: String = "TEMPERATE",
+    val pregnant: Boolean = false,
+    val lactating: Boolean = false,
+    val altitude: Boolean = false,
+    val manualGoal: String? = null,
+    val remindersEnabled: Boolean = false,
+    val notificationsGranted: Boolean = false,
+    val wake: Int = 420,
+    val sleep: Int = 1380,
 )
 
 @Serializable
