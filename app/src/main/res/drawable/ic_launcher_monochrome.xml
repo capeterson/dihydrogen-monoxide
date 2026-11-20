@@ -4,7 +4,7 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Glass, spirit and flower remain distinct when the launcher supplies one tint. -->
+    <!-- Glass, spirit and leaf remain distinct when the launcher supplies one tint. -->
     <path
         android:fillColor="@android:color/transparent"
         android:strokeColor="#FFFFFFFF"
@@ -18,22 +18,13 @@
         android:strokeWidth="2.2"
         android:strokeLineCap="round"
         android:pathData="M50,49 Q54,53 58,49" />
-    <group
-        android:pivotX="64"
-        android:pivotY="34"
-        android:scaleX="0.8"
-        android:scaleY="0.8"
-        android:translateX="3"
-        android:translateY="-1">
-        <path
-            android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="2.2"
-            android:strokeLineCap="round"
-            android:pathData="M61,33 C55,31 54,25 58,23 C62,21 65,26 65,28 C67,22 73,23 74,27 C75,31 70,34 68,34 C75,34 77,39 74,42 C71,45 66,42 65,39 C64,45 59,46 56,43 C53,40 57,35 61,33" />
-        <path android:fillColor="#FFFFFFFF"
-            android:pathData="M62,33 a2.5,2.5 0,1 0,5 0 a2.5,2.5 0,1 0,-5 0" />
-    </group>
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M61,37 Q61,25 74,25 Q74,36 61,37 Z M61,37 L71,28" />
     <path android:fillColor="#FFFFFFFF"
         android:pathData="M46,44 a1.8,2.5 0,1 0,3.6 0 a1.8,2.5 0,1 0,-3.6 0 M59,44 a1.8,2.5 0,1 0,3.6 0 a1.8,2.5 0,1 0,-3.6 0" />
 </vector>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="water" x2="0" y2="1"><stop stop-color="#a6d1c8"/><stop offset="1" stop-color="#579b9d"/></linearGradient>
+    <linearGradient id="spirit" x2="0" y2="1"><stop stop-color="#e3efda"/><stop offset="1" stop-color="#9ecab4"/></linearGradient>
+  </defs>
+  <path fill="#f3efe1" d="M0 0h200v200H0z"/>
+  <ellipse cx="100" cy="168" rx="60" ry="7" fill="#587c68" opacity=".15"/>
+  <path d="M55 86 Q55 59 78 41 Q92 30 100 17 Q109 34 122 41 Q146 58 145 86 Q143 103 100 103 Q57 103 55 86Z" fill="url(#spirit)" stroke="#416b63" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M111 39 Q112 15 138 15 Q138 37 111 39Z" fill="#85a985" stroke="#52745f" stroke-width="2"/>
+  <path d="M113 37 Q123 27 134 19" fill="none" stroke="#d2dfc4" stroke-width="1.5" stroke-linecap="round"/>
+  <ellipse cx="82" cy="68" rx="3.8" ry="5" fill="#365f53"/><ellipse cx="118" cy="68" rx="3.8" ry="5" fill="#365f53"/>
+  <path d="M93 77 Q100 82 107 77" fill="none" stroke="#365f53" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M43 89 Q100 79 157 89 L148 157 Q100 174 52 157Z" fill="#f7f6dc" fill-opacity=".55" stroke="#416b63" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M50 113 Q73 106 100 113 T150 113 L145 153 Q100 166 55 153Z" fill="url(#water)" opacity=".85"/>
+  <path d="M43 89 Q100 102 157 89 M53 98 L59 148" fill="none" stroke="#fffdf0" stroke-opacity=".8" stroke-width="3" stroke-linecap="round"/>
+  <path d="M43 89 Q100 79 157 89 L148 157 Q100 174 52 157Z" fill="none" stroke="#416b63" stroke-width="3" stroke-linejoin="round"/>
+</svg>
