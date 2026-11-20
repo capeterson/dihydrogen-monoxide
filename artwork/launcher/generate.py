@@ -12,7 +12,7 @@ ROOT = HERE.parents[1]
 def main():
     # Android's 108 dp layer reveals its central 72 dp. Keep the entire approved
     # square in that viewport; extend only edge pixels into the parallax margin.
-    image = Image.open(HERE / "flower-spirit.png").convert("RGB")
+    image = Image.open(HERE / "little-leaf.png").convert("RGB")
     size, inset, art_size = 432, 72, 288
     art = image.resize((art_size, art_size), Image.Resampling.LANCZOS)
     layer = Image.new("RGB", (size, size))
