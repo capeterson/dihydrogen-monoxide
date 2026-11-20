@@ -34,7 +34,11 @@ jobs:
           require-debug-key: true
 
       - name: Assemble debug APKs
-        run: ./gradlew assembleDebug
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          ./gradlew assembleDebug \
+            -Pdhmo.build.tag="${TAG_PREFIX}${GITHUB_RUN_NUMBER}-${short_sha}" \
+            -Pdhmo.build.timeMs="$(date +%s)000"
 
       - name: Collect APKs
         run: |

@@ -23,6 +23,7 @@ The product plan is [`docs/PLAN.md`](docs/PLAN.md); the engineering plan is [`do
 | Health Connect | Settings → Health Connect: each switch asks for its own permission. Saves your water to Health Connect, counts water from chosen other apps, follows weight, adds water for workouts, reads steps and active calories for correlations, optional background sync. |
 | Google Drive backup | Settings → Backup: sign in, back up daily or weekly (Wi-Fi only by default), optionally encrypted with a passphrase, keep the newest daily/weekly/monthly copies, restore (replace or merge) from a list, or restore on a new phone during setup. Needs a Google OAuth client; see [`docs/RELEASE.md`](docs/RELEASE.md). |
 | Widget | A home-screen widget with today's progress and a one-tap button for the default container. |
+| App updates | Settings → App updates can opt in to check this repository's GitHub debug releases and download the latest compatible signed phone APK. Android asks for installation permission and confirmation; existing app data stays in place. |
 | Correlations | Insights links to scatter plots of intake against the day's temperature and against active minutes, with a plain-language description. |
 
 Not built: PDF report, Quick Settings tile and app shortcuts (Phase 6), and Play Store declarations (Phase 7).

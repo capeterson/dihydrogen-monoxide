@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feature_settings_updates_title">App updates</string>
+    <string name="feature_settings_updates_row_summary">Choose whether to check GitHub for new versions</string>
+    <string name="feature_settings_updates_error_unsupported">Updates are only available in debug builds of this app.</string>
+    <string name="feature_settings_updates_intro">Debug builds can check GitHub for the newest compatible debug build. Checking is off until you turn it on. You choose whether to download and install an update.</string>
+    <string name="feature_settings_updates_enable">Check for updates</string>
+    <string name="feature_settings_updates_enable_summary">Contacts GitHub when the app opens; your hydration data is not sent.</string>
+    <string name="feature_settings_updates_status">Status</string>
+    <string name="feature_settings_updates_status_idle">Not checked yet.</string>
+    <string name="feature_settings_updates_status_checking">Checking for updates…</string>
+    <string name="feature_settings_updates_status_current">You are up to date.</string>
+    <string name="feature_settings_updates_status_available">Update available: %1$s</string>
+    <string name="feature_settings_updates_status_downloading">Downloading %1$s…</string>
+    <string name="feature_settings_updates_status_ready">%1$s is downloaded and checked. Android will ask you to confirm the install.</string>
+    <string name="feature_settings_updates_install_error">Could not open the Android installer. Try again.</string>
+    <string name="feature_settings_updates_retry_download">Retry download</string>
+    <string name="feature_settings_updates_install_permission">Allow installs from this app in the Android settings page that just opened, then tap Install again.</string>
+    <string name="feature_settings_updates_download">Download update</string>
+    <string name="feature_settings_updates_install">Install</string>
+    <string name="feature_settings_updates_skip">Skip this version</string>
+    <string name="feature_settings_updates_check_now">Check now</string>
+    <string name="feature_settings_updates_last_check">Last checked %1$s</string>
+    <string name="feature_settings_updates_error_network">Could not reach GitHub. Check your connection and try again.</string>
+    <string name="feature_settings_updates_error_server">GitHub sent an unexpected answer. Try again later.</string>
+    <string name="feature_settings_updates_error_no_apk">That release has no installable file for this build.</string>
+    <string name="feature_settings_updates_error_download">The download failed. Try again.</string>
+    <string name="feature_settings_updates_error_checksum">The downloaded file did not match its checksum, so it was discarded.</string>
+    <string name="feature_settings_updates_error_signature">This APK is not a compatible update for the installed app. The package, signing key, or version may differ.</string>
+</resources>

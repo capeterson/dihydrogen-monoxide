@@ -43,6 +43,18 @@ The shared Gradle setup also restores this key in normal CI and instrumented-tes
 repository secrets, so their test-only APKs use disposable keys; only the dedicated debug workflow publishes APKs and it
 requires the persistent key.
 
+### In-app debug updates
+
+The phone app's opt-in updater checks GitHub releases for the newest compatible debug build from
+`capeterson/dihydrogen-monoxide` (override with Gradle property `dhmo.update.repo=owner/repo` for a fork).
+Debug builds embed the publishing tag and build time so the updater can distinguish its own release.
+It downloads only after the user requests an update, verifies the APK belongs to the installed package and
+has the same signing certificate, and hands installation to Android for user confirmation. Android may
+require the user to allow installs from this app first. It does not update the Wear app.
+
+Release builds do not use this debug updater. `REQUEST_INSTALL_PACKAGES` has Google Play policy restrictions;
+review the distribution and manifest configuration before shipping through Play.
+
 ## Promote a debug build to a full release
 
 Open **Actions → Promote debug build → Run workflow** on `main`. Supply:

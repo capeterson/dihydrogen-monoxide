@@ -12,6 +12,7 @@ import casa.peterson.dhmo.feature.settings.export.ExportScreen
 import casa.peterson.dhmo.feature.settings.root.SettingsScreen
 import casa.peterson.dhmo.feature.settings.stats.StatsSettingsScreen
 import casa.peterson.dhmo.feature.settings.units.UnitsSettingsScreen
+import casa.peterson.dhmo.feature.settings.updates.UpdatesScreen
 import casa.peterson.dhmo.feature.settings.weather.CitySearchScreen
 import casa.peterson.dhmo.feature.settings.weather.WeatherSettingsScreen
 
@@ -34,12 +35,14 @@ fun NavGraphBuilder.settingsScreens(
             onOpenBackup = { navController.navigate(BackupSettingsRoute) },
             onOpenHealthConnect = { navController.navigate(HealthConnectSettingsRoute) },
             onOpenWeather = { navController.navigate(WeatherSettingsRoute) },
+            onOpenUpdates = { navController.navigate(UpdatesRoute) },
             onOpenAbout = { navController.navigate(AboutRoute) },
         )
     }
     composable<UnitsSettingsRoute> { UnitsSettingsScreen(onBack = back) }
     composable<AppearanceRoute> { AppearanceScreen(onBack = back) }
     composable<StatsSettingsRoute> { StatsSettingsScreen(onBack = back) }
+    composable<UpdatesRoute> { UpdatesScreen(onBack = back) }
     composable<AboutRoute> { AboutScreen(onBack = back) }
     composable<ExportRoute> { ExportScreen(onBack = back) }
     composable<BackupSettingsRoute>(deepLinks = listOf(navDeepLink<BackupSettingsRoute>(basePath = "dhmo://settings/backup"))) {

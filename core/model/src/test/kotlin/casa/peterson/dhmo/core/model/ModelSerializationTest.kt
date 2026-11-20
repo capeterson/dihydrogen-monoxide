@@ -5,6 +5,7 @@ import casa.peterson.dhmo.core.model.serialization.LocalDateIsoSerializer
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import casa.peterson.dhmo.core.model.settings.DeviceState
 import casa.peterson.dhmo.core.model.settings.ManualCity
+import casa.peterson.dhmo.core.model.settings.UpdateSettings
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import casa.peterson.dhmo.core.model.settings.WeatherMode
 import casa.peterson.dhmo.core.model.settings.WeatherSettings
@@ -62,6 +63,15 @@ class ModelSerializationTest {
         val state = json.decodeFromString<DeviceState>("{}")
         assertThat(state.onboarding.completed).isFalse()
         assertThat(state.cachedLocation).isNull()
+    }
+
+    @Test
+    fun `legacy device state keeps update checks off and update settings survive restart`() {
+        val old = json.decodeFromString<DeviceState>("""{"onboarding":{"completed":true}}""")
+        assertThat(old.onboarding.completed).isTrue()
+        assertThat(old.updates.enabled).isFalse()
+        val state = old.copy(updates = UpdateSettings(enabled = true, dismissedTag = "debug-12"))
+        assertThat(json.decodeFromString<DeviceState>(json.encodeToString(state))).isEqualTo(state)
     }
 
     @Test

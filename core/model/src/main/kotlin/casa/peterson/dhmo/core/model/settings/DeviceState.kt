@@ -10,8 +10,18 @@ data class DeviceState(
     val reminderRuntime: ReminderRuntime = ReminderRuntime(),
     val backupRuntime: BackupRuntime = BackupRuntime(),
     val weatherRuntime: WeatherRuntime = WeatherRuntime(),
+    /** Update preferences and check history are local to this installation. */
+    val updates: UpdateSettings = UpdateSettings(),
     /** Device-local: a goal celebration is a one-time moment, never replayed after undo or process recreation. */
     val lastCelebratedGoalDay: Long? = null,
+)
+
+@Serializable
+data class UpdateSettings(
+    val enabled: Boolean = false,
+    val lastCheckAtMs: Long? = null,
+    val lastCheckFailed: Boolean = false,
+    val dismissedTag: String? = null,
 )
 
 @Serializable

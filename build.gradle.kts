@@ -26,7 +26,7 @@ val allowedProjectDependencies: Map<String, Set<String>> =
         ":app" to
             setOf(
                 ":core:common", ":core:model", ":core:domain", ":core:backup", ":core:database", ":core:datastore",
-                ":core:data", ":core:designsystem", ":core:network", ":core:reminders", ":core:weather",
+                ":core:data", ":core:designsystem", ":core:network", ":core:reminders", ":core:weather", ":core:update",
                 ":feature:onboarding", ":feature:today", ":feature:history", ":feature:insights", ":feature:profile",
                 ":feature:reminders", ":feature:settings", ":sync:healthconnect", ":sync:drive", ":sync:wear", ":widget",
             ),
@@ -43,6 +43,7 @@ val allowedProjectDependencies: Map<String, Set<String>> =
         ":core:network" to setOf(":core:common"),
         ":core:reminders" to setOf(":core:data", ":core:domain", ":core:model", ":core:common"),
         ":core:weather" to setOf(":core:data", ":core:network", ":core:domain", ":core:model", ":core:common"),
+        ":core:update" to setOf(":core:data", ":core:network", ":core:model", ":core:common"),
         ":core:testing" to setOf(":core:data", ":core:model", ":core:domain", ":core:common", ":core:designsystem"),
         ":feature:onboarding" to featureSet,
         ":feature:today" to featureSet,

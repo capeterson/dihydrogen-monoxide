@@ -27,6 +27,7 @@ dependencies {
     implementation(projects.core.network)
     implementation(projects.core.reminders)
     implementation(projects.core.weather)
+    implementation(projects.core.update)
     implementation(projects.feature.onboarding)
     implementation(projects.feature.today)
     implementation(projects.feature.history)
