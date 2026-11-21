@@ -27,10 +27,7 @@ import casa.peterson.dhmo.core.model.GoalBreakdown
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun BreakdownCard(breakdown: GoalBreakdown, labels: BreakdownLabels) {
-    RecipeCard(
-        title = stringResource(R.string.feature_profile_recipe_title),
-        caption = stringResource(R.string.feature_profile_recipe_caption, labels.volume(breakdown.calculatedMl)),
-    ) {
+    RecipeCard(title = stringResource(R.string.feature_profile_recipe_title)) {
         breakdown.components.forEach { component ->
             val notApplied = if (component.applied) null else stringResource(R.string.feature_profile_breakdown_not_applied)
             RecipeRow(
@@ -58,7 +55,7 @@ internal fun BreakdownCard(breakdown: GoalBreakdown, labels: BreakdownLabels) {
     }
 }
 
-/** "What went in": a luggage tag for each ingredient that counted toward the goal. */
+/** Shows the inputs that counted toward the calculated goal. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun WhatWentInCard(breakdown: GoalBreakdown, labels: BreakdownLabels) {

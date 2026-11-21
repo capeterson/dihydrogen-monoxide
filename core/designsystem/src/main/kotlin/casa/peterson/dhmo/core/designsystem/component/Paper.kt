@@ -226,17 +226,18 @@ fun RecipeRow(
 
 /** The recipe card: a [title] and [content] with a big leaf peeking over the top-right corner, as in the design. */
 @Composable
-fun RecipeCard(title: String, modifier: Modifier = Modifier, caption: String? = null, content: @Composable ColumnScope.() -> Unit) {
+fun RecipeCard(title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    val leafSize = 110.dp
+    val leafOverhang = 26.dp
     PaperCard(modifier) {
         Box {
-            CornerLeaf(Modifier.size(110.dp).align(Alignment.TopEnd).offset(x = 26.dp, y = (-22).dp))
+            CornerLeaf(Modifier.size(leafSize).align(Alignment.TopEnd).offset(x = leafOverhang, y = (-22).dp))
             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-                if (caption !=
-                    null
-                ) {
-                    Text(caption, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = leafSize - leafOverhang).semantics { heading() },
+                )
                 Spacer(Modifier.height(16.dp))
                 content()
             }

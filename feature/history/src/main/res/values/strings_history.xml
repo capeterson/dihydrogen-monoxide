@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_history_garden_title">A week of showing up</string>
-    <string name="feature_history_garden_message">Every little sip adds a little green. There is always room to come back.</string>
+    <string name="feature_history_garden_title">Last 7 days</string>
+    <string name="feature_history_garden_message">A plant marks each day you logged a drink. Growth shows progress on days with a goal.</string>
     <string name="feature_history_garden_day">%1$s: %2$s logged</string>
     <string name="feature_history_history_title">History</string>
     <string name="feature_history_empty_title">No drinks logged yet</string>

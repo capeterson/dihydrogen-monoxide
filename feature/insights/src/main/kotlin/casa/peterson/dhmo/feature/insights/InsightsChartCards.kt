@@ -170,7 +170,7 @@ internal fun YearHeatmap(state: InsightsUiState.Ready, modifier: Modifier) {
     }
     NightSkyPanel(
         title = stringResource(R.string.feature_insights_chart_year),
-        caption = stringResource(R.string.feature_insights_night_sky_caption),
+        caption = stringResource(R.string.feature_insights_year_heatmap_caption),
         modifier = modifier,
     ) {
         val scroll = rememberScrollState()

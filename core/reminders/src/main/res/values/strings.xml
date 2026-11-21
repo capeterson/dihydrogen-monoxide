@@ -7,14 +7,14 @@
     <string name="core_reminders_channel_backup">Backup and sync problems</string>
     <string name="core_reminders_channel_backup_description">Only shown when a backup or sync needs your attention</string>
 
-    <string name="core_reminders_nudge_title">A little rain on the window.</string>
-    <string name="core_reminders_nudge_text">%1$s behind pace. A glass would help.</string>
-    <string name="core_reminders_escalation_text">It has been a dry day. %1$s to go, and the lamp is on.</string>
+    <string name="core_reminders_nudge_title">Time to drink some water</string>
+    <string name="core_reminders_nudge_text">You’re %1$s behind your hydration pace.</string>
+    <string name="core_reminders_escalation_text">You have %1$s left to reach today’s hydration goal.</string>
     <string name="core_reminders_action_log">+ %1$s (%2$s)</string>
     <string name="core_reminders_action_snooze">Later (%1$d min)</string>
     <string name="core_reminders_action_custom">Custom…</string>
 
-    <string name="core_reminders_summary_title">Today’s jar</string>
-    <string name="core_reminders_summary_met">Jar’s full: %1$s of %2$s. That’s the day, done well.</string>
+    <string name="core_reminders_summary_title">Today’s hydration summary</string>
+    <string name="core_reminders_summary_met">You reached your goal: %1$s logged of %2$s.</string>
     <string name="core_reminders_summary_short">%1$s of %2$s so far today</string>
 </resources>

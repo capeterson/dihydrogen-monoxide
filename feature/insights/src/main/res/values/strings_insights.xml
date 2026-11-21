@@ -148,21 +148,22 @@
         <item quantity="one">%1$d of %2$d day at goal</item>
         <item quantity="other">%1$d of %2$d days at goal</item>
     </plurals>
-    <string name="feature_insights_lanterns_none">No lanterns lit yet. Today is a good day to start.</string>
+    <string name="feature_insights_lanterns_none">No active goal streak.</string>
     <plurals name="feature_insights_lanterns_lit">
-        <item quantity="one">%d lantern lit in a row.</item>
-        <item quantity="other">%d lanterns lit in a row.</item>
+        <item quantity="one">Current goal streak: %d day.</item>
+        <item quantity="other">Current goal streak: %d days.</item>
     </plurals>
-    <string name="feature_insights_night_sky">Night sky</string>
-    <string name="feature_insights_night_sky_caption">Brighter, bigger stars are fuller days. A halo means the goal was met.</string>
+    <string name="feature_insights_night_sky">Daily hydration</string>
+    <string name="feature_insights_night_sky_caption">Larger, brighter stars show more progress toward the daily goal. A halo means you reached it.</string>
+    <string name="feature_insights_year_heatmap_caption">Stars show how close you came to your goal each day. A halo means you reached it.</string>
     <plurals name="feature_insights_night_sky_description">
-        <item quantity="one">%d day drawn as a star. Larger, brighter stars with a glow mark days you met your goal.</item>
-        <item quantity="other">%d days drawn as stars. Larger, brighter stars with a glow mark days you met your goal.</item>
+        <item quantity="one">Daily hydration chart for %d day.</item>
+        <item quantity="other">Daily hydration chart for %d days.</item>
     </plurals>
     <string name="feature_insights_through_the_day">Through the day</string>
     <string name="feature_insights_through_the_day_caption">Millilitres per three-hour stretch, on an average day</string>
     <string name="feature_insights_through_the_day_description">Your average day in three-hour stretches. The tallest is around %1$s.</string>
     <string name="feature_insights_goal_pace">goal pace</string>
     <string name="feature_insights_peak_title">You drink most around %1$s</string>
-    <string name="feature_insights_peak_body">That is where the tallest candle stands. Keep a glass by the lamp.</string>
+    <string name="feature_insights_peak_body">On average, you log the most water during this three-hour period.</string>
 </resources>
