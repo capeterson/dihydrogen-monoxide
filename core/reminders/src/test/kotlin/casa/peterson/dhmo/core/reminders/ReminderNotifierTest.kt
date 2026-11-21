@@ -38,17 +38,16 @@ class ReminderNotifierTest {
         assertThat(actions[3]).isEqualTo("Custom…")
         assertThat(shadowOf(posted.actions[3].actionIntent).savedIntent.action).isEqualTo(ReminderNotifier.ACTION_QUICK_LOG)
         assertThat(shadowOf(posted.actions[0].actionIntent).requestCode).isEqualTo(NotificationIds.RC_ACTION_LOG_1)
-        assertThat(posted.extras.getString(Notification.EXTRA_TITLE)).isEqualTo("A little rain on the window.")
     }
 
     @Test
     fun aNewReminderReplacesTheOldOne() = runTest {
         val env = ReminderTestEnv()
         env.notifier.showReminder(ReminderMessage.Nudge(250), emptyList(), VolumeUnit.ML, 30)
-        env.notifier.showReminder(ReminderMessage.Escalation(1100), emptyList(), VolumeUnit.ML, 30)
+        env.notifier.showReminder(ReminderMessage.Escalation(850), emptyList(), VolumeUnit.ML, 30)
         assertThat(env.notifications.allNotifications).hasSize(1)
         assertThat(env.notifications.getNotification(NotificationIds.NOTIF_REMINDER).extras.getString(Notification.EXTRA_TEXT))
-            .contains("dry day")
+            .contains("850\u00a0ml")
     }
 
     @Test
@@ -56,7 +55,6 @@ class ReminderNotifierTest {
         val env = ReminderTestEnv()
         env.notifier.showSummary(consumedMl = 2000, goalMl = 2000, units = VolumeUnit.US_FL_OZ)
         val text = env.notifications.getNotification(NotificationIds.NOTIF_SUMMARY).extras.getString(Notification.EXTRA_TEXT)
-        assertThat(text).startsWith("Jar’s full")
         assertThat(text).contains("fl oz")
     }
 }

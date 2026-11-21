@@ -215,13 +215,12 @@ private const val GOAL_SIZE = 16
 /** Landscape screens are short, so the arch shrinks to leave room for the figure and quick-add below it. */
 private val LandscapeHeroWidth = 140.dp
 
-/** The line under the date: the goal, the rain or an empty sill when any of them applies, else the hour's greeting. */
+/** The line under the date: goal status first, then a greeting during the day. */
 @Composable
-private fun greetingFor(state: TodayUiState.Ready, hour: Int): String = when {
+private fun greetingFor(state: TodayUiState.Ready, hour: Int): String? = when {
     state.goalMl > 0 && state.consumedMl >= state.goalMl -> stringResource(R.string.feature_today_goal_met)
-    state.entries.isEmpty() -> stringResource(R.string.feature_today_no_entries)
     state.pace?.status == PaceStatus.BEHIND -> stringResource(R.string.feature_today_greeting_behind)
-    hour >= NIGHT_FROM || hour < MORNING_FROM -> stringResource(R.string.feature_today_greeting_night)
+    hour >= NIGHT_FROM || hour < MORNING_FROM -> null
     hour >= EVENING_FROM -> stringResource(R.string.feature_today_greeting_evening)
     hour >= AFTERNOON_FROM -> stringResource(R.string.feature_today_greeting_afternoon)
     else -> stringResource(R.string.feature_today_greeting_morning)
@@ -304,11 +303,13 @@ private fun HeroSection(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(
-                    greetingFor(state, hour),
-                    modifier = Modifier.heightIn(min = 64.dp * LocalDensity.current.fontScale),
-                    style = MaterialTheme.typography.headlineSmall,
-                )
+                greetingFor(state, hour)?.let { greeting ->
+                    Text(
+                        greeting,
+                        modifier = Modifier.heightIn(min = 64.dp * LocalDensity.current.fontScale),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                }
             }
             DeskScene(animated = animated)
         }
@@ -380,7 +381,7 @@ private fun CoasterSection(state: TodayUiState.Ready, onQuickAdd: (Container) ->
     }
 }
 
-/** "Poured today": the day's drinks as notebook rows, or the sleeping cat and a "Pour a glass" button when there are none. */
+/** The day's drink log, with a quick-log action when empty. */
 @Composable
 private fun NotebookSection(
     state: TodayUiState.Ready,
@@ -396,12 +397,20 @@ private fun NotebookSection(
         count = pluralStringResource(R.plurals.feature_today_drink_count, state.entries.size, state.entries.size),
     ) {
         if (state.entries.isEmpty()) {
+            val container = state.containers.firstOrNull()
+            val actionLabel = if (container == null) {
+                stringResource(R.string.feature_today_log_a_drink)
+            } else {
+                val locale = LocalConfiguration.current.locales[0]
+                val volume = VolumeFormatter.format(container.volumeMl, state.units, locale)
+                stringResource(R.string.feature_today_log_container, volume, container.name)
+            }
             EmptyState(
                 title = stringResource(R.string.feature_today_empty_title),
-                message = stringResource(R.string.feature_today_empty_message),
-                actionLabel = stringResource(R.string.feature_today_pour_a_glass),
-                actionIcon = DhmoIcons.Glass,
-                onAction = { state.containers.firstOrNull()?.let(onQuickAdd) ?: onCustom() },
+                message = null,
+                actionLabel = actionLabel,
+                actionIcon = container?.icon?.drawableRes() ?: DhmoIcons.Glass,
+                onAction = { container?.let(onQuickAdd) ?: onCustom() },
                 animated = animated,
             )
         } else {

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_reminders_gentle_title">A little nudge, with care</string>
-    <string name="feature_reminders_gentle_message">No rush. Your glass is right here when you are ready.</string>
+    <string name="feature_reminders_gentle_title">When reminders appear</string>
+    <string name="feature_reminders_gentle_message">Get a reminder if you fall behind your hydration pace during your waking hours.</string>
     <string name="feature_reminders_reminders_title">Reminders</string>
     <string name="feature_reminders_pace_curve_title">Pace curve</string>
     <string name="feature_reminders_enabled">Enable reminders</string>

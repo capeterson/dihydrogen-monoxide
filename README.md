@@ -11,7 +11,7 @@ The product plan is [`docs/PLAN.md`](docs/PLAN.md); the engineering plan is [`do
 | Onboarding | Medical guidance, units and day start, a calculated or self-set goal, and optional reminders. Skip setup to start with a 40 US fl oz/day goal and imperial units. |
 | Today | Progress ring, quick-add buttons for your containers, custom amounts, edit and delete with Undo. Confirmed drinks animate the window scene; the first goal crossing of a hydration day adds a longer celebration. Animations respect system and app motion settings. With TalkBack, each drink offers **Edit** and **Delete** actions instead of swiping. Reminder notifications can log a drink without opening the app. |
 | Goal | A calculated goal with its breakdown, a fixed goal (optionally per weekday), or a goal for just today. Adjustments can be switched off one by one. The goal is guidance, not medical advice. |
-| Reminders | Pace-aware: a reminder fires only when you are behind the expected curve, inside your waking hours, no more often than your chosen interval. Notifications can log a drink or snooze. |
+| Reminders | Pace-aware: a reminder fires only when you are behind the expected curve, inside your waking hours, no more often than your chosen interval. It tells you it’s time to drink water and shows how far behind you are or how much you need to reach your goal. You can log a drink or snooze from the notification. |
 | History | Every drink grouped by day, with editing and Undo. |
 | Insights | Day, week, month, year and custom ranges; goal attainment, streaks, trend, consistency, time of day and day of week; a feed of plain-language insights. |
 | Export | Settings → Export saves every drink or the daily totals as CSV (RFC 4180, millilitres, spreadsheet-safe), or all data as JSON. |

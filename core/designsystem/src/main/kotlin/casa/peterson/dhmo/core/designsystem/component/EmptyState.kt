@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun EmptyState(
     title: String,
-    message: String,
+    message: String?,
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int? = null,
     @DrawableRes actionIcon: Int? = null,
@@ -54,12 +54,14 @@ fun EmptyState(
             textAlign = TextAlign.Center,
             modifier = Modifier.semantics { heading() },
         )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        if (message != null) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
         if (actionLabel != null && onAction != null) {
             FilledTonalButton(onClick = onAction) {
                 if (actionIcon != null) {

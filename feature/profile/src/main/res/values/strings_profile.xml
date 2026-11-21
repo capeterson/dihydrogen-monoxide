@@ -131,10 +131,10 @@
     <string name="feature_profile_source_nasem">US National Academies (2004). Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate. Basis for counting about 80% of total water as drinks.</string>
     <string name="feature_profile_source_acsm">American College of Sports Medicine (2007). Exercise and Fluid Replacement, position stand. Basis for the per-minute exercise allowance.</string>
     <string name="feature_profile_limits">Calculated goals are kept between %1$s and %2$s for adults and %3$s and %4$s for children under 14.</string>
-    <string name="feature_profile_recipe_title">The recipe</string>
-    <string name="feature_profile_makes">Makes</string>
-    <string name="feature_profile_what_went_in">What went in</string>
-    <string name="feature_profile_warm_day">A warm day is coming, so the jar is a little taller.</string>
+    <string name="feature_profile_recipe_title">How your goal is calculated</string>
+    <string name="feature_profile_makes">Calculated goal</string>
+    <string name="feature_profile_what_went_in">Inputs used</string>
+    <string name="feature_profile_warm_day">The warm forecast increased your calculated hydration goal.</string>
     <string name="feature_profile_ingredient_base">Base</string>
     <string name="feature_profile_ingredient_weight">Weight</string>
     <string name="feature_profile_ingredient_pregnancy">Pregnancy</string>
@@ -143,7 +143,6 @@
     <string name="feature_profile_ingredient_forecast">Forecast</string>
     <string name="feature_profile_ingredient_climate">Climate</string>
     <string name="feature_profile_ingredient_altitude">Altitude</string>
-    <string name="feature_profile_recipe_caption">How %1$s is stirred together</string>
     <string name="feature_profile_detail_base_weight">%1$s × %2$s kg</string>
     <string name="feature_profile_detail_base_weight_adjusted">%1$s × %2$s kg (adjusted from %3$s kg, since body fat holds little water)</string>
     <string name="feature_profile_detail_base_cap">Capped at the upper reference intake; weight-based value was %1$s</string>
