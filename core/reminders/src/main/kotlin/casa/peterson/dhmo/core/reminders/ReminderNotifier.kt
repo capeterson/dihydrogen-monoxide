@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.app.NotificationCompat
@@ -50,7 +49,7 @@ constructor(@ApplicationContext private val context: Context) {
             R.string.core_reminders_channel_reminders,
             R.string.core_reminders_channel_reminders_description,
             NotificationManager.IMPORTANCE_DEFAULT,
-            "reminder_chime",
+            R.raw.core_reminders_reminder_chime,
         )
         createChannel(
             system,
@@ -59,7 +58,7 @@ constructor(@ApplicationContext private val context: Context) {
             R.string.core_reminders_channel_summaries,
             R.string.core_reminders_channel_summaries_description,
             NotificationManager.IMPORTANCE_LOW,
-            "summary_chime",
+            R.raw.core_reminders_summary_chime,
         )
         createChannel(
             system,
@@ -68,7 +67,7 @@ constructor(@ApplicationContext private val context: Context) {
             R.string.core_reminders_channel_backup,
             R.string.core_reminders_channel_backup_description,
             NotificationManager.IMPORTANCE_MIN,
-            "backup_chime",
+            R.raw.core_reminders_backup_chime,
         )
     }
 
@@ -79,12 +78,13 @@ constructor(@ApplicationContext private val context: Context) {
         name: Int,
         channelDescription: Int,
         importance: Int,
-        soundName: String,
+        soundResource: Int,
     ) {
         val old = system.getNotificationChannel(oldId)
         val channel = NotificationChannel(id, context.getString(name), old?.importance ?: importance).apply {
             description = context.getString(channelDescription)
-            val customSound = Uri.parse("android.resource://${context.packageName}/raw/$soundName")
+            val soundName = context.resources.getResourceEntryName(soundResource)
+            val customSound = "android.resource://${context.packageName}/raw/$soundName".toUri()
             val sound = if (old != null && old.sound != Settings.System.DEFAULT_NOTIFICATION_URI) old.sound else customSound
             setSound(sound, old?.audioAttributes ?: AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build())
             if (old != null) {

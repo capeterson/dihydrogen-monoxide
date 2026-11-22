@@ -27,9 +27,9 @@ class ReminderNotifierTest {
         assertThat(manager.getNotificationChannel(ReminderNotifier.CHANNEL_BACKUP).importance)
             .isEqualTo(NotificationManager.IMPORTANCE_MIN)
         for ((id, sound) in listOf(
-            ReminderNotifier.CHANNEL_REMINDERS to "reminder_chime",
-            ReminderNotifier.CHANNEL_SUMMARIES to "summary_chime",
-            ReminderNotifier.CHANNEL_BACKUP to "backup_chime",
+            ReminderNotifier.CHANNEL_REMINDERS to "core_reminders_reminder_chime",
+            ReminderNotifier.CHANNEL_SUMMARIES to "core_reminders_summary_chime",
+            ReminderNotifier.CHANNEL_BACKUP to "core_reminders_backup_chime",
         )) {
             assertThat(manager.getNotificationChannel(id).sound.toString())
                 .isEqualTo("android.resource://${env.app.packageName}/raw/$sound")
@@ -66,7 +66,7 @@ class ReminderNotifierTest {
         )
         ReminderNotifier(app).ensureChannels()
         assertThat(manager.getNotificationChannel(ReminderNotifier.CHANNEL_REMINDERS).sound.toString())
-            .isEqualTo("android.resource://${app.packageName}/raw/reminder_chime")
+            .isEqualTo("android.resource://${app.packageName}/raw/core_reminders_reminder_chime")
     }
 
     @Test

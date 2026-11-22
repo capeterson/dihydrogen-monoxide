@@ -50,10 +50,10 @@ def render_droplet():
         fade = min(1.0, max(0.0, (duration - t) / 0.08))
         value = 0.29 * attack * (body + ripple) * fade
         samples.append(struct.pack("<h", int(max(-1, min(1, value)) * 32767)))
-    write_sound("reminder_chime", samples)
+    write_sound("core_reminders_reminder_chime", samples)
 
 
 DEST.mkdir(parents=True, exist_ok=True)
 render_droplet()
-render("summary_chime", [(0.0, 392.00, 0.20), (0.17, 523.25, 0.17), (0.34, 659.25, 0.14)], 1.30)
-render("backup_chime", [(0.0, 440.00, 0.20), (0.23, 392.00, 0.17)], 1.15)
+render("core_reminders_summary_chime", [(0.0, 392.00, 0.20), (0.17, 523.25, 0.17), (0.34, 659.25, 0.14)], 1.30)
+render("core_reminders_backup_chime", [(0.0, 440.00, 0.20), (0.23, 392.00, 0.17)], 1.15)
