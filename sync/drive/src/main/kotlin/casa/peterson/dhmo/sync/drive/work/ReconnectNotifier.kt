@@ -34,7 +34,7 @@ internal class ReconnectNotifier @Inject constructor(@param:ApplicationContext p
 
     companion object {
         /** Created by the app at start-up together with the reminder channels. */
-        const val CHANNEL_BACKUP = "backup"
+        const val CHANNEL_BACKUP = "backup_cozy"
         private const val NOTIFICATION_ID = 4_201
     }
 }

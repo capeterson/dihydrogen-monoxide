@@ -1,7 +1,11 @@
 package casa.peterson.dhmo.core.reminders
 
+import android.app.Application
 import android.app.Notification
+import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.provider.Settings
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
 import com.google.common.truth.Truth.assertThat
@@ -22,6 +26,47 @@ class ReminderNotifierTest {
             .isEqualTo(NotificationManager.IMPORTANCE_LOW)
         assertThat(manager.getNotificationChannel(ReminderNotifier.CHANNEL_BACKUP).importance)
             .isEqualTo(NotificationManager.IMPORTANCE_MIN)
+        for ((id, sound) in listOf(
+            ReminderNotifier.CHANNEL_REMINDERS to "reminder_chime",
+            ReminderNotifier.CHANNEL_SUMMARIES to "summary_chime",
+            ReminderNotifier.CHANNEL_BACKUP to "backup_chime",
+        )) {
+            assertThat(manager.getNotificationChannel(id).sound.toString())
+                .isEqualTo("android.resource://${env.app.packageName}/raw/$sound")
+        }
+    }
+
+    @Test
+    fun migratesLegacyChannelAndPreservesImportanceAndMute() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val manager = app.getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(
+            NotificationChannel("reminders", "Old reminders", NotificationManager.IMPORTANCE_LOW).apply {
+                setSound(null, null)
+            },
+        )
+        val notifier = ReminderNotifier(app)
+        notifier.ensureChannels()
+        val migrated = manager.getNotificationChannel(ReminderNotifier.CHANNEL_REMINDERS)
+        assertThat(migrated.importance).isEqualTo(NotificationManager.IMPORTANCE_LOW)
+        assertThat(migrated.sound).isNull()
+        assertThat(manager.getNotificationChannel("reminders")).isNull()
+        notifier.ensureChannels()
+        assertThat(manager.getNotificationChannel(ReminderNotifier.CHANNEL_REMINDERS).sound).isNull()
+    }
+
+    @Test
+    fun replacesLegacyDefaultSound() {
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val manager = app.getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(
+            NotificationChannel("reminders", "Old reminders", NotificationManager.IMPORTANCE_DEFAULT).apply {
+                setSound(Settings.System.DEFAULT_NOTIFICATION_URI, null)
+            },
+        )
+        ReminderNotifier(app).ensureChannels()
+        assertThat(manager.getNotificationChannel(ReminderNotifier.CHANNEL_REMINDERS).sound.toString())
+            .isEqualTo("android.resource://${app.packageName}/raw/reminder_chime")
     }
 
     @Test
