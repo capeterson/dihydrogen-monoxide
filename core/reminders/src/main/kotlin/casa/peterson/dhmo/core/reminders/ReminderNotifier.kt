@@ -8,7 +8,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
 import android.os.Build
+import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -40,25 +42,63 @@ constructor(@ApplicationContext private val context: Context) {
     /** Creates the `reminders`, `summaries` and `backup` channels (§8.8). Safe to call repeatedly. */
     fun ensureChannels() {
         val system = context.getSystemService(NotificationManager::class.java) ?: return
-        system.createNotificationChannels(
-            listOf(
-                NotificationChannel(
-                    CHANNEL_REMINDERS,
-                    context.getString(R.string.core_reminders_channel_reminders),
-                    NotificationManager.IMPORTANCE_DEFAULT,
-                ).apply { description = context.getString(R.string.core_reminders_channel_reminders_description) },
-                NotificationChannel(
-                    CHANNEL_SUMMARIES,
-                    context.getString(R.string.core_reminders_channel_summaries),
-                    NotificationManager.IMPORTANCE_LOW,
-                ).apply { description = context.getString(R.string.core_reminders_channel_summaries_description) },
-                NotificationChannel(
-                    CHANNEL_BACKUP,
-                    context.getString(R.string.core_reminders_channel_backup),
-                    NotificationManager.IMPORTANCE_MIN,
-                ).apply { description = context.getString(R.string.core_reminders_channel_backup_description) },
-            ),
+        createChannel(
+            system,
+            "reminders",
+            CHANNEL_REMINDERS,
+            R.string.core_reminders_channel_reminders,
+            R.string.core_reminders_channel_reminders_description,
+            NotificationManager.IMPORTANCE_DEFAULT,
+            R.raw.core_reminders_reminder_chime,
         )
+        createChannel(
+            system,
+            "summaries",
+            CHANNEL_SUMMARIES,
+            R.string.core_reminders_channel_summaries,
+            R.string.core_reminders_channel_summaries_description,
+            NotificationManager.IMPORTANCE_LOW,
+            R.raw.core_reminders_summary_chime,
+        )
+        createChannel(
+            system,
+            "backup",
+            CHANNEL_BACKUP,
+            R.string.core_reminders_channel_backup,
+            R.string.core_reminders_channel_backup_description,
+            NotificationManager.IMPORTANCE_MIN,
+            R.raw.core_reminders_backup_chime,
+        )
+    }
+
+    private fun createChannel(
+        system: NotificationManager,
+        oldId: String,
+        id: String,
+        name: Int,
+        channelDescription: Int,
+        importance: Int,
+        soundResource: Int,
+    ) {
+        val old = system.getNotificationChannel(oldId)
+        val channel = NotificationChannel(id, context.getString(name), old?.importance ?: importance).apply {
+            description = context.getString(channelDescription)
+            val soundName = context.resources.getResourceEntryName(soundResource)
+            val customSound = "android.resource://${context.packageName}/raw/$soundName".toUri()
+            val sound = if (old != null && old.sound != Settings.System.DEFAULT_NOTIFICATION_URI) old.sound else customSound
+            setSound(sound, old?.audioAttributes ?: AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION).build())
+            if (old != null) {
+                enableVibration(old.shouldVibrate())
+                vibrationPattern = old.vibrationPattern
+                enableLights(old.shouldShowLights())
+                lightColor = old.lightColor
+                lockscreenVisibility = old.lockscreenVisibility
+                setShowBadge(old.canShowBadge())
+            }
+        }
+        system.createNotificationChannel(channel)
+        // Channel sound is immutable after creation. Migrate once, then keep the new channel's user settings.
+        if (old != null) system.deleteNotificationChannel(oldId)
     }
 
     /** True when the app may post notifications: the app-level switch and, on API 33+, `POST_NOTIFICATIONS`. */
@@ -161,9 +201,9 @@ constructor(@ApplicationContext private val context: Context) {
         PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
     companion object {
-        const val CHANNEL_REMINDERS = "reminders"
-        const val CHANNEL_SUMMARIES = "summaries"
-        const val CHANNEL_BACKUP = "backup"
+        const val CHANNEL_REMINDERS = "reminders_cozy"
+        const val CHANNEL_SUMMARIES = "summaries_cozy"
+        const val CHANNEL_BACKUP = "backup_cozy"
 
         /** Handled by `QuickLogActivity` in `:feature:today` (not exported, so only this package can start it). */
         const val ACTION_QUICK_LOG = "casa.peterson.dhmo.action.QUICK_LOG"
