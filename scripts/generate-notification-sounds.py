@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the app's original, gently struck wooden/water chimes as PCM WAV files."""
+"""Render the app's original water-drop and wooden chimes as PCM WAV files."""
 
 import math
 import struct
@@ -8,6 +8,12 @@ from pathlib import Path
 
 RATE = 22050
 DEST = Path(__file__).resolve().parents[1] / "core/reminders/src/main/res/raw"
+
+
+def write_sound(name, samples):
+    with wave.open(str(DEST / f"{name}.wav"), "wb") as output:
+        output.setparams((1, 2, RATE, 0, "NONE", "not compressed"))
+        output.writeframes(b"".join(samples))
 
 
 def render(name, notes, duration):
@@ -28,12 +34,26 @@ def render(name, notes, duration):
             value += strength * envelope * tone
         fade = min(1.0, max(0.0, (duration - t) / 0.08))
         samples.append(struct.pack("<h", int(max(-1, min(1, value * fade)) * 32767)))
-    with wave.open(str(DEST / f"{name}.wav"), "wb") as output:
-        output.setparams((1, 2, RATE, 0, "NONE", "not compressed"))
-        output.writeframes(b"".join(samples))
+    write_sound(name, samples)
+
+
+def render_droplet():
+    samples = []
+    duration = 0.85
+    for i in range(int(RATE * duration)):
+        t = i / RATE
+        # A rounded, upward-pitched plink followed by a softer water resonance.
+        phase = 2 * math.pi * (640 * t - 170 / 18 * (1 - math.exp(-18 * t)))
+        attack = min(1.0, t / 0.008)
+        body = math.sin(phase) * math.exp(-t * 8)
+        ripple = 0.22 * math.sin(2 * math.pi * 1120 * t) * math.exp(-t * 15)
+        fade = min(1.0, max(0.0, (duration - t) / 0.08))
+        value = 0.29 * attack * (body + ripple) * fade
+        samples.append(struct.pack("<h", int(max(-1, min(1, value)) * 32767)))
+    write_sound("reminder_chime", samples)
 
 
 DEST.mkdir(parents=True, exist_ok=True)
-render("reminder_chime", [(0.0, 523.25, 0.24), (0.20, 659.25, 0.20)], 1.15)
+render_droplet()
 render("summary_chime", [(0.0, 392.00, 0.20), (0.17, 523.25, 0.17), (0.34, 659.25, 0.14)], 1.30)
 render("backup_chime", [(0.0, 440.00, 0.20), (0.23, 392.00, 0.17)], 1.15)
