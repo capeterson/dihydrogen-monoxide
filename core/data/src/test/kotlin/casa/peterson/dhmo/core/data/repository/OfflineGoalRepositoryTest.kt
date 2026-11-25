@@ -9,6 +9,7 @@ import casa.peterson.dhmo.core.model.DailyGoal
 import casa.peterson.dhmo.core.model.GoalBreakdown
 import casa.peterson.dhmo.core.model.GoalComponent
 import casa.peterson.dhmo.core.model.GoalMode
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.MutableClock
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
@@ -25,7 +26,9 @@ class OfflineGoalRepositoryTest {
 
     private val clock = MutableClock(Instant.parse("2026-06-10T08:00:00Z"))
 
-    private fun repository() = OfflineGoalRepository(env.db.goalDao(), clock)
+    private val widgets = FakeWidgetUpdater()
+
+    private fun repository() = OfflineGoalRepository(env.db.goalDao(), clock, widgets)
 
     private suspend fun failure(block: suspend () -> Unit): Throwable? = runCatching { block() }.exceptionOrNull()
 
@@ -61,6 +64,7 @@ class OfflineGoalRepositoryTest {
 
         assertThat(repo.goal(day)).isEqualTo(saved)
         assertThat(repo.goal(day.plusDays(1))).isNull()
+        assertThat(widgets.updateCount).isEqualTo(1)
     }
 
     @Test

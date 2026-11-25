@@ -7,6 +7,7 @@ import casa.peterson.dhmo.core.datastore.SettingsStore
 import casa.peterson.dhmo.core.model.settings.AppSettings
 import casa.peterson.dhmo.core.model.settings.DeviceState
 import casa.peterson.dhmo.core.model.settings.VolumeUnit
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -30,11 +31,13 @@ class SettingsRepositoriesTest {
 
     @Test
     fun `settings repository reads and updates the store`() = runTest {
-        val repository = OfflineSettingsRepository(MemorySettingsStore())
+        val widgets = FakeWidgetUpdater()
+        val repository = OfflineSettingsRepository(MemorySettingsStore(), widgets)
         assertThat(repository.current().units).isEqualTo(VolumeUnit.ML)
         repository.update { it.copy(units = VolumeUnit.US_FL_OZ) }
         assertThat(repository.current().units).isEqualTo(VolumeUnit.US_FL_OZ)
         assertThat(repository.settings.first().units).isEqualTo(VolumeUnit.US_FL_OZ)
+        assertThat(widgets.updateCount).isEqualTo(1)
     }
 
     @Test
