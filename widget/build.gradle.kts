@@ -15,4 +15,5 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.androidx.glance.appwidget.testing)
 }
