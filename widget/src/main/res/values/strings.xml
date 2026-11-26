@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Widget picker entries -->
     <string name="widget_label">Water today</string>
-    <string name="widget_description">Today\'s progress, with one tap to log your default drink.</string>
+    <string name="widget_description">Your jar for today, with one tap to log your usual drink.</string>
+    <string name="widget_label_tall_strip">Water today, tall</string>
+    <string name="widget_description_tall_strip">Your jar in a narrow column, with one tap to log your usual drink.</string>
+    <string name="widget_label_wide_card">Water today card</string>
+    <string name="widget_description_wide_card">Your window, today\'s total, your pace and up to three drinks to log.</string>
+    <string name="widget_label_tall_card">Water today card, tall</string>
+    <string name="widget_description_tall_card">Your window, today\'s total, your pace and up to three drinks to log, stacked.</string>
+
+    <!-- On the widget. Pace wording matches the Today screen. -->
+    <string name="widget_title_today">Today</string>
+    <string name="widget_last_drink">Last drink %1$s</string>
+    <string name="widget_goal_suffix">/ %1$s</string>
+    <string name="widget_goal_of">of %1$s</string>
+    <string name="widget_pace_on_track">On track</string>
+    <string name="widget_pace_ahead">Ahead of pace</string>
+    <string name="widget_pace_behind">%1$s behind pace</string>
+    <string name="widget_pace_behind_short">%1$s behind</string>
+    <string name="widget_pace_ahead_short">Ahead</string>
+    <string name="widget_goal_reached">Goal reached</string>
+    <string name="widget_add">Add</string>
+    <string name="widget_added">Added %1$s</string>
+    <string name="widget_undo">Undo</string>
+    <string name="widget_setup_title">Set up your day</string>
+    <string name="widget_setup_body">Open the app to finish setting up, and your jar will appear here.</string>
+    <string name="widget_setup_action">Open</string>
+
+    <!-- Accessibility -->
+    <string name="widget_add_description">Add %1$s, %2$s</string>
+    <string name="widget_add_container_description">Open the app to add a drink container</string>
+    <string name="widget_undo_description">Undo adding %1$s</string>
+    <string name="widget_setup_description">Open the app to finish setting up</string>
+    <string name="widget_no_goal_description">%1$s so far today, no goal set yet</string>
+    <string name="widget_goal_reached_description">%1$s of %2$s, goal reached</string>
+    <plurals name="widget_progress_description">
+        <item quantity="one">%1$s of %2$s, %3$d percent</item>
+        <item quantity="other">%1$s of %2$s, %3$d percent</item>
+    </plurals>
 </resources>

@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import casa.peterson.dhmo.core.reminders.ReminderNotifier
 import casa.peterson.dhmo.sync.wear.WearStateSync
+import casa.peterson.dhmo.widget.WidgetConfigurationWatcher
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -18,6 +19,8 @@ class DhmoApplication :
 
     @Inject lateinit var wearStateSync: WearStateSync
 
+    @Inject lateinit var widgetConfigurationWatcher: WidgetConfigurationWatcher
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
 
@@ -25,5 +28,6 @@ class DhmoApplication :
         super.onCreate()
         reminderNotifier.ensureChannels()
         wearStateSync.start()
+        widgetConfigurationWatcher.start(this)
     }
 }

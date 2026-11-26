@@ -27,6 +27,7 @@ import casa.peterson.dhmo.core.testing.FakeProfileRepository
 import casa.peterson.dhmo.core.testing.FakeReminderScheduler
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FakeWeatherRepository
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MainDispatcherRule
 import casa.peterson.dhmo.core.testing.MutableClock
@@ -59,7 +60,8 @@ class OnboardingViewModelTest {
         FakeWeatherRepository(),
         FakeHealthConnectController(),
     )
-    private val snapshot = SnapshotDailyGoalUseCase(input, calculator, GoalPolicyV1, goals, settings, FakeReminderScheduler(), clock)
+    private val snapshot =
+        SnapshotDailyGoalUseCase(input, calculator, GoalPolicyV1, goals, settings, FakeReminderScheduler(), clock, FakeWidgetUpdater())
     private val complete = CompleteOnboardingUseCase(profiles, settings, containers, device, ticker, snapshot)
     private fun viewModel(saved: SavedStateHandle = SavedStateHandle()) =
         OnboardingViewModel(settings, device, profiles, containers, complete, calculator, clock, zone, saved)

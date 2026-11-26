@@ -19,6 +19,7 @@ import casa.peterson.dhmo.core.testing.FakeProfileRepository
 import casa.peterson.dhmo.core.testing.FakeReminderScheduler
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FakeWeatherRepository
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.TestData
 import com.google.common.truth.Truth.assertThat
 import java.time.Clock
@@ -44,7 +45,9 @@ class SnapshotDailyGoalUseCaseTest {
         weather,
         FakeHealthConnectController(),
     )
-    private val snapshot = SnapshotDailyGoalUseCase(input, GoalCalculator(GoalPolicyV1), GoalPolicyV1, goals, settings, reminders, clock)
+    private val widgets = FakeWidgetUpdater()
+    private val snapshot =
+        SnapshotDailyGoalUseCase(input, GoalCalculator(GoalPolicyV1), GoalPolicyV1, goals, settings, reminders, clock, widgets)
 
     @Test
     fun unchangedSnapshotIsNotWrittenOrRescheduled() = runTest {
@@ -82,6 +85,21 @@ class SnapshotDailyGoalUseCaseTest {
         val resolved = checkNotNull(input(day))
         assertThat((resolved.climate as ClimateInput.Forecast).maxApparentTempC).isEqualTo(32.0)
         assertThat(resolved.activity).isInstanceOf(ActivityInput.Level::class.java)
+    }
+
+    @Test
+    fun aChangedTargetForTodayRepaintsTheWidgetsButABackfilledDayDoesNot() = runTest {
+        // Backfilling a week away: past days are saved without repainting, so the widgets are not redrawn seven times.
+        (1L..6L).forEach { snapshot(day.minusDays(it), notifyReminders = false) }
+        assertThat(widgets.updateCount).isEqualTo(0)
+        snapshot(day)
+        assertThat(widgets.updateCount).isEqualTo(1)
+        // The same target again is no change.
+        snapshot(day)
+        assertThat(widgets.updateCount).isEqualTo(1)
+        goals.setDayOverride(day, 2100, null)
+        snapshot(day)
+        assertThat(widgets.updateCount).isEqualTo(2)
     }
 
     @Test

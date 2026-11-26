@@ -73,6 +73,21 @@ What replaced them is `renderScreenVariants(name) { … }` in `:core:testing`. E
 ./gradlew :feature:today:testDebugUnitTest --tests '*RenderTest'
 ```
 
+### The home-screen widget
+
+The widget is RemoteViews, not Compose UI, so it has its own harness. `WidgetRenderTest` (`:widget`) composes every layout in every state, day and night, into real RemoteViews with `GlanceRemoteViews`, inflates them at the cell sizes a launcher gives (portrait and landscape), and draws them; it fails if any of that throws. `WindowStillTest` (`:core:designsystem`) checks the jar's water level in the window drawings the widget shows. Both use Robolectric native graphics, but draw straight into a `Bitmap` canvas rather than capturing a rendered frame, which is the path that returned blank frames; 300 consecutive draws in one JVM came out identical.
+
+The same test writes PNGs when asked, which is how the widget's pull-request screenshots and picker previews are made:
+
+```bash
+WIDGET_SCREENSHOT_DIR=/tmp/widget-shots ./gradlew :widget:testDebugUnitTest --tests '*WidgetRenderTest*'
+# Picker previews for Android 12 to 14, which cannot generate their own. Convert to WebP at 2x and replace
+# widget/src/main/res/drawable-nodpi/widget_preview_*.webp after an intentional visual change.
+WIDGET_PREVIEW_DIR=/tmp/widget-previews ./gradlew :widget:testDebugUnitTest --tests '*WidgetRenderTest*'
+```
+
+Files are named `<sheet>__<order>__<label>.png`. The tests never compare pixels against stored images: review the drawings, and check the real thing on a launcher (§10).
+
 ## 5. Gradle Managed Devices
 
 A Gradle Managed Device (GMD) named `pixel6Api34` (Pixel 6, API 34, `aosp-atd` image) is declared by the Android convention plugins. Gradle creates, boots and tears down the emulator itself. This needs hardware virtualisation: KVM on Linux, Hypervisor.framework on macOS, WHPX on Windows.
@@ -238,6 +253,25 @@ Needs a phone and a Wear OS 3+ watch (or a paired Wear OS emulator) running buil
 | WR-M4 | Round and square watch faces or emulators | Tile text and chips are not clipped |
 | WR-M5 | TalkBack on the watch | The ring announces the percentage and total; each chip reads its amount |
 | WR-M6 | Reminder notification on the phone while the watch is connected | The bridged notification shows the log actions, and tapping one from the watch logs the drink |
+
+### 10.6a Home-screen widget
+
+Setup: finish onboarding, then place each picker entry (Water today, Water today tall, Water today card, Water today card tall) and resize one through every layout. Items marked * were run on the API 34 emulator with the Pixel Launcher for the change that rebuilt the widget.
+
+| # | Scenario | Steps | Expected |
+|---|---|---|---|
+| W-M1* | Picker | Open the launcher's widget picker on Android 12–14 | Each entry shows its drawn preview, not a blank box |
+| W-M2* | Log | Tap a coaster three times quickly | The total rises within about a second each time; every placed widget agrees |
+| W-M3* | Undo | Tap a coaster, then Undo | Only that drink is removed; Undo disappears after about 10 s if unused |
+| W-M4* | Goal | Cross the goal from the widget | The lantern lights, the status reads "Goal reached" |
+| W-M5* | Theme | Switch Day/Night in the app | Every widget follows at once, drawings included |
+| W-M6* | App update | Install a new build over the old one | Placed widgets redraw from the new build |
+| W-M7 | Follow system | Theme on Follow system; toggle dark mode in quick settings | Widgets follow (at once while the app's process is alive, otherwise within 30 min) |
+| W-M8 | Day boundary | Leave a widget on screen across midnight (or the configured day start) | The jar empties for the new day within a minute or two, without opening the app |
+| W-M9 | Time zone | Change the zone by ±3 h | The widget shows the right hydration day |
+| W-M10 | Containers | Delete all containers, then add one | The coaster reads Add and opens Today; then returns as the new container |
+| W-M11 | Font scale | Largest font size | No text overlaps a coaster or the window |
+| W-M12 | TalkBack | Explore each layout | The jar reads its percentage; coasters read "Add Glass, 250 ml"; Undo reads "Undo adding 250 ml" |
 
 ### 10.7 Accessibility and display
 

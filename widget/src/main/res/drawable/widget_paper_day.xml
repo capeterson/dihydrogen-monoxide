@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's paper below Android 12, where it cannot be clipped to the launcher's own corner radius. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFECEEE3" />
+    <corners android:radius="16dp" />
+</shape>

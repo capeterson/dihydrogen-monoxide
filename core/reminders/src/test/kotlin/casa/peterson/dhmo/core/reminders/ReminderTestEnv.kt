@@ -27,6 +27,7 @@ import casa.peterson.dhmo.core.testing.FakeProfileRepository
 import casa.peterson.dhmo.core.testing.FakeReminderScheduler
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FakeWeatherRepository
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MutableClock
 import casa.peterson.dhmo.core.testing.TestData
@@ -77,6 +78,7 @@ internal class ReminderTestEnv(reminders: ReminderSettings = ReminderSettings(en
         settings,
         FakeReminderScheduler(),
         clock,
+        FakeWidgetUpdater(),
     )
     val buildState = BuildReminderStateUseCase(
         settings,
