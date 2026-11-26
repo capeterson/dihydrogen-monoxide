@@ -66,8 +66,8 @@ import kotlinx.coroutines.flow.first
  * .lantern) so the two can be compared side by side.
  */
 
-private const val DESIGN_WIDTH = 230f
-private const val HEIGHT_PER_WIDTH = 1.25f
+internal const val DESIGN_WIDTH = 230f
+internal const val HEIGHT_PER_WIDTH = 1.25f
 private const val PERCENT = 100f
 private const val FILL_MILLIS = 590
 private val DefaultWidth = 230.dp
@@ -201,7 +201,7 @@ fun WindowHero(
     }
 }
 
-private fun DrawScope.drawHero(
+internal fun DrawScope.drawHero(
     look: HeroLook,
     raining: Boolean,
     lit: Boolean,
@@ -210,9 +210,10 @@ private fun DrawScope.drawHero(
     sip: Float,
     spiritSip: Float,
     goal: Float,
+    window: Boolean = true,
 ) {
     val s = size.width / DESIGN_WIDTH
-    drawWindow(look, s, raining && !lit, time)
+    if (window) drawWindowFrame(look, s, raining && !lit, time)
     val warmth = if (lit) pulse(goal, 0f, 0.22f, 1f) else 0f
     if (warmth > 0f) {
         val source = Offset(0.65f * size.width, 0.73f * size.height)
@@ -220,9 +221,10 @@ private fun DrawScope.drawHero(
         drawCircle(Brush.radialGradient(listOf(look.x.glow, Color.Transparent), source, radius), radius, source, 0.48f * warmth)
     }
     drawSill(look, s)
-    drawPlantOnSill(look, s, time)
+    // Without the window (a still cropped to the jar), the plant and lantern at the sill's ends are out of frame.
+    if (window) drawPlantOnSill(look, s, time)
     drawJarOnSill(look, s, level, sip, time)
-    drawLanternOnSill(look, s, lit, time)
+    if (window) drawLanternOnSill(look, s, lit, time)
     scale(s, Offset.Zero) {
         translate(155f, 272f) {
             val goalSip = goal * GOAL_DURATION / SIP_DURATION
@@ -239,7 +241,7 @@ private fun DrawScope.drawHero(
 }
 
 /** The theme colours the hero draws with. */
-private data class HeroLook(
+internal data class HeroLook(
     val x: DhmoExtraColors,
     val primary: Color,
     val leaf: Color,
@@ -307,7 +309,7 @@ private fun glassPath(width: Float, bottom: Float, inset: Float, corner: Float):
     }
 }
 
-private fun DrawScope.drawWindow(look: HeroLook, s: Float, raining: Boolean, time: Float) {
+private fun DrawScope.drawWindowFrame(look: HeroLook, s: Float, raining: Boolean, time: Float) {
     val x = look.x
     val glassBottom = size.height - GLASS_BOTTOM_INSET * s
     drawPath(glassPath(size.width, glassBottom, 0f, 6f * s), x.wood)

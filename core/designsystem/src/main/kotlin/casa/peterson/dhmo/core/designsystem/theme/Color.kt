@@ -125,7 +125,7 @@ class DhmoExtraColors(
     val isNight: Boolean,
 )
 
-internal val LightExtraColors =
+val LightExtraColors =
     DhmoExtraColors(
         skyTop = Color(0xFF9DBFD3),
         skyMiddle = Color(0xFFC9DCE0),
@@ -149,7 +149,7 @@ internal val LightExtraColors =
         isNight = false,
     )
 
-internal val DarkExtraColors =
+val DarkExtraColors =
     DhmoExtraColors(
         skyTop = Color(0xFF2B2F5A),
         skyMiddle = Color(0xFF4A3F6B),
