@@ -17,6 +17,7 @@ import casa.peterson.dhmo.core.testing.FakeProfileRepository
 import casa.peterson.dhmo.core.testing.FakeReminderScheduler
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FakeWeatherRepository
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MutableClock
 import casa.peterson.dhmo.core.testing.TestData
@@ -48,7 +49,8 @@ class GoalLifecycleTest {
         FakeWeatherRepository(),
         FakeHealthConnectController(),
     )
-    private val snapshot = SnapshotDailyGoalUseCase(input, GoalCalculator(GoalPolicyV1), GoalPolicyV1, goals, settings, reminders, clock)
+    private val snapshot =
+        SnapshotDailyGoalUseCase(input, GoalCalculator(GoalPolicyV1), GoalPolicyV1, goals, settings, reminders, clock, FakeWidgetUpdater())
 
     @Test
     fun backfillCreatesOnlyMissingDaysAfterTheLastSnapshot() = runTest {

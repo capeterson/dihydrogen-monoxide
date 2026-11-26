@@ -1,7 +1,5 @@
 package casa.peterson.dhmo.core.data.repository
 
-import android.util.Log
-import casa.peterson.dhmo.core.common.suspendRunCatching
 import casa.peterson.dhmo.core.data.mapper.toEntity
 import casa.peterson.dhmo.core.data.mapper.toModel
 import casa.peterson.dhmo.core.database.dao.GoalDao
@@ -17,8 +15,7 @@ import kotlinx.coroutines.flow.map
 /** Room-backed [GoalRepository]. Day overrides are tombstoned when cleared so the removal survives a merge. */
 class OfflineGoalRepository
 @Inject
-constructor(private val dao: GoalDao, private val clock: Clock, private val widgets: WidgetUpdater) :
-    GoalRepository {
+constructor(private val dao: GoalDao, private val clock: Clock) : GoalRepository {
     override fun observeGoal(day: LocalDate): Flow<DailyGoal?> = dao.observeGoal(day).map { it?.toModel() }
 
     override fun observeGoals(from: LocalDate, to: LocalDate): Flow<List<DailyGoal>> =
@@ -30,7 +27,6 @@ constructor(private val dao: GoalDao, private val clock: Clock, private val widg
 
     override suspend fun saveSnapshot(goal: DailyGoal) {
         dao.upsertGoal(goal.toEntity())
-        suspendRunCatching { widgets.updateAll() }.onFailure { Log.w(TAG, "Widget refresh failed", it) }
     }
 
     override fun observeDayOverride(day: LocalDate): Flow<DayOverride?> = dao.observeOverride(day).map { it?.toModel() }
@@ -45,7 +41,6 @@ constructor(private val dao: GoalDao, private val clock: Clock, private val widg
     }
 
     private companion object {
-        const val TAG = "GoalRepository"
         const val MIN_TARGET_ML = 250
         const val MAX_TARGET_ML = 10_000
     }

@@ -20,6 +20,7 @@ import casa.peterson.dhmo.core.testing.FakeProfileRepository
 import casa.peterson.dhmo.core.testing.FakeReminderScheduler
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FakeWeatherRepository
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MutableClock
 import casa.peterson.dhmo.core.testing.TestData
@@ -48,6 +49,7 @@ internal class ProfileTestEnv(profile: Profile? = TestData.adultProfile, setting
         this.settings,
         reminders,
         clock,
+        FakeWidgetUpdater(),
     )
 
     fun profileGoalViewModel() = ProfileGoalViewModel(

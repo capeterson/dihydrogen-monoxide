@@ -30,6 +30,7 @@ import casa.peterson.dhmo.core.testing.FakeProfileRepository
 import casa.peterson.dhmo.core.testing.FakeReminderScheduler
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FakeWeatherRepository
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MainDispatcherRule
 import casa.peterson.dhmo.core.testing.MutableClock
@@ -65,7 +66,16 @@ class OnboardingNavigationTest {
         val input =
             BuildGoalInputUseCase(profiles, settings, FakeActivityRepository(clock), FakeWeatherRepository(), FakeHealthConnectController())
         val snapshot =
-            SnapshotDailyGoalUseCase(input, calculator, GoalPolicyV1, FakeGoalRepository(clock), settings, FakeReminderScheduler(), clock)
+            SnapshotDailyGoalUseCase(
+                input,
+                calculator,
+                GoalPolicyV1,
+                FakeGoalRepository(clock),
+                settings,
+                FakeReminderScheduler(),
+                clock,
+                FakeWidgetUpdater(),
+            )
         val complete = CompleteOnboardingUseCase(profiles, settings, containers, device, ticker, snapshot)
         val vm = OnboardingViewModel(settings, device, profiles, containers, complete, calculator, clock, zone, SavedStateHandle())
         val nav = TestNavHostController(context).apply { navigatorProvider.addNavigator(ComposeNavigator()) }

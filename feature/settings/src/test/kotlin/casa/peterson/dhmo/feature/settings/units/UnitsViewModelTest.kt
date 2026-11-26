@@ -16,6 +16,7 @@ import casa.peterson.dhmo.core.testing.FakeProfileRepository
 import casa.peterson.dhmo.core.testing.FakeReminderScheduler
 import casa.peterson.dhmo.core.testing.FakeSettingsRepository
 import casa.peterson.dhmo.core.testing.FakeWeatherRepository
+import casa.peterson.dhmo.core.testing.FakeWidgetUpdater
 import casa.peterson.dhmo.core.testing.FixedZoneProvider
 import casa.peterson.dhmo.core.testing.MainDispatcherRule
 import casa.peterson.dhmo.core.testing.MutableClock
@@ -57,6 +58,7 @@ class UnitsViewModelTest {
         settings,
         reminders,
         clock,
+        FakeWidgetUpdater(),
     )
     private val model by lazy { UnitsViewModel(settings, ChangeDayStartUseCase(settings, intake, snapshot, reminders, clock, zone)) }
 

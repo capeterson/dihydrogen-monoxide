@@ -51,6 +51,7 @@ class DayRolloverCoordinatorTest {
         settings,
         FakeReminderScheduler(),
         clock,
+        FakeWidgetUpdater(),
     )
 
     @Test
