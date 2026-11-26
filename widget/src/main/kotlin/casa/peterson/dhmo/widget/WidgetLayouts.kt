@@ -105,15 +105,8 @@ internal fun WideStripLayout(model: WidgetModel, art: WidgetArt) {
 @Composable
 internal fun TallStripLayout(model: WidgetModel, art: WidgetArt) {
     Column(GlanceModifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        val portrait = LocalSize.current.height >= 280.dp
-        if (portrait) {
-            // A tall cell: the jar and total sit together in the middle of the space above the coaster.
-            Spacer(GlanceModifier.defaultWeight())
-            JarArt(art, model, GlanceModifier.fillMaxWidth().height(96.dp))
-        } else {
-            // A short (landscape) cell: the jar takes whatever height the rest leaves.
-            JarArt(art, model, GlanceModifier.fillMaxWidth().defaultWeight())
-        }
+        // Let the art occupy the available space, keeping the reading and action together below it.
+        JarArt(art, model, GlanceModifier.fillMaxWidth().defaultWeight())
         Spacer(GlanceModifier.height(6.dp))
         Text(model.amountValue, style = numberStyle(15.sp, TextAlign.Center), maxLines = 1)
         Text(model.goalLine ?: model.unitSymbol, style = goalStyle(11.sp, TextAlign.Center, mono = false), maxLines = 2)
@@ -123,7 +116,7 @@ internal fun TallStripLayout(model: WidgetModel, art: WidgetArt) {
         } else {
             StatusOrUndo(model, 11.sp, short = true, align = TextAlign.Center, modifier = GlanceModifier.padding(top = 4.dp))
         }
-        Spacer(if (portrait) GlanceModifier.defaultWeight() else GlanceModifier.height(8.dp))
+        Spacer(GlanceModifier.height(8.dp))
         Coaster(model.primaryButton, CoasterStyle.MINI, model, GlanceModifier.fillMaxWidth().height(56.dp))
     }
 }
@@ -217,11 +210,14 @@ internal fun TallCardLayout(model: WidgetModel, art: WidgetArt) {
         return
     }
     Column(GlanceModifier.fillMaxSize().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Column(GlanceModifier.fillMaxWidth()) { CardHeading(model, lastDrinkLines = 2) }
-        Spacer(GlanceModifier.height(8.dp))
-        // The window takes whatever height the rest leaves, up to the full width.
+        // Keep the heading and reading together, with the window as a quiet illustration above them.
         WindowArt(art, model, GlanceModifier.fillMaxWidth().defaultWeight())
         Spacer(GlanceModifier.height(8.dp))
+        Column(GlanceModifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(model.titleText, style = headingStyle(18.sp), maxLines = 1)
+            model.lastDrinkText?.let { Text(it, style = mutedStyle(11.sp, TextAlign.Center), maxLines = 2) }
+        }
+        Spacer(GlanceModifier.height(4.dp))
         Total(model, 26.sp, 12.sp, stacked = true, align = TextAlign.Center)
         StatusOrUndo(model, 12.sp, stackedUndo = true, align = TextAlign.Center, modifier = GlanceModifier.padding(top = 4.dp))
         Spacer(GlanceModifier.height(10.dp))

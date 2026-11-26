@@ -102,7 +102,7 @@ internal enum class CoasterStyle {
 }
 
 /**
- * A coaster from the Today screen: the dashed-edged paper disc with the container's inked icon. Tapping it logs the
+ * A coaster from the Today screen: a softly tinted tile with the container's inked icon. Tapping it logs the
  * container; with no containers it reads "Add" and opens the app instead.
  */
 @Composable
