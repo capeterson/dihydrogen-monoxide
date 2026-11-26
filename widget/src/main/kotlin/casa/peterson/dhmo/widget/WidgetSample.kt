@@ -30,17 +30,22 @@ internal enum class WidgetSample {
     NO_CONTAINERS,
     FEW_CONTAINERS,
     ONBOARDING,
+
+    /** Behind pace, a moment after a glass was logged from the widget: Undo is offered. */
+    JUST_ADDED,
 }
 
 private const val GOAL_ML = 2500
 private const val HALF_ML = 1250
 private const val EXPECTED_ML = 1500
+private const val GLASS_ML = 250
 private const val BEHIND_ML = 250
 private const val AHEAD_TOTAL_ML = 1750
 private const val REACHED_ML = 2600
 private const val NO_GOAL_ML = 750
 
 private val SampleDay = LocalDate.of(2026, 6, 10)
+private val SampleEntryId = UUID.fromString("00000000-0000-0000-0000-0000000000aa")
 private val SampleContainers = listOf(
     Container(UUID.fromString("00000000-0000-0000-0000-000000000001"), "Glass", 250, ContainerIcon.GLASS, 0, Instant.EPOCH),
     Container(UUID.fromString("00000000-0000-0000-0000-000000000002"), "Mug", 350, ContainerIcon.MUG, 1, Instant.EPOCH),
@@ -64,11 +69,11 @@ private fun sampleEntry(totalMl: Int): List<IntakeEntry> = if (totalMl == 0) {
     val at = Instant.parse("2026-06-10T14:15:00Z")
     listOf(
         IntakeEntry(
-            id = UUID.fromString("00000000-0000-0000-0000-0000000000aa"),
+            id = SampleEntryId,
             instant = at,
             zoneOffset = ZoneOffset.UTC,
             hydrationDay = SampleDay,
-            volumeMl = 250,
+            volumeMl = GLASS_ML,
             source = Source.WIDGET,
             createdAt = at,
             updatedAt = at,
@@ -80,11 +85,12 @@ private fun sampleEntry(totalMl: Int): List<IntakeEntry> = if (totalMl == 0) {
 internal fun sampleModel(
     resources: Resources,
     sample: WidgetSample,
-    units: VolumeUnit = VolumeUnit.L,
+    units: VolumeUnit = VolumeUnit.ML,
     locale: Locale = Locale.US,
+    night: Boolean = false,
 ): WidgetModel {
     val (total, goal, pace) = when (sample) {
-        WidgetSample.BEHIND, WidgetSample.FEW_CONTAINERS, WidgetSample.NO_CONTAINERS, WidgetSample.ONBOARDING ->
+        WidgetSample.BEHIND, WidgetSample.FEW_CONTAINERS, WidgetSample.NO_CONTAINERS, WidgetSample.ONBOARDING, WidgetSample.JUST_ADDED ->
             Triple(HALF_ML, sampleGoal(GOAL_ML), Pace(EXPECTED_ML, BEHIND_ML, PaceStatus.BEHIND))
 
         WidgetSample.ON_TRACK -> Triple(EXPECTED_ML, sampleGoal(GOAL_ML), Pace(EXPECTED_ML, 0, PaceStatus.ON_TRACK))
@@ -108,8 +114,10 @@ internal fun sampleModel(
         units = units,
         locale = locale,
         onboarded = sample != WidgetSample.ONBOARDING,
+        night = night,
         resources = resources,
         zone = ZoneOffset.UTC,
         is24Hour = false,
+        undo = if (sample == WidgetSample.JUST_ADDED) PendingUndo(SampleEntryId, GLASS_ML) else null,
     )
 }

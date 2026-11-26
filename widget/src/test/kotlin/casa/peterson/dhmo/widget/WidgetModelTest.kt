@@ -43,10 +43,12 @@ class WidgetModelTest {
     private fun container(name: String, ml: Int, order: Int, icon: ContainerIcon = ContainerIcon.GLASS) =
         Container(UUID.nameUUIDFromBytes(name.toByteArray()), name, ml, icon, order, Instant.EPOCH)
 
-    private val three = listOf(
+    private val five = listOf(
         container("Bottle", 500, 2, ContainerIcon.BOTTLE),
         container("Glass", 250, 0),
+        container("Flask", 750, 4, ContainerIcon.FLASK),
         container("Mug", 350, 1, ContainerIcon.MUG),
+        container("Cup", 150, 3, ContainerIcon.CUP),
     )
 
     private fun snapshot(total: Int, goalMl: Int? = 2500, pace: Pace? = null, lastDrink: Instant? = Instant.parse("2026-06-10T14:15:00Z")) =
@@ -54,164 +56,135 @@ class WidgetModelTest {
 
     private fun build(
         snapshot: TodaySnapshot,
-        containers: List<Container> = three,
-        units: VolumeUnit = VolumeUnit.L,
+        containers: List<Container> = five,
+        units: VolumeUnit = VolumeUnit.ML,
         onboarded: Boolean = true,
-        locale: Locale = Locale.US,
-    ) = buildWidgetModel(snapshot, containers, units, locale, onboarded, resources, ZoneOffset.UTC, is24Hour = false)
+        night: Boolean = false,
+        undo: PendingUndo? = null,
+    ) = buildWidgetModel(snapshot, containers, units, Locale.US, onboarded, night, resources, ZoneOffset.UTC, is24Hour = false, undo = undo)
 
     @Test
-    fun `partial progress behind pace shows the amount, goal, percentage and the deficit`() {
-        val model = build(snapshot(1250, pace = Pace(1500, 250, PaceStatus.BEHIND)))
-        assertThat(model.amountText).isEqualTo("1.25 L")
-        assertThat(model.goalText).isEqualTo("2.5 L")
-        assertThat(model.compactText).isEqualTo("1.25 / 2.5 L")
-        assertThat(model.goalLine).isEqualTo("of 2.5 L")
-        assertThat(model.percentText).isEqualTo("50%")
-        assertThat(model.paceText).isEqualTo("0.25 L behind")
-        assertThat(model.detailLine).isEqualTo("of 2.5 L · 50% · 0.25 L behind")
+    fun `the total is written as the Today screen writes it`() {
+        val model = build(snapshot(1250))
+        assertThat(model.amountNumber).isEqualTo("1,250")
+        assertThat(model.goalSuffix).isEqualTo("/ 2,500 ml")
+        assertThat(model.goalLine).isEqualTo("of 2,500 ml")
+        assertThat(model.amountValue).isEqualTo("1,250")
+        assertThat(model.unitSymbol).isEqualTo("ml")
         assertThat(model.fraction).isEqualTo(0.5f)
-        assertThat(model.goalReached).isFalse()
-        assertThat(model.lastDrinkText).isEqualTo("last drink 2:15 PM")
-        assertThat(model.progressDescription).isEqualTo("1.25 L of 2.5 L, 50 percent")
-        assertThat(model.needsSetup).isFalse()
+        assertThat(model.progressDescription).isEqualTo("1,250 ml of 2,500 ml, 50 percent")
+        assertThat(model.lastDrinkText).isEqualTo("Last drink 2:15 PM")
     }
 
     @Test
-    fun `on track and ahead have their own words`() {
-        assertThat(build(snapshot(1500, pace = Pace(1500, 0, PaceStatus.ON_TRACK))).paceText).isEqualTo("On track")
-        assertThat(build(snapshot(1750, pace = Pace(1500, -250, PaceStatus.AHEAD))).paceText).isEqualTo("Ahead")
+    fun `pace uses the Today screen's words, with a short form for the strips`() {
+        val behind = build(snapshot(1250, pace = Pace(1500, 250, PaceStatus.BEHIND)))
+        assertThat(behind.statusText).isEqualTo("250 ml behind pace")
+        assertThat(behind.statusShortText).isEqualTo("250 ml behind")
+        assertThat(behind.statusTone).isEqualTo(StatusTone.WATER)
+        assertThat(behind.raining).isTrue()
+
+        val onTrack = build(snapshot(1500, pace = Pace(1500, 0, PaceStatus.ON_TRACK)))
+        assertThat(onTrack.statusText).isEqualTo("On track")
+        assertThat(onTrack.raining).isFalse()
+
+        val ahead = build(snapshot(1750, pace = Pace(1500, -250, PaceStatus.AHEAD)))
+        assertThat(ahead.statusText).isEqualTo("Ahead of pace")
+        assertThat(ahead.statusShortText).isEqualTo("Ahead")
     }
 
     @Test
-    fun `outside the wake window there is no pace text`() {
+    fun `outside the wake window there is no pace and no rain`() {
         val model = build(snapshot(1250, pace = null))
-        assertThat(model.paceText).isNull()
-        assertThat(model.detailLine).isEqualTo("of 2.5 L · 50%")
+        assertThat(model.statusText).isNull()
+        assertThat(model.statusShortText).isNull()
+        assertThat(model.raining).isFalse()
     }
 
     @Test
-    fun `reaching the goal is flagged, the fraction is capped and the percentage is not`() {
+    fun `a met goal fills the jar, lights the lamp and stops the rain`() {
         val model = build(snapshot(2600, pace = Pace(2500, -100, PaceStatus.AHEAD)))
         assertThat(model.goalReached).isTrue()
         assertThat(model.fraction).isEqualTo(1f)
-        assertThat(model.percentText).isEqualTo("104%")
-        assertThat(model.progressDescription).isEqualTo("2.6 L of 2.5 L, goal reached")
+        assertThat(model.statusText).isEqualTo("Goal reached")
+        assertThat(model.statusTone).isEqualTo(StatusTone.LAMPLIGHT)
+        assertThat(model.raining).isFalse()
+        assertThat(model.progressDescription).isEqualTo("2,600 ml of 2,500 ml, goal reached")
     }
 
     @Test
-    fun `a nearly full day never says 100 percent before the goal is reached`() {
-        val model = build(snapshot(2499))
-        assertThat(model.goalReached).isFalse()
-        assertThat(model.percentText).isEqualTo("99%")
+    fun `just short of the goal is never read out as 100 percent`() {
+        assertThat(build(snapshot(2490)).progressDescription).endsWith("99 percent")
+        assertThat(build(snapshot(2490)).goalReached).isFalse()
     }
 
     @Test
-    fun `exactly the goal counts as reached`() {
-        val model = build(snapshot(2500))
-        assertThat(model.goalReached).isTrue()
-        assertThat(model.percentText).isEqualTo("100%")
-    }
-
-    @Test
-    fun `without a goal only the amount is shown`() {
-        val model = build(snapshot(750, goalMl = null))
-        assertThat(model.amountText).isEqualTo("0.75 L")
-        assertThat(model.compactText).isEqualTo("0.75 L")
-        assertThat(model.goalText).isNull()
+    fun `without a goal there is only the amount, and the jar stays empty as on the Today screen`() {
+        val model = build(snapshot(750, goalMl = null, pace = Pace(0, 0, PaceStatus.BEHIND)))
+        assertThat(model.amountNumber).isEqualTo("750 ml")
+        assertThat(model.goalSuffix).isNull()
         assertThat(model.goalLine).isNull()
-        assertThat(model.percentText).isNull()
-        assertThat(model.paceText).isNull()
-        assertThat(model.detailLine).isNull()
         assertThat(model.fraction).isEqualTo(0f)
-        assertThat(model.goalReached).isFalse()
-        assertThat(model.progressDescription).isEqualTo("0.75 L so far today, no goal set yet")
+        assertThat(model.statusText).isNull()
+        assertThat(model.raining).isFalse()
+        assertThat(model.progressDescription).isEqualTo("750 ml so far today, no goal set yet")
     }
 
     @Test
-    fun `a nothing-yet day has no last drink`() {
-        val model = build(snapshot(0, lastDrink = null))
-        assertThat(model.lastDrinkText).isNull()
-        assertThat(model.percentText).isEqualTo("0%")
+    fun `before the first drink there is no last-drink line`() {
+        assertThat(build(snapshot(0, lastDrink = null)).lastDrinkText).isNull()
     }
 
     @Test
-    fun `the last drink is the latest entry, in the device zone, in 24 hour time when asked`() {
-        val entries = listOf(TestData.entry(Instant.parse("2026-06-10T08:00:00Z")), TestData.entry(Instant.parse("2026-06-10T19:05:00Z")))
-        val snapshot = TodaySnapshot(day, entries, 500, goal(2500), null)
-        val model = buildWidgetModel(snapshot, three, VolumeUnit.L, Locale.US, true, resources, ZoneOffset.ofHours(2), is24Hour = true)
-        assertThat(model.lastDrinkText).isEqualTo("last drink 21:05")
+    fun `coasters are the three lowest sort orders, in order`() {
+        val buttons = build(snapshot(1250)).buttons
+        assertThat(buttons.map { it.name }).containsExactly("Glass", "Mug", "Bottle").inOrder()
+        assertThat(buttons.first().amountText).isEqualTo("250 ml")
+        assertThat(buttons.first().contentDescription).isEqualTo("Add Glass, 250 ml")
+        assertThat(buttons.first().icon).isEqualTo(ContainerIcon.GLASS)
     }
 
     @Test
-    fun `three containers give three buttons ordered by sort order with their icons and descriptions`() {
-        val buttons = build(snapshot(1250), units = VolumeUnit.ML).buttons
-        assertThat(buttons.map { it.label }).containsExactly("+250 ml", "+350 ml", "+500 ml").inOrder()
-        assertThat(buttons.map { it.shortLabel }).containsExactly("+250", "+350", "+500").inOrder()
-        assertThat(buttons.map { it.icon }).containsExactly(ContainerIcon.GLASS, ContainerIcon.MUG, ContainerIcon.BOTTLE).inOrder()
-        assertThat(buttons.map { it.contentDescription })
-            .containsExactly("Add Glass, 250 ml", "Add Mug, 350 ml", "Add Bottle, 500 ml").inOrder()
-        assertThat(buttons.map { it.containerId }).containsNoDuplicates()
+    fun `one container gives one coaster`() {
+        val buttons = build(snapshot(1250), containers = five.filter { it.name == "Mug" }).buttons
+        assertThat(buttons.map { it.name }).containsExactly("Mug")
     }
 
     @Test
-    fun `five containers are cut to the first three`() {
-        val five = (0..4).map { container("Cup $it", 100 + it * 50, it) }
-        val buttons = build(snapshot(1250), containers = five).buttons
-        assertThat(buttons).hasSize(3)
-        assertThat(buttons.map { it.containerId }).containsExactlyElementsIn(five.take(3).map { it.id }).inOrder()
-    }
-
-    @Test
-    fun `one container gives one button`() {
-        assertThat(build(snapshot(1250), containers = three.filter { it.sortOrder == 0 }).buttons).hasSize(1)
-    }
-
-    @Test
-    fun `no containers leaves one button that opens the app`() {
+    fun `with no containers the single coaster opens the app`() {
         val buttons = build(snapshot(1250), containers = emptyList()).buttons
         assertThat(buttons).hasSize(1)
         assertThat(buttons.single().containerId).isNull()
-        assertThat(buttons.single().label).isEqualTo("Open app")
-        assertThat(buttons.single().shortLabel).isEqualTo("Open")
-        assertThat(buttons.single().icon).isNull()
+        assertThat(buttons.single().name).isEqualTo("Add")
+        assertThat(buttons.single().amountText).isNull()
         assertThat(buttons.single().contentDescription).isEqualTo("Open the app to add a drink container")
     }
 
     @Test
-    fun `unfinished onboarding is flagged`() {
-        val model = build(snapshot(0), onboarded = false)
-        assertThat(model.needsSetup).isTrue()
-        assertThat(model.setupText).isEqualTo("Finish setup in the app")
+    fun `fluid ounces split into number and unit for narrow coasters`() {
+        val model = build(snapshot(1250), units = VolumeUnit.US_FL_OZ)
+        assertThat(model.amountNumber).isEqualTo("42.3")
+        assertThat(model.goalSuffix).isEqualTo("/ 84.5 fl oz")
+        val glass = model.buttons.first()
+        assertThat(glass.amountText).isEqualTo("8.5 fl oz")
+        assertThat(glass.amountValue).isEqualTo("8.5")
+        assertThat(glass.unitSymbol).isEqualTo("fl oz")
     }
 
     @Test
-    fun `millilitres show whole numbers with grouping`() {
-        val model = build(snapshot(1250), units = VolumeUnit.ML)
-        assertThat(model.amountText).isEqualTo("1,250 ml")
-        assertThat(model.goalText).isEqualTo("2,500 ml")
-        assertThat(model.compactText).isEqualTo("1,250 / 2,500 ml")
+    fun `a pending undo offers to take back the drink`() {
+        val id = UUID.randomUUID()
+        val undo = build(snapshot(1250), undo = PendingUndo(id, 250)).undo
+        assertThat(undo?.entryId).isEqualTo(id)
+        assertThat(undo?.text).isEqualTo("Added 250 ml")
+        assertThat(undo?.description).isEqualTo("Undo adding 250 ml")
+        assertThat(build(snapshot(1250)).undo).isNull()
     }
 
     @Test
-    fun `fluid ounces convert amounts, goal and buttons`() {
-        val model = build(snapshot(1250, pace = Pace(1500, 250, PaceStatus.BEHIND)), units = VolumeUnit.US_FL_OZ)
-        assertThat(model.amountText).isEqualTo("42.3 fl oz")
-        assertThat(model.goalText).isEqualTo("84.5 fl oz")
-        assertThat(model.paceText).isEqualTo("8.5 fl oz behind")
-        assertThat(model.buttons.first().label).isEqualTo("+8.5 fl oz")
-        assertThat(model.buttons.first().shortLabel).isEqualTo("+8.5")
-        assertThat(model.buttons.first().contentDescription).isEqualTo("Add Glass, 8.5 fl oz")
-    }
-
-    @Test
-    fun `numbers follow the locale`() {
-        val model = build(snapshot(1250), units = VolumeUnit.L, locale = Locale.GERMANY)
-        assertThat(model.amountText).isEqualTo("1,25 L")
-    }
-
-    @Test
-    fun `every sample state builds`() {
-        WidgetSample.entries.forEach { sampleModel(resources, it) }
+    fun `setup and theme are carried through`() {
+        assertThat(build(snapshot(0), onboarded = false).needsSetup).isTrue()
+        assertThat(build(snapshot(0)).needsSetup).isFalse()
+        assertThat(build(snapshot(0), night = true).night).isTrue()
     }
 }

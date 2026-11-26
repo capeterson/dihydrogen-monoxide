@@ -13,6 +13,7 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(projects.core.testing)
     testImplementation(libs.androidx.glance.appwidget.testing)

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Today screen's coaster (QuickAddButton): a paper disc with a round top and a dashed edge. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFDFE4D3" />
+    <stroke
+        android:width="1dp"
+        android:color="#FF7A8478"
+        android:dashWidth="4dp"
+        android:dashGap="3dp" />
+    <corners
+        android:topLeftRadius="18dp"
+        android:topRightRadius="18dp"
+        android:bottomLeftRadius="14dp"
+        android:bottomRightRadius="14dp" />
+</shape>

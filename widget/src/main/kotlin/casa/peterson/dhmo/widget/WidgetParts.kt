@@ -1,19 +1,17 @@
+@file:Suppress("MagicNumber")
+
 package casa.peterson.dhmo.widget
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.net.Uri
 import android.os.Build
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -24,13 +22,11 @@ import androidx.glance.action.Action
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity as actionStartIntent
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
-import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -38,8 +34,6 @@ import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
@@ -53,99 +47,159 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import casa.peterson.dhmo.core.designsystem.icon.DhmoIcons
 import casa.peterson.dhmo.core.designsystem.icon.drawableRes
-import casa.peterson.dhmo.core.designsystem.theme.DarkColors
-import casa.peterson.dhmo.core.designsystem.theme.LightColors
 
-/*
- * Pieces shared by every layout. Widgets cannot use the app's bundled fonts, so headings use the system serif and
- * quantities the system monospace, the closest stand-ins for Fraunces and DM Mono.
- */
-
-/** The paper the widget sits on: the same `surfaceContainerLow` as the app's cards, in both themes. */
-private val Paper = ColorProvider(day = LightColors.surfaceContainerLow, night = DarkColors.surfaceContainerLow)
-
-/** A tap target is never smaller than this, whatever the pill drawn inside it looks like. */
-internal val MinTouchTarget = 48.dp
-
-/** What tapping the widget outside a button does. `:widget` cannot see `:app`, so the launcher activity is named. */
+/** `:widget` cannot see `:app`, so the launcher activity is named. */
 private const val MAIN_ACTIVITY = "casa.peterson.dhmo.MainActivity"
+private const val TODAY_LINK = "dhmo://today"
 
-/** Teal while the day is in progress, amber (the lamp's colour) once the goal is reached. */
+/** Opens the app where it was. */
 @Composable
-internal fun WidgetModel.progressColor(): ColorProvider = if (goalReached) GlanceTheme.colors.secondary else GlanceTheme.colors.primary
+internal fun openAppAction(): Action = actionStartActivity(ComponentName(LocalContext.current.packageName, MAIN_ACTIVITY))
 
-@Composable
-private fun openAppAction(): Action = actionStartActivity(ComponentName(LocalContext.current.packageName, MAIN_ACTIVITY))
+/** Opens the Today screen, where containers are managed. */
+internal fun openTodayAction(context: Context): Action =
+    actionStartIntent(Intent(Intent.ACTION_VIEW, TODAY_LINK.toUri()).setPackage(context.packageName))
 
-/** The widget's paper, rounded to match the launcher on Android 12 and later. Tapping anywhere outside a button opens the app. */
+/**
+ * The widget's sheet of paper: the app's background colour, clipped to the launcher's own corner radius from Android 12.
+ * Tapping anywhere that is not a coaster or Undo opens the app.
+ */
 @Composable
-internal fun WidgetFrame(padding: PaddingValues, content: @Composable () -> Unit) {
-    var modifier = GlanceModifier.fillMaxSize().appWidgetBackground().background(Paper)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        modifier = modifier.cornerRadius(android.R.dimen.system_app_widget_background_radius)
+internal fun WidgetSurface(model: WidgetModel, content: @Composable () -> Unit) {
+    val paper = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        GlanceModifier.background(GlanceTheme.colors.background).cornerRadius(android.R.dimen.system_app_widget_background_radius)
+    } else {
+        GlanceModifier.background(ImageProvider(if (model.night) R.drawable.widget_paper_night else R.drawable.widget_paper_day))
     }
+    Box(GlanceModifier.fillMaxSize().appWidgetBackground().then(paper).clickable(openAppAction())) { content() }
+}
+
+/** The Today screen's arched window, filling [modifier]'s space without distortion. */
+@Composable
+internal fun WindowArt(art: WidgetArt, model: WidgetModel, modifier: GlanceModifier) {
+    Image(ImageProvider(art.window), contentDescription = model.progressDescription, modifier = modifier, contentScale = ContentScale.Fit)
+}
+
+/** The jar on its piece of sill, filling [modifier]'s space without distortion. */
+@Composable
+internal fun JarArt(art: WidgetArt, model: WidgetModel, modifier: GlanceModifier) {
+    Image(ImageProvider(art.jar), contentDescription = model.progressDescription, modifier = modifier, contentScale = ContentScale.Fit)
+}
+
+/** How a coaster arranges its icon, name and amount. */
+internal enum class CoasterStyle {
+    /** Icon over name over amount, as on the Today screen. */
+    STACKED,
+
+    /** Icon, name and amount in a line, for coasters stacked in a column. */
+    ROW,
+
+    /** Icon over amount, for the narrow layouts. */
+    MINI,
+
+    /** Icon beside amount, for cells too short for MINI (a landscape row). */
+    INLINE,
+}
+
+/**
+ * A coaster from the Today screen: the dashed-edged paper disc with the container's inked icon. Tapping it logs the
+ * container; with no containers it reads "Add" and opens the app instead.
+ */
+@Composable
+internal fun Coaster(button: WidgetButton, style: CoasterStyle, model: WidgetModel, modifier: GlanceModifier) {
+    val context = LocalContext.current
+    val action = button.containerId?.let {
+        actionRunCallback<LogContainerAction>(actionParametersOf(ContainerIdKey to it.toString()))
+    } ?: openTodayAction(context)
+    val face = if (model.night) R.drawable.widget_coaster_night else R.drawable.widget_coaster_day
+    val icon = button.icon?.drawableRes() ?: DhmoIcons.Add
     Box(
-        modifier = modifier.padding(start = padding.start, top = padding.top, end = padding.end, bottom = padding.bottom)
-            .clickable(openAppAction()),
+        modifier
+            .background(ImageProvider(face))
+            .clickable(action, rippleOverride = R.drawable.widget_coaster_ripple)
+            .semantics { contentDescription = button.contentDescription },
         contentAlignment = Alignment.Center,
-    ) { content() }
+    ) {
+        // Long amounts ("11.8 fl oz") switch from the monospace to the narrower body face so they still fit.
+        val amount = button.amountText
+        val mono = amount != null && amount.length <= MONO_AMOUNT_LENGTH
+        when (style) {
+            CoasterStyle.STACKED -> Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = GlanceModifier.padding(4.dp)) {
+                CoasterIcon(icon, 20.dp)
+                Text(
+                    button.name,
+                    style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = scaled(12.sp), textAlign = TextAlign.Center),
+                    maxLines = 1,
+                )
+                amount?.let { Text(it, style = goalStyle(11.sp, TextAlign.Center, mono), maxLines = 1) }
+            }
+
+            CoasterStyle.ROW -> Row(verticalAlignment = Alignment.CenterVertically, modifier = GlanceModifier.padding(horizontal = 8.dp)) {
+                CoasterIcon(icon, 18.dp)
+                Spacer(GlanceModifier.width(8.dp))
+                Column {
+                    Text(button.name, style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = scaled(12.sp)), maxLines = 1)
+                    amount?.let { Text(it, style = goalStyle(11.sp, mono = mono), maxLines = 1) }
+                }
+            }
+
+            CoasterStyle.INLINE -> Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = GlanceModifier.padding(horizontal = 8.dp),
+            ) {
+                CoasterIcon(icon, 16.dp)
+                Spacer(GlanceModifier.width(4.dp))
+                Text(amount ?: button.name, style = goalStyle(11.sp, mono = mono), maxLines = 1)
+            }
+
+            CoasterStyle.MINI -> Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = GlanceModifier.padding(2.dp)) {
+                CoasterIcon(icon, 18.dp)
+                if (amount == null || mono) {
+                    Text(amount ?: button.name, style = goalStyle(11.sp, TextAlign.Center, mono = amount != null), maxLines = 1)
+                } else {
+                    // Too long for one line in a narrow coaster: the number, then the unit under it.
+                    Text(button.amountValue.orEmpty(), style = goalStyle(11.sp, TextAlign.Center), maxLines = 1)
+                    Text(button.unitSymbol.orEmpty(), style = goalStyle(10.sp, TextAlign.Center, mono = false), maxLines = 1)
+                }
+            }
+        }
+    }
 }
 
-internal data class PaddingValues(val start: Dp, val top: Dp, val end: Dp, val bottom: Dp) {
-    constructor(horizontal: Dp, vertical: Dp) : this(horizontal, vertical, horizontal, vertical)
-    constructor(all: Dp) : this(all, all, all, all)
-}
+/** Amounts up to `250 ml` or `0.25 L` fit a coaster in the monospace. */
+private const val MONO_AMOUNT_LENGTH = 7
 
 @Composable
-internal fun WidgetText(
-    text: String,
-    size: TextUnit,
-    modifier: GlanceModifier = GlanceModifier,
-    color: ColorProvider = GlanceTheme.colors.onSurface,
-    weight: FontWeight = FontWeight.Normal,
-    family: FontFamily? = null,
-    align: TextAlign? = null,
-    maxLines: Int = 1,
-) {
-    Text(
-        text = text,
-        modifier = modifier,
-        style = TextStyle(color = color, fontSize = size, fontWeight = weight, fontFamily = family, textAlign = align),
-        maxLines = maxLines,
-    )
-}
-
-/** A quantity such as `1.25 L`: monospace, bold. */
-@Composable
-internal fun AmountText(text: String, size: TextUnit, modifier: GlanceModifier = GlanceModifier, align: TextAlign? = null) =
-    WidgetText(text, size, modifier, weight = FontWeight.Bold, family = FontFamily.Monospace, align = align)
-
-/** A small line of secondary text. */
-@Composable
-internal fun CaptionText(text: String, modifier: GlanceModifier = GlanceModifier, size: TextUnit = 12.sp, align: TextAlign? = null) =
-    WidgetText(text, size, modifier, color = GlanceTheme.colors.onSurfaceVariant, align = align)
-
-/** "Today", in the heading serif. */
-@Composable
-internal fun HeadingText(text: String, modifier: GlanceModifier = GlanceModifier, size: TextUnit = 14.sp) =
-    WidgetText(text, size, modifier, weight = FontWeight.Bold, family = FontFamily.Serif)
-
-@Composable
-internal fun DropIcon(size: Dp, modifier: GlanceModifier = GlanceModifier) {
+private fun CoasterIcon(icon: Int, size: Dp) {
     Image(
-        provider = ImageProvider(DhmoIcons.WaterDrop),
+        ImageProvider(icon),
         contentDescription = null,
-        modifier = modifier.size(size),
-        colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
+        modifier = GlanceModifier.size(size),
+        colorFilter = ColorFilter.tint(GlanceTheme.colors.onSurface),
     )
 }
 
-/** A monospace glyph is about this many ems wide. */
-private const val MONO_EM = 0.62f
+/** How much room the setup invitation has. */
+internal enum class SetupSpace { NARROW, SHORT, ROOMY }
 
-/** Whether [text] fits one line of [available] width at [size]. */
-internal fun fits(text: String, available: Dp, size: TextUnit): Boolean = text.length * MONO_EM * size.value <= available.value
-
-/** The largest size up to [max] at which [text] still fits [available] on one line; widgets cannot measure, so this estimates. */
-internal fun fittedSize(text: String, available: Dp, max: TextUnit, min: TextUnit = 9.sp): TextUnit =
-    (available.value / (text.length.coerceAtLeast(1) * MONO_EM)).coerceIn(min.value, max.value).sp
+/** Before onboarding is done there is nothing to show yet: a kind invitation to open the app, in every layout. */
+@Composable
+internal fun SetupContent(model: WidgetModel, space: SetupSpace) {
+    Column(
+        GlanceModifier.fillMaxSize().padding(horizontal = if (space == SetupSpace.NARROW) 4.dp else 14.dp, vertical = 10.dp)
+            .semantics { contentDescription = model.setupDescription },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        val titleSize = when (space) {
+            SetupSpace.NARROW -> 14.sp
+            SetupSpace.SHORT -> 16.sp
+            SetupSpace.ROOMY -> 18.sp
+        }
+        Text(model.setupTitle, style = headingStyle(titleSize).copy(textAlign = TextAlign.Center), maxLines = 4)
+        if (space == SetupSpace.ROOMY) {
+            Spacer(GlanceModifier.size(6.dp))
+            Text(model.setupBody, style = mutedStyle(12.sp, TextAlign.Center), maxLines = 4)
+        }
+    }
+}

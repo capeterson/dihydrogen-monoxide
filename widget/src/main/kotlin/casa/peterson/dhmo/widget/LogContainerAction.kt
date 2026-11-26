@@ -9,38 +9,49 @@ import androidx.glance.appwidget.updateAll
 import casa.peterson.dhmo.core.common.suspendRunCatching
 import casa.peterson.dhmo.core.data.repository.ContainerRepository
 import casa.peterson.dhmo.core.data.usecase.intake.LogIntakeUseCase
+import casa.peterson.dhmo.core.model.IntakeEntry
 import casa.peterson.dhmo.core.model.Source
+import java.time.Instant
 import java.util.UUID
 
-/** The container a button logs, as a UUID string. */
+/** The container a coaster logs, as a UUID string. */
 internal val ContainerIdKey = ActionParameters.Key<String>("container_id")
 
 private const val TAG = "LogContainerAction"
 
 /**
- * Logs the container named by [ContainerIdKey]: its volume, with source [Source.WIDGET]. A container that has been deleted
- * since the widget was drawn logs nothing. Returns whether a drink was logged.
+ * Logs the container named by [containerId]: its volume, with source [Source.WIDGET]. A container deleted since the widget
+ * was drawn logs nothing. Returns the new entry, or null when nothing was logged.
  */
-internal suspend fun logContainer(containers: ContainerRepository, logIntake: LogIntakeUseCase, containerId: String?): Boolean {
+internal suspend fun logContainer(containers: ContainerRepository, logIntake: LogIntakeUseCase, containerId: String?): IntakeEntry? {
     val id = containerId?.let { runCatching { UUID.fromString(it) }.getOrNull() }
     val container = id?.let { wanted -> containers.getAll().firstOrNull { it.id == wanted } }
-    container?.let { logIntake(it.volumeMl, Source.WIDGET) }
-    return container != null
+    return container?.let { logIntake(it.volumeMl, Source.WIDGET) }
 }
 
-/** Logs the tapped container, then repaints every widget (also when the container is gone, so the stale button disappears). */
+/**
+ * Logs the tapped coaster's container, offers Undo for a few seconds, and repaints every widget (also when the container
+ * is gone, so the stale coaster disappears).
+ */
 class LogContainerAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val entry = entryPoint(context)
         suspendRunCatching { logContainer(entry.containers(), entry.logIntake(), parameters[ContainerIdKey]) }
+            .onSuccess { logged -> logged?.let { offerUndo(context, it) } }
             .onFailure { Log.w(TAG, "Could not log from the widget", it) }
         TodayWidget().updateAll(context)
     }
 }
 
+/** Remembers [logged] for Undo and repaints the widgets once the offer has run out. */
+internal fun offerUndo(context: Context, logged: IntakeEntry) {
+    WidgetUndoStore(context).record(logged.id, logged.volumeMl, Instant.now())
+    WidgetRefreshScheduler.afterUndoWindow(context)
+}
+
 /**
- * What widgets placed before the per-container buttons call from their pending intents. It logs the default container (the
- * lowest sort order), so those widgets keep working until they next redraw with the new buttons.
+ * What widgets placed before per-container coasters call from their pending intents. It logs the default container (the
+ * lowest sort order), so those widgets keep working until they next redraw.
  */
 @Deprecated("Replaced by LogContainerAction; kept so pending intents of already placed widgets do not crash.")
 class LogDefaultDrinkAction : ActionCallback {
@@ -49,7 +60,8 @@ class LogDefaultDrinkAction : ActionCallback {
         suspendRunCatching {
             val default = entry.containers().getAll().minByOrNull { it.sortOrder }
             logContainer(entry.containers(), entry.logIntake(), default?.id?.toString())
-        }.onFailure { Log.w(TAG, "Could not log the default drink from the widget", it) }
+        }.onSuccess { logged -> logged?.let { offerUndo(context, it) } }
+            .onFailure { Log.w(TAG, "Could not log the default drink from the widget", it) }
         TodayWidget().updateAll(context)
     }
 }

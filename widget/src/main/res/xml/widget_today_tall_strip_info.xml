@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:description="@string/widget_description_tall_strip"
     android:initialLayout="@layout/glance_default_loading_layout"
+    android:previewImage="@drawable/widget_preview_tall_strip"
     android:minWidth="40dp"
     android:minHeight="200dp"
     android:minResizeWidth="40dp"

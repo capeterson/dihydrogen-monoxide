@@ -23,6 +23,9 @@ internal val WidgetBreakpoints: List<Breakpoint> = listOf(
     Breakpoint(DpSize(112.dp, 72.dp), WidgetLayout.COMPACT),
     Breakpoint(DpSize(190.dp, 40.dp), WidgetLayout.COMPACT),
     Breakpoint(DpSize(50.dp, 170.dp), WidgetLayout.TALL_STRIP),
+    // A portrait 1x3 (about 57 x 338): the same layout, told apart from the short landscape one so its jar can keep a
+    // steady size instead of stretching to fill the height.
+    Breakpoint(DpSize(50.dp, 280.dp), WidgetLayout.TALL_STRIP),
     Breakpoint(DpSize(190.dp, 60.dp), WidgetLayout.WIDE_STRIP),
     Breakpoint(DpSize(300.dp, 40.dp), WidgetLayout.WIDE_STRIP),
     Breakpoint(DpSize(120.dp, 200.dp), WidgetLayout.SQUARE),
@@ -53,3 +56,16 @@ internal fun layoutFor(available: DpSize): WidgetLayout = selectBreakpoint(avail
 internal fun layoutForBreakpoint(size: DpSize): WidgetLayout = WidgetBreakpoints.firstOrNull { it.size == size }?.layout ?: layoutFor(size)
 
 private fun DpSize.area(): Float = width.value * height.value
+
+/**
+ * The largest system font scale a layout's text follows. A widget's size is fixed by the launcher's grid, so its text
+ * cannot reflow onto more lines the way a screen scrolls: in the strips, the compact, the square and the wide card every
+ * line is already sized to its space, and larger text cut numbers off and split words. Only the tall card has room to
+ * grow. Checked at font scale 2.0 by `WidgetRenderTest`; the app itself follows the full setting.
+ */
+internal fun WidgetLayout.maxFontScale(): Float = if (this == WidgetLayout.TALL_CARD) TALL_CARD_MAX_FONT_SCALE else 1f
+
+private const val TALL_CARD_MAX_FONT_SCALE = 1.3f
+
+/** What every text size in [layout] is multiplied by, so the system's [fontScale] times it stays within the cap. */
+internal fun textScaleFor(layout: WidgetLayout, fontScale: Float): Float = (layout.maxFontScale() / fontScale).coerceAtMost(1f)

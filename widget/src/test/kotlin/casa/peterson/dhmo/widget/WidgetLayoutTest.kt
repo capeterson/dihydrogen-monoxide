@@ -59,4 +59,17 @@ class WidgetLayoutTest {
         assertThat(WidgetBreakpoints.map { it.layout }.toSet()).containsExactlyElementsIn(WidgetLayout.entries)
         WidgetBreakpoints.forEach { assertThat(layoutForBreakpoint(it.size)).isEqualTo(it.layout) }
     }
+
+    @Test
+    fun `only the tall card lets its text grow with the system font size, and only to 130 percent`() {
+        WidgetLayout.entries.filter { it != WidgetLayout.TALL_CARD }.forEach { layout ->
+            assertThat(textScaleFor(layout, 1f)).isEqualTo(1f)
+            assertThat(textScaleFor(layout, 2f)).isEqualTo(0.5f)
+        }
+        assertThat(textScaleFor(WidgetLayout.TALL_CARD, 1f)).isEqualTo(1f)
+        assertThat(textScaleFor(WidgetLayout.TALL_CARD, 1.3f)).isEqualTo(1f)
+        assertThat(textScaleFor(WidgetLayout.TALL_CARD, 2f)).isWithin(0.001f).of(0.65f)
+        // A small system font is followed everywhere: the cap only limits growth.
+        assertThat(textScaleFor(WidgetLayout.COMPACT, 0.85f)).isEqualTo(1f)
+    }
 }
